@@ -1,0 +1,79 @@
+<odoo>
+
+	<template id="my_property_link" name="Link to frontend portal" inherit_id="portal.user_dropdown">
+        <xpath expr="//a[@id='o_logout']" position="before">
+            <a href="/my_properties" role="menuitem" class="dropdown-item">My Property</a>
+        </xpath>
+    </template>
+    
+   <template id="my_properties_content">
+       <section class="welcome-area">
+           <div class="welcome-slides owl-carousel">
+               <div class="col-md-12 asset-my-property rent-single-welcome-slide bg-img bg-overlay">
+                   <div class='text-center inner-content'>
+                       <h3><strong>My </strong> Property</h3>
+                       <ul>
+                           <li>
+                               <a href="/">Home</a>
+                           </li>
+                           <li>My Property</li>
+                       </ul>
+                   </div>
+               </div>
+           </div>
+       </section>
+       <!-- <div class="mt32 rest feature-properties"> -->
+           <section class="recent-viewed-section section" id="my_property_section">
+               <div class="container">
+                   <div class='row'>
+                   <t t-if="all_property_objs">
+                       <t t-foreach="all_property_objs" t-as="account_asset_one_lease">
+                           <t t-call="property_website.dosplay_properties" />
+                       </t>
+                   </t>
+               </div>
+               </div>
+           </section>
+           <!-- <t t-call="property_management_website.custom_footer" /> -->
+       <!-- </div> -->
+   </template>
+   
+   <template id="my_properties_onload" name="My Properties">
+           <t t-call="website.layout">
+               <t t-call="property_website.my_properties_content" />
+           </t>
+   </template>
+   
+   <template id="allsavedsales_onload" name="Favorite Lease">
+        <t t-call="website.layout">
+        	<div class='row'>
+		        <section class="col-md-12 welcome-area">
+		            <div class="welcome-slides owl-carousel">
+		                <div class="asset-lease rent-single-welcome-slide bg-img bg-overlay">
+		                    <div class='text-center inner-content'>
+		                        <h3><strong>FAVORITE</strong> PROPERTIES</h3>
+		                        <ul>
+		                            <li>
+		                                <a href="/">Home</a>
+		                            </li>
+		                            <li>Properties</li>
+		                        </ul>
+		                    </div>
+		                </div>
+		            </div>
+		        </section>
+	    	</div>
+	    	<section class="recent-viewed-section section" id="my_property_section">
+               <div class="container">
+                   <div class='row'>
+	                   <t t-foreach="account_asset_all_sale_cookie_obj" t-as="account_asset_one_lease">
+	                       <t t-call="property_website.dosplay_properties" />
+	                   </t>
+               		</div>
+               </div>
+           </section>
+        </t>
+    </template>
+   
+
+</odoo>

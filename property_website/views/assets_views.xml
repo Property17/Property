@@ -1,0 +1,30 @@
+<odoo>
+    <record id="view_account_asset_asset_form_inherite" model="ir.ui.view">
+        <field name="name">account.asset.form.inherit</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="property_management.property_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='property_photo_ids']/tree" position="inside">
+                <field name="secondary_photo"/>
+            </xpath>
+            <xpath expr="//field[@name='property_photo_ids']/form/group" position="inside">
+                <field name="secondary_photo"/>
+            </xpath>
+             <page name='photos' position='inside'>
+                <group col='4' colspan='4'>
+                    <field name="cover_photos" filename="doc_name"/>
+                </group>
+            </page>
+            <xpath expr="//notebook" position="inside">
+                <page string='Suggested Properties'>
+                    <separator string="Suggested Properties" colspan="4"/>
+                    <field name="suggested_property_ids" nolabel="1" widget="one2many">
+                        <tree string="Properties" editable="true">
+                            <field name="other_property_id"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

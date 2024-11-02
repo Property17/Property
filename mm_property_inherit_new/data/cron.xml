@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+<!--         <record id="create_invoice_automatic_cron" model="ir.cron">
+            <field name="name">Create Invoice Automatic</field>
+            <field name="model_id" ref="model_account_analytic_account"/>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="code">model._cron_run_action()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
+         <record id="create_old_invoice_automatic_cron" model="ir.cron">
+            <field name="name">Create Old Invoice Automatic</field>
+            <field name="model_id" ref="model_account_analytic_account"/>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="code">model._cron_old_invoice_run_action()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
+        <record id="action_server_create_old_invoice_automatic" model="ir.actions.server">
+            <field name="name">Create Old Invoice Automatic</field>
+            <field name="type">ir.actions.server</field>
+            <field name="binding_model_id" ref="account.model_account_analytic_account" />
+            <field name="model_id" ref="account.model_account_analytic_account" />
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                records._cron_old_invoice_run_action()
+            </field>
+        </record>-->
+
+        <record id="create_automatic_close_cron" model="ir.cron">
+            <field name="name">Automatic Close</field>
+            <field name="model_id" ref="model_account_analytic_account"/>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="code">model._cron_automatic_close_action()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

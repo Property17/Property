@@ -1,0 +1,202 @@
+<odoo>
+    <template id="sell_properties" name="Sale Properties">
+        <t t-call="website.layout">
+	        <section class="welcome-area">
+	            <div class="welcome-slides owl-carousel">
+	                <div class='row'>
+		                <div class="col-12 asset-sale rent-single-welcome-slide bg-img bg-overlay">
+		                    <div class='text-center inner-content'>
+		                        <h3>
+		                            <strong>SALE</strong>
+		                            PROPERTY</h3>
+		                        <ul>
+		                            <li>
+		                                <a href="/">Home</a>
+		                            </li>
+		                            <li>Sale</li>
+		                        </ul>
+		                    </div>
+		                </div>
+	                </div>
+	            </div>
+	        </section>
+	        <div class='container'>
+	            <div class='row mt32'>
+	                <div class='col-md-12 title'>
+	                    <p>Request a market Appraisal</p>
+	                </div>
+	            </div>
+                <div class="container">
+                    <div class="row justify-content-start saleform_div">
+		                <div class="col-md-8 col-12 sell-page-contact">
+		                    <form id="saleForm" class="row mt32 needs-validation" method="post" role="form" novalidate="novalidate">
+	                        	<div class="form-group col-sm-6 col-12">
+	                                <label class="control-label" for="first_name">First Name*</label>
+	                                <input type="text" class="form-control" name="first_name" required="required"/>
+	                            </div>
+	                            <div class="form-group col-sm-6 col-12">
+	                                <label class="control-label" for="last_name">Last Name*</label>
+	                                <input type="text" class="form-control" name="last_name" required="required"/>
+	                            </div>
+	                            <div class="form-group col-sm-6 col-12 mt16">
+	                                <label class="control-label" for="email_from">Email address*
+	                                </label>
+	                                <input type="email" class="form-control" name="email_from" required="required"/>
+	                                <div class="invalid-feedback">Please enter valid Email address.</div>
+	                            </div>
+	                            <div class="form-group col-sm-6 col-12 mt16">
+	                                <label class="control-label" for="phone">Telephone number*</label>
+	                                <input type="tel" class="form-control" name="phone" required="required" />
+	                            </div>
+		                        <div class="col form-group col-md-12 col-xs-12 mt16">
+		                            <label class="control-label" for="address">Address*</label>
+		                            <input type="text" class="form-control" name="address" required="required"/>
+		                        </div>
+	                            <div class="form-group col-sm-6 col-12 mt16">
+	                                <label class="control-label" for="city">City*</label>
+	                                <input type="text" class="form-control" name="city" required="required"/>
+	                            </div>
+	                            <div class="form-group col-sm-6 col-12 mt16">
+	                                <label class="control-label" for="zip">Postcode*</label>
+	                                <input type="text" class="form-control" name="zip" required="required"/>
+	                            </div>
+		                        <div class="form-group col-sm-6 col-12 mt16">
+		                            <label class="control-label" for="country">Country*</label>
+		                            <select class="form-control" name="country_id" required="required">
+		                                <option value="">Country</option>
+		                                <t t-foreach="countries or []" t-as="country">
+		                                     <option t-att-value="country.id">
+		                                        <t t-esc="country.name"/>
+		                                    </option>
+		                                </t>
+		                            </select>
+		                        </div>
+		                        <div class="form-group col-12 mt16">
+		                            <div id="display_success_msg" class="form-group alert alert-success" style="display:none;">
+		                                Your message has been sent successfully.
+		                            </div>
+		                        </div>
+		                        <div class="form-group col-12 mt16">
+		                            <button type="button" class="btn btn-primary btn-lg" id="submit_sale_form">Submit</button>
+		                    	</div>
+	                    	</form>
+	                	</div>
+					</div>
+				</div>
+        	</div>
+       	</t>
+   	</template>
+
+   	<template id="post_properties" name="Post Properties">
+        <t t-call="website.layout">
+            <div class="container">
+                <div class="row">
+                    <div class="section-custom title col-md-12">
+                        <p>Post Property in 3 Simple Steps</p>
+                    </div>
+                    <div class="pt32 pb32 text-center o_colored_level col-lg-4">
+                        <img src="/property_website/static/src/image/online-survey.png" style="height: 80px; margin: 0px auto;" class="img img-responsive"/>
+                        <h4 class="mt16 text-pms"><b>Register</b></h4>
+                        <p class="text-muted">Fill out the basic form and register in the system.</p>
+                    </div>
+                    <div class="pt32 pb32 text-center o_colored_level col-lg-4">
+                        <img src="/property_website/static/src/image/approved.png" style="height: 80px; margin: 0px auto;" class="img img-responsive"/>
+                        <h4 class="mt16 text-pms"><b>Verification</b></h4>
+                        <p class="text-muted">Your details are verified by our company and send you the login details.</p>
+                    </div>
+                    <div class="pt32 pb32 text-center o_colored_level col-lg-4">
+                        <img src="/property_website/static/src/image/browser.png" style="height: 80px; margin: 0px auto;" class="img img-responsive"/>
+                        <h4 class="mt16 text-pms"><b>Login &amp; Post&amp;nbsp;</b></h4>
+                        <p class="text-muted">Login with your Credentials and post details of your property and publish it.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+	                    <div class="section-custom title col-md-12">
+	                        <p>Sale or Rent your Property</p>
+	                    </div>
+	                    <img class="sticky-top" src="/property_website/static/images/post_property.png" width="85%"/>
+	                </div>
+	                <div class="col-md-6">
+	                   <t t-if="submited">
+                           <div class="alert alert-primary" role="alert">
+                                Thank you!<br/>
+                                You have successfully submitted form!!<br/>
+                                One of our expert advisor will contact you soon.
+                            </div>
+                        </t>
+	                    <form class="mt32 needs-validation post-property-form" action="/post-property" method="post" role="form">
+	                        <h4 class="mt32 mb16"><b>Personal Details</b></h4>
+	                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+	                        <div class="form-group col-12">
+	                            <span class="control-label">I am* &amp;nbsp;</span>
+	                            <div class="form-check form-check-inline">
+								    <input class="form-check-input" type="radio" name="property_user" value="owner" required="required"/>
+								    <label class="form-check-label">Owner</label>
+								</div>
+								<div class="form-check form-check-inline"> 
+								    <input class="form-check-input" type="radio" name="property_user" value="property_manager" required="required"/>
+								    <label class="form-check-label">Property Manager</label>
+								</div>
+	                        </div>
+	                        <div class="form-group col-12">
+	                            <label class="control-label" for="contact_name">Name*</label>
+	                            <input type="text" class="form-control" name="contact_name" required="required"/>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <label class="control-label" for="email_from">Email address*
+	                            </label>
+	                            <input type="email" class="form-control" name="email_from" required="required"/>
+	                            <div class="invalid-feedback">Please enter valid Email address.</div>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <label class="control-label" for="phone">Contact Number*</label>
+	                            <input type="tel" class="form-control" name="phone" required="required" />
+	                        </div>
+	                        <h4 class="mt32 mb16"><b>Property Details</b></h4>
+	                        <div class="form-group col-12">
+	                            <span class="control-label">For* &amp;nbsp;</span>
+	                            <div class="form-check form-check-inline">
+	                                <input class="form-check-input" type="radio" name="property_rent_sale" value="sale" required="required"/>
+	                                <label class="form-check-label">Sale</label>
+	                            </div>
+	                            <div class="form-check form-check-inline">
+	                                <input class="form-check-input" type="radio" name="property_rent_sale" value="rent" required="required"/>
+	                                <label class="form-check-label">Rent</label>
+	                            </div>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <label class="control-label" for="type_id">Property Type*</label>
+	                            <select name="type_id" class="form-control" required="required">
+	                                <t t-foreach="property_types" t-as="p_type">
+	                                    <option t-att-value="p_type.id"><t t-esc="p_type.name"/></option>
+	                                </t>
+	                            </select>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <label class="control-label" for="email_from">Location*</label>
+	                            <input type="text" class="form-control" name="city" required="required" placeholder="City"/>
+	                            <input type="text" class="form-control mt16" name="street2" required="required" placeholder="Locality"/>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+                                <label class="control-label" for="email_from">Message</label>
+                                <textarea name="description" rows="3" class="form-control"></textarea>
+                            </div>
+	                        <div class="form-group col-12 mt16 ml-4">
+	                            <input type="checkbox" class="form-check-input terms_check" required="required"/>
+	                            <label class="form-check-label">I agree to <t t-esc="res_company and res_company.name"/> T&amp;C and Privacy Policy</label>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <span>Are you a registered user? <a href="/web/login">login</a></span>
+	                        </div>
+	                        <div class="form-group col-12 mt16">
+	                            <button type="submit" class="btn pms-button post-property">Register</button>
+	                        </div>
+	                    </form>
+	                </div>
+                </div>
+            </div>
+        </t>
+    </template>
+   	
+</odoo>

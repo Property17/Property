@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_activity_type_new,activity_type_new,model_activity_type,,1,1,1,1
+access_legal_type_new,legal_type_new,model_legal_type,,1,1,1,1
+access_contract_template_new,contract_template_new,model_contract_template,,1,1,1,1
+access_property_contract_template_new,property_contract_template_new,model_property_contract_template,,1,1,1,1
+
+
+
+
+

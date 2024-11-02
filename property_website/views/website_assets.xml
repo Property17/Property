@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="asset_frontend" name="website assets for frontend" inherit_id="website.assets_frontend">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/property_website/static/src/js/property_rpc.js"/>
+            <script type="text/javascript" src="/property_website/static/lib/jquery.ui/jquery_ui_slider.js"/>
+            <link rel="stylesheet" href="/property_website/static/lib/jquery.ui/jquery-ui.css"/>
+            <link rel="stylesheet" href="/property_website/static/src/css/style.css"/>
+            <link rel="stylesheet" href="/property_website/static/src/css/gallery-grid.css"/>
+            <link rel="stylesheet" href="/property_website/static/src/css/card.css"/>
+            <!-- <t t-set="google_maps_api_key"
+               t-value="request.website.google_maps_api_key"/>
+            <t t-if="google_maps_api_key">
+                <script t-attf-src="https://maps.googleapis.com/maps/api/js?key=#{google_maps_api_key}&amp;libraries=places"/>
+            </t> -->
+            <script type="text/javascript" src="/property_website/static/src/js/google_map_script.js"/>
+            <script type="text/javascript" src="/property_website/static/src/js/homepage_search.js"/>
+        </xpath>
+    </template>
+
+</odoo>

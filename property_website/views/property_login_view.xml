@@ -1,0 +1,38 @@
+<odoo>
+	<template id="login_layout" inherit_id="web.login_layout" name="Website Login Layout" priority="20">
+	    <xpath expr="t" position="replace">
+	        <t t-call="website.layout">
+	            <div class="oe_website_login_container">
+	            	<div class="login-curve-layout" t-raw="0"/>
+	            </div>
+	        </t>
+	    </xpath>
+	</template>
+	
+<!--	<template id="login_header" inherit_id="web.login" name="Login header">-->
+<!--		<xpath expr="//form[hasclass('oe_login_form')]/div[1]" position="before">-->
+<!--			<div class="row" style="padding: 14px;">-->
+<!--                <h3>Login</h3>-->
+<!--            </div>-->
+<!--            <hr style="margin-top: 0px;"/>-->
+<!--		</xpath>-->
+<!--	</template>-->
+<!--	-->
+<!--	<template id="signup_header" inherit_id="auth_signup.signup" name="signup header">-->
+<!--		<xpath expr="//form[hasclass('oe_signup_form')]/input[1]" position="after">-->
+<!--			<div class="row" style="padding: 14px;">-->
+<!--                <h3>Sign Up</h3>-->
+<!--            </div>-->
+<!--            <hr style="margin-top: 0px;"/>-->
+<!--		</xpath>-->
+<!--	</template>-->
+<!--	-->
+<!--	<template id="reset_password_header" inherit_id="auth_signup.reset_password" name="reset password header">-->
+<!--		<xpath expr="//form[hasclass('oe_reset_password_form')]/input[1]" position="after">-->
+<!--			<div class="row" style="padding: 14px;">-->
+<!--                <h3>Reset Password</h3>-->
+<!--            </div>-->
+<!--            <hr style="margin-top: 0px;"/>-->
+<!--		</xpath>-->
+<!--	</template>-->
+</odoo>

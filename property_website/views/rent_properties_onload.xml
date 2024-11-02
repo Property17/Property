@@ -1,0 +1,82 @@
+<odoo>
+    
+    <template name="All Aseets Lease" id="allassetlease_content">
+        <div class='row'>
+        <section class="col-md-12 welcome-area">
+            <div class="welcome-slides owl-carousel">
+                <div class="asset-lease rent-single-welcome-slide bg-img bg-overlay">
+                    <div class='text-center inner-content'>
+                        <h3><strong>FEATURED</strong> ON LEASE</h3>
+                        <ul>
+                            <li>
+                                <a href="/">Home</a>
+                            </li>
+                            <li>Properties</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+         <div class="rest feature-properties">
+            <section class="recent-viewed-section section" id="allassetlease_section">
+                <div class="container">
+                    <div class="row allassetsale_section_first_row" style="width: inherit;z-index: 1;">
+                        <div class="mt32 mb32 col-12" id="display_saved_properties">
+                            <input type="hidden" id="property_type" name="property_type" t-att-value="property_type" />
+                            <ul class="nav navbar-nav">
+
+                                <li style="cursor:pointer">
+                                    <a href="/favorite-properties" id="view_all_asset_sale_saved">Saved (<t t-esc="len(product_ids_from_cookies_list)"/>)</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                    	<div class='mt32 mb32 col-12'>
+                            <t t-call="property_website.search_property_content" />
+                        </div>
+                    </div>
+
+                    <t t-call="property_website.featured_lease_content"/>
+					<!-- <div class="row">
+						<div class="col-12 mt16 mb16">
+	                    	<t t-call="website.pager"/>
+	                    </div>
+					</div> -->
+                </div>
+            </section>
+        </div>
+
+    </template>
+    <template id="featured_lease_content" name="Featured Lease Content">
+        <div class="row recent-viewed-content">
+            <t t-foreach="all_property_objs" t-as="account_asset_one_lease">
+                <t t-if="(account_asset_one_lease.state == 'draft')">
+                    <t t-call="property_website.dosplay_properties" />
+                </t>
+            </t>
+        </div>
+    </template>
+    
+    <template id="rent_properties" name="Rent Properties">
+        <t t-call="property_website.allassetlease_content" />
+    </template>
+    <template id="rent_properties_onload" name="Rent">
+        <t t-call="website.layout">
+            <t t-call="property_website.rent_properties"/>
+        </t>
+    </template>
+    <template id="lease_properties" name="Property On Rent">
+    	<t t-call="website.layout">
+    		<t t-call="property_website.allassetlease_content" />
+    	</t>
+    </template>
+    <template id="allassetlease_onload" name="Assets Lease">
+            <t t-call="property_website.allassetlease_content" />
+    </template>
+
+
+</odoo>

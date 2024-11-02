@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <template id="render_properties_grid">
+<!--                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/> -->
+<!--                 <input type="hidden" name="show_property" class="show_property" value=""/> -->
+<!--                 <input type="hidden" name="active_property_id" class="active_property_id" value=""/> -->
+                    <a t-attf-href="/properties/{{slug(my_properties_values)}}">
+                    <div class="card shadow mb-4">
+                        <div class="card-image">
+                            <img t-if="my_properties_values.image" t-att-src="image_data_uri(my_properties_values.image)" class="img-fluid" />
+                            <span class="card-title">
+                                <span t-field="my_properties_values.type_id"></span>
+                            </span>
+                            <span class="card-price">
+                                <span class="ml-2 bg-white p-1 shadow-lg border-radius10" t-esc="my_properties_values.property_sale_rent"></span>
+                            </span>
+                        </div>
+                        <div class="card-content">
+                            <div class="listingInfo">
+                                <div class="vcard">
+                                    <h2>
+                                        <a t-attf-href="/properties/{{slug(my_properties_values)}}"><t t-esc="my_properties_values.name"/></a>
+                                    </h2>
+                                    <p class="listingLocation">
+                                        <i class="fa fa-map-o"></i>
+                                        <span t-field="my_properties_values.street"/>
+                                        <span t-field="my_properties_values.city"/>
+                                        <span t-field="my_properties_values.state_id"/>
+                                    </p>
+                                    <!-- <p>
+                                        <div  class="rent-price" t-if="my_properties_values.total_price">
+                                            <t t-if="not request.session.get('website_sale_current_currency')">
+                                                <t t-esc="my_properties_values.currency_id.symbol"/> <t t-esc="'{0:,.2f}'.format(float(my_properties_values.total_price))" />
+                                            </t>
+                                            <t t-if="request.session.get('website_sale_current_currency')" >
+                                                <t t-esc="current_currency.symbol"/> <t t-esc="'{0:,.2f}'.format(website._compute_optional_total_price(my_properties_values.total_price,my_properties_values.currency_id,request.session.get('website_sale_current_currency')))"/>
+                                            </t>
+                                        </div>
+                                    </p> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-action">
+                            <t t-if="my_properties_values.id in product_ids_from_cookies_list">
+                                <span t-att-data-property_id="my_properties_values.id" class="listing-save" style="display:none;" >
+                                    <i class="fa fa-heart-o" style="padding: 0;"></i>
+                                </span>
+                                <span t-att-data-property_id="my_properties_values.id" class="listing-saved-data" style="cursor:pointer" >
+                                    <i class="fa fa-heart" style="color: red;padding: 0;"></i>
+                                </span>
+                            </t>
+                            <t t-if="not my_properties_values.id in product_ids_from_cookies_list">
+                                <span t-att-data-property_id="my_properties_values.id" class="listing-save" style="cursor:pointer" >
+                                    <i class="fa fa-heart-o" style="padding: 0;" ></i>
+                                </span>
+                                <span t-att-data-property_id="my_properties_values.id" class="listing-saved-data" style="display:none;" data-check_value="false" >
+                                    <i class="fa fa-heart" style="color: red;padding: 0;"></i>
+                                </span>
+                            </t>
+                            <a t-if="int(my_properties_values.parking) > 0" href="#" target="new_blank" data-toggle="tooltip"
+                               data-placement="top" title=""
+                               t-att-data-original-title="'Parking %s'% my_properties_values.parking">
+                                <i class="fa fa-car"></i>
+                                <t t-esc="my_properties_values.parking"></t>
+                            </a>
+                            <a t-if="int(my_properties_values.bedroom) > 0" href="#" target="new_blank" data-toggle="tooltip"
+                               data-placement="top"
+                               t-att-data-original-title="'Bedroom %s '% my_properties_values.bedroom">
+                                <i class="fa fa-bed"></i>
+                                <t t-esc="my_properties_values.bedroom"></t>
+                            </a>
+                            <a t-if="int(my_properties_values.bathroom) > 0" href="#" target="new_blank" data-toggle="tooltip"
+                               data-placement="top"
+                               t-att-data-original-title="'Bathroom %s '% my_properties_values.bathroom">
+                                <i class="fa fa-shower"></i>
+                                <t t-esc="my_properties_values.bathroom"></t>
+                            </a>
+                            <div class="pull-right">
+                                <a href="#" class="btn btn-link prop_link_to_details_page"
+                                     t-att-data-pagelink="str('/property/details/' + str(my_properties_values.id))"
+                                     t-att-data-activepropids="my_properties_values.id">
+                                    <i class="fa fa-eye">
+                                    <span>View</span></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    </a>
+    </template>
+
+    <template id="search_property_template" name="Search Property">
+        <t t-call="website.layout">
+            <section>
+                <form name="search_property" id="search_property" class="search_property" role="form"
+                    method="post" action="/properties" t-if="not message" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" id="selected_utilities" t-att-value="selected_utilities" class="selected_utilities" name="selected_utilities"/>
+                    <input type="hidden" name="type_id" class="selected_type" t-att-value="property_type_list"/>
+                    <input type="hidden" class="dropdown_filter_change" t-att-value="min_range" name="min_range" id="min_price_range_id"/>
+                    <input type="hidden" class="dropdown_filter_change" t-att-value="max_range" name="max_range" id="max_price_range_id"/>
+                    <div class="container bg-light-sky mb-4">
+                        <div class="row">
+                            <div class="col-lg-12">
+<!--                                     <div class="container"> -->
+                                        <div class="mt-4">
+                                            <div class="custom-control custom-radio custom-control-inline stylist-radio">
+                                                <input type="radio" class="custom-control-input" id="sale_chk" name="rent_sale_type" value="sale" t-att-checked="'checked' if post.get('rent_sale_type') == 'sale' else None"/>
+                                                <label class="custom-control-label text-white" for="sale_chk">SALE</label>
+                                            </div>
+                                            <div class="custom-control custom-radio custom-control-inline stylist-radio">
+                                                <input type="radio" class="custom-control-input" id="rent_chk" name="rent_sale_type" value="rent" t-att-checked="'checked' if post.get('rent_sale_type') == 'rent' else None"/>
+                                                <label class="custom-control-label text-white" for="rent_chk">RENT</label>
+                                            </div>
+                                        </div>
+                                        <div class="row no-gutters form-search form-search-style-02 mb-4 mt-4"
+                                             data-animate="fadeInDown">
+<!--                                             <div class="row align-items-end no-gutters"> -->
+                                                <div class="col-xl-10 mb-4 mb-xl-0 py-3 px-4 bg-white border-right position-relative">
+                                                    <label for="key-word"
+                                                           class="font-size-md font-weight-semibold text-dark mb-0 lh-1">
+                                                        Search Location
+                                                    </label>
+                                                    <div class="input-group dropdown show">
+                                                        <input type="text"
+                                                            class="form-control"
+                                                            name="search_by_address"
+                                                            t-att-value="post.get('search_by_address')"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div class="col-xl-2 button pb-4 pt-4 bg_gradient">
+                                                    <button type="submit"
+                                                            class="btn bg-homy-green btn-lg btn-icon-left btn-block"><i
+                                                            class="fa fa-search"></i> Search
+                                                    </button>
+                                                </div>
+<!--                                             </div> -->
+                                        </div>
+<!--                                     </div> -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                    <div class="container mb-4">
+<!--                         <div class="row"> -->
+<!--                             <div class="col-lg-12"> -->
+                                <div class="row mt-4">
+                                    <div class='col-md-3 filter_sidebar'>
+                                        <div name="sort_products" class="filter_header">
+                                            <h5><b>Sort</b></h5>
+                                            <select name="sort_by" id='property_sort_by'
+                                                    t-attf-class="form-control sort_property_select2"
+                                                    form="search_property">
+                                                <option value="">All</option>
+                                                <option value="most_recent" t-att-selected="'most_recent'==post.get('sort_by') if post.get('sort_by') else None">Most Recent</option>
+                                                <option value="lowest_price" t-att-selected="'lowest_price'==post.get('sort_by') if post.get('sort_by') else None">Lowest Price</option>
+                                                <option value="highest_price" t-att-selected="'highest_price'==post.get('sort_by') if post.get('sort_by') else None">Highest Price</option>
+                                            </select>
+                                        </div>
+                                        <div name="filter_products" class="filter_header mt32" style="position: relative;">
+                                            <h5><b>Filters</b></h5>
+                                            <a class="btn btn-sm bg_gradient" href="/properties" style="position: absolute;top: 13px;right: 5%;">Reset</a>
+	                                        <label class="font-size-md">
+	                                            Property Type
+	                                        </label>
+	                                        <div class="input-group dropdown show">
+                                                <select data-live-search="true" id='property_type_select_filter'
+                                                        t-attf-class="form-control search_property_select2"
+                                                        form="search_property" multiple="multiple">
+                                                    <option value="">All</option>
+                                                    <t t-foreach="property_types or []" t-as="p_type">
+                                                        <option t-att-data-tokens="p_type.id"
+                                                                t-att-value="p_type.id"
+                                                                t-att-selected="p_type.id in property_type_list if property_type_list else None">
+                                                            <t t-esc="p_type.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+	                                        </div>
+                                        
+                                        <label class="font-size-md">
+                                            Price
+                                        </label>
+                                        
+                                        <div class='col-12 location-filter'>
+                                            <input type="text" class="dropdown_filter_change text-center" id="price_slider"/>
+		                                    <div class="row mb4 p-2">
+		                                        <div class="col-6">Min
+		                                        </div>
+		                                        <div class="col-6 text-right">Max
+		                                        </div>
+		                                    </div>
+		                                    <div class="form-group price-slider">
+		                                        <div id="price_slider_range" class="col-11"></div>
+		                                    </div>
+		                                </div>
+                                        <label class="font-size-md">
+                                            Bedrooms
+                                        </label>
+                                        <div class="input-group dropdown show">
+                                            <select name="search_bedrooms" id='search_property_by_bedrooms' t-attf-class="form-control search_property_by_bedrooms" form="search_property">
+                                                <option value="">All</option>
+                                                <option value="1" t-att-selected="'1'==post.get('search_bedrooms') if post.get('search_bedrooms') else None">1</option>
+                                                <option value="2" t-att-selected="'2'==post.get('search_bedrooms') if post.get('search_bedrooms') else None">2</option>
+                                                <option value="3" t-att-selected="'3'==post.get('search_bedrooms') if post.get('search_bedrooms') else None">3</option>
+                                                <option value="4" t-att-selected="'4'==post.get('search_bedrooms') if post.get('search_bedrooms') else None">4</option>
+                                                <option value="5" t-att-selected="'5'==post.get('search_bedrooms') if post.get('search_bedrooms') else None">5+</option>
+                                            </select>
+                                        </div>
+                                        <label class="font-size-md">
+                                            Bathrooms
+                                        </label>
+                                        <div class="input-group dropdown show">
+                                            <select name="search_bathrooms" id='search_property_by_bathrooms' t-attf-class="form-control search_property_by_bathrooms" form="search_property">
+                                                <option value="">All</option>
+                                                <option value="1" t-att-selected="'1'==post.get('search_bathrooms') if post.get('search_bathrooms') else None">1</option>
+                                                <option value="2" t-att-selected="'2'==post.get('search_bathrooms') if post.get('search_bathrooms') else None">2</option>
+                                                <option value="3" t-att-selected="'3'==post.get('search_bathrooms') if post.get('search_bathrooms') else None">3</option>
+                                                <option value="4" t-att-selected="'4'==post.get('search_bathrooms') if post.get('search_bathrooms') else None">4</option>
+                                                <option value="5" t-att-selected="'5'==post.get('search_bathrooms') if post.get('search_bathrooms') else None">5+</option>
+                                            </select>
+                                        </div>
+                                        <label for="key-word"
+                                               class="font-size-md">
+                                            Furnished Type
+                                        </label>
+                                        <div class="input-group dropdown show">
+                                            <select name="search_furnish_type" id='search_property_by_furnish_type' t-attf-class="form-control search_property_by_furnish_type" form="search_property">
+                                                <option value="">All</option>
+                                                <option value="none" t-att-selected="'none'==post.get('search_furnish_type') if post.get('search_furnish_type') else None">None</option>
+                                                <option value="whole" t-att-selected="'whole'==post.get('search_furnish_type') if post.get('search_furnish_type') else None">Whole</option>
+                                                <option value="new_furnishing" t-att-selected="'new_furnishing'==post.get('search_furnish_type') if post.get('search_furnish_type') else None">New Furnishing</option>
+                                                <option value="only_kitchen" t-att-selected="'only_kitchen'==post.get('search_furnish_type') if post.get('search_furnish_type') else None">Only Kitchen</option>
+                                                <option value="second_hand" t-att-selected="'second_hand'==post.get('search_furnish_type') if post.get('search_furnish_type') else None">Second Hand/Good Condition</option>
+                                            </select>
+                                        </div>
+                                        <label for="key-word"
+                                               class="font-size-md">
+                                            Utilities
+                                        </label>
+                                        <ul class="nav navbar-nav nav-pills input-group dropdown show" role="tablist" data-dropdown-in="fadeInDown" data-dropdown-out="fadeOutUp" style="height:inherit;width: 100%;border-radius: 0px;">
+                                           <li role="presentation" class="dropdown">
+                                               <ul class="dropdown-menu show">
+                                                   <li>
+                                                       <div class="row p-2">
+                                                           <t t-foreach="utilities" t-as="utility">
+                                                               <div class="col-12">
+                                                                   <div class="checkbox">
+                                                                       <label class="">
+                                                                           <t t-if="utility.id in selected_utilities">
+                                                                               <input type="checkbox" id="check_property" class="check_property" t-att-data-property_type_id="utility.id" checked="checked"/>
+                                                                           </t>
+                                                                           <t t-if="utility.id not in selected_utilities">
+                                                                               <input type="checkbox" id="check_property" class="check_property" t-att-data-property_type_id="utility.id"/>
+                                                                           </t>
+                                                                           <t t-esc="utility.name"/>
+                                                                       </label>
+                                                                   </div>
+                                                               </div>
+                                                           </t>
+                                                       </div>
+                                                   </li>
+                                               </ul>
+                                           </li>
+                                        </ul>
+                                        <label for="key-word"
+                                               class="font-size-md font-weight-semibold text-dark mb-0 lh-1">
+                                            Publication Date
+                                        </label>
+                                        <div class="input-group dropdown show">
+                                            <select name="search_publication_date" id='search_property_by_publication_date' t-attf-class="form-control search_property_by_publication_date" form="search_property">
+                                                <option value="indifferent">Indifferent</option>
+                                                <option value="24_hour" t-att-selected="'24_hour'==post.get('search_publication_date') if post.get('search_publication_date') else None">Last 24 Hours</option>
+                                                <option value="last_week" t-att-selected="'last_week'==post.get('search_publication_date') if post.get('search_publication_date') else None">Last Week</option>
+                                                <option value="last_month" t-att-selected="'last_month'==post.get('search_publication_date') if post.get('search_publication_date') else None">Last Month</option>
+                                            </select>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <div class='col-md-9 property_grid_section'>
+                                        <t t-if="not my_properties">
+                                            <div class="alert alert-warning mt8" role="alert">
+	                                            There are no property.
+	                                        </div>
+                                        </t>
+                                        <t t-if="my_properties">
+	                                        <div class="row">
+		                                        <t t-foreach="my_properties" t-as="my_properties_values">
+		                                            <div class="col-12 col-sm-6 col-md-4 mb16 property-images">
+		                                                <t t-call="property_website.render_properties_grid"/>
+		                                            </div>
+		                                        </t>
+	                                        </div>
+                                        </t>
+                                    </div>
+                                </div>
+<!--                             </div> -->
+<!--                         </div> -->
+                    </div>
+            </section>
+        </t>
+    </template>
+
+</odoo>

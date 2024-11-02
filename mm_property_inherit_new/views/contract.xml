@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="property_contract_template_view_search_new" model="ir.ui.view">
+        <field name="name">property.contract.template.search</field>
+        <field name="model">property.contract.template</field>
+        <field name="arch" type="xml">
+            <search string="Search Property">
+                <field name="tenancy_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="property_contract_template_tree_new" model="ir.ui.view">
+        <field name="name">property.contract.template.tree</field>
+        <field name="model">property.contract.template</field>
+        <field name="arch" type="xml">
+            <tree string="Contract Template">
+                <field name="tenancy_id"/>
+                <field name="temp_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="property_contract_template_form_new" model="ir.ui.view">
+        <field name="name">property.contract.template.form</field>
+        <field name="model">property.contract.template</field>
+        <field name="arch" type="xml">
+            <form string="Contract Template">
+                <sheet>
+                    <group>
+                        <field name="tenancy_id" required="1" domain="[('resident_type','=','tenant_tenancy')]"/>
+                    </group>
+                    <group>
+                        <field name="temp_id" required="1"/>
+                    </group>
+                    <group>
+                        <field name="temp" widget="html" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_property_contract_template_view_new" model="ir.actions.act_window">
+        <field name="name">Contract</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">property.contract.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem id="menu_property_contract_template_view_new" name="Contract" parent="property_management.menu_property_main"
+              sequence="5"/>
+    <menuitem id="sub_menu_property_contract_template_view_new" name="Contract"
+              parent="mm_property_inherit_new.menu_property_contract_template_view_new"
+              action="action_property_contract_template_view_new" sequence="1"/>
+
+</odoo>

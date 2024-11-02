@@ -1,0 +1,736 @@
+/* Included color classes.. 
+  .red 
+  .blue 
+  .orange
+*/
+
+#quote-carousel {
+    padding: 0 10px 30px 10px;
+    margin-top: 30px;
+    /* Control buttons  */
+    /* Previous button  */
+    /* Next button  */
+    /* Changes the position of the indicators */
+    /* Changes the color of the indicators */
+}
+#quote-carousel .carousel-control {
+    background: none;
+    color: #CACACA;
+    font-size: 2.3em;
+    text-shadow: none;
+    margin-top: 30px;
+}
+/*#quote-carousel .carousel-control.left {
+    left: -60px;
+}
+#quote-carousel .carousel-control.right {
+    right: -60px;
+}*/
+/* #carouselExampleIndicators {
+    margin: 110px auto !important;
+     padding: 0px !important; 
+} */
+/*#quote-carousel .carousel-indicators {
+    right: 50%;
+    top: auto;
+    bottom: 0px;
+    margin-right: -19px;
+}
+#quote-carousel .carousel-indicators li {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    cursor: pointer;
+    border: 4px solid #CCC;
+    border-radius: 50px;
+    opacity: 0.4;
+    overflow: hidden;
+    transition: all 0.4s;
+}
+#quote-carousel .carousel-indicators .active{
+    background: #333333;
+    width: 128px;
+    height: 128px;
+    border-radius: 100px;
+    border-color: #f33;
+    opacity: 1;
+    overflow: hidden;
+}
+#carouselExampleIndicators .carousel-indicators .active {
+    width: 100px;
+    height: 100px;
+    border-radius: 33px;
+}
+#carouselExampleIndicators .carousel-indicators li {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    border-radius: 33px;
+}
+.img_selected_property{
+    width:100% ;
+    height: 550px !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.img_selected_property_small {
+    height: 50px;
+    border-radius: 33px;
+}
+.active .img_selected_property_small {
+    height: 100px;
+    border-radius: 33px;
+}
+
+.carousel-inner .item {
+    height: 100%;
+    background-size: cover;
+}
+
+.carousel-inner {
+    min-height: 300px;
+}
+
+@media (max-width: 375px) {
+    .carousel-inner {
+        min-height: 486px;
+    }
+    #quote-carousel .carousel-indicators {
+        width: 75%;
+        margin-left: -100px;
+    }
+    .carousel .carousel-control.right * {
+        left: 0;
+    }
+    .property_street_city {
+        margin-top: -7%;
+    }
+    .property-images #img_hover img{
+        height:170px;
+    }
+    .property-images img#property_image1,.property-imagesimg#property_image2,.property-images img#property_image11{
+        height:170px;
+    }
+    #img_hover {
+        height: 170px;
+    }
+    .rent_btn_id{
+        margin-left:-10px;
+    }
+    #carouselExampleIndicators{
+    height:300px;
+    }
+    #carouselExampleIndicators .carousel-indicators .active {
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    }
+    #carouselExampleIndicators .carousel-indicators li {
+        width: 30px;
+        height: 30px;
+        margin: 5px;
+        border-radius: 20px;
+    }
+    .img_selected_property{
+        width:100%;
+        height: 300px !important;
+    }
+    .img_selected_property_small {
+        height: 30px;
+        border-radius: 20px;
+    }
+    .active .img_selected_property_small {
+        height: 60px;
+        border-radius: 20px;
+    }
+
+}*/
+
+.property_name{
+	cursor:pointer;
+}
+.property_name a{
+	color:#fff;
+	text-decoration:none;
+}
+
+div.property-rent-card {
+  position: relative;
+  /*overflow: hidden;*/
+  margin: 10px;
+ /*  min-width: 220px;
+  max-width: 310px; */
+ /*  width: 100%; */
+  background: #000000;
+  color: #333;
+  text-align: left;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+}
+div.property-rent-card.orange {
+    background-color: #a9c929;
+    box-shadow: 0px 7px 23px -3px #a9c929;
+     box-shadow: 10px 20px 30px rgba(0, 0, 0, 0.3);
+    transition: 0.5s;
+}
+
+.property-rent-card:hover {
+    box-shadow: 10px 20px 30px rgba(0, 0, 0, 0.6);
+    transition: 0.5s;
+    transform: translateY(-5px);
+}
+/*div.property-rent-card * {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-transition: all 0.35s cubic-bezier(0.25, 0.5, 0.5, 0.9);
+  transition: all 0.35s cubic-bezier(0.25, 0.5, 0.5, 0.9);
+}*/
+div.property-rent-card img {
+  max-width: 100%;
+  vertical-align: top;
+}
+.pagination li {
+    display: inline-block;
+}
+div.property-rent-card .rent-content {
+  position: relative;
+  background-color: #ffffff;
+  padding: 20px 20px 50px;
+}
+div.property-rent-card h4 {
+  position: absolute;
+  bottom: 100%;
+  text-transform: uppercase;
+  padding: 0px 25px;
+  line-height: 44px;
+  margin: 0;
+  left: 0;
+  font-weight: 400;
+  background-color: #000000;
+  color: #ffffff;
+}
+@media (max-width: 575.98px) {
+	div.property-rent-card h4 {
+	    font-size: 16px !important;
+	}
+}
+@media (min-width: 576px) and (max-width: 991.98px) {
+	div.property-rent-card h4 {
+	    font-size: 14px !important;
+	}
+}
+div.property-rent-card h4 span {
+  font-weight: 800;
+}
+div.property-rent-card h4:before {
+  position: absolute;
+  left: 100%;
+  border-color: transparent transparent transparent #000000;
+  border-style: solid;
+  border-width: 44px 0 0 12px;
+  content: '';
+  top: 0;
+}
+div.property-rent-card p {
+  font-size: 1.0em;
+  text-align: left;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.6em;
+}
+div.property-rent-card .price {
+  position: absolute;
+  right: 0;
+  color: #ffffff;
+  font-weight: 800;
+  background-color: #000000;
+  padding: 0 10px;
+  top: 0;
+  line-height: 40px;
+}
+div.property-rent-card .price:before {
+  position: absolute;
+  border-width: 0 12px 40px 0;
+  right: 100%;
+  border-color: transparent #000000 transparent;
+  content: '';
+  top: 0;
+  border-style: solid;
+}
+div.property-rent-card .rent-price {
+  text-decoration: none;
+  bottom: 0;
+  font-size: 0.9em;
+  color: #ffffff;
+  background-color: #000000;
+  line-height: 40px;
+  text-transform: uppercase;
+  position: absolute;
+  padding: 0 10px;
+  font-weight: 800;
+  right: 0;
+}
+div.property-rent-card .rent-price:before {
+  position: absolute;
+  top: 0;
+  border-color: transparent transparent #000000;
+  right: 100%;
+  border-width: 0 0 40px 12px;
+  content: '';
+  border-style: solid;
+}
+div.property-rent-card.blue {
+  background-color: #2472a4;
+}
+div.property-rent-card.blue h4,
+div.property-rent-card.blue .rent-price,
+div.property-rent-card.blue .price {
+  background-color: #2472a4;
+}
+div.property-rent-card.blue .price:before {
+  border-color: transparent #2472a4 transparent;
+}
+div.property-rent-card.blue h4:before {
+  border-color: transparent transparent transparent #2472a4;
+}
+div.property-rent-card.blue .rent-price:before {
+  border-color: transparent transparent #2472a4;
+}
+div.property-rent-card.red {
+  background-color: #ab3326;
+}
+div.property-rent-card.red h4,
+div.property-rent-card.red .rent-price,
+div.property-rent-card.red .price {
+  background-color: #ab3326;
+}
+div.property-rent-card.red .price:before {
+  border-color: transparent #ab3326 transparent;
+}
+div.property-rent-card.red h4:before {
+  border-color: transparent transparent transparent #ab3326;
+}
+div.property-rent-card.red .rent-price:before {
+  border-color: transparent transparent #ab3326;
+}
+div.property-rent-card.orange {
+  background-color: #a9c929;
+}
+div.property-rent-card.orange h4,
+div.property-rent-card.orange .rent-price,
+div.property-rent-card.orange .price {
+  background-color: #a9c929;
+}
+div.property-rent-card.orange .price:before {
+  border-color: transparent #a9c929 transparent;
+}
+div.property-rent-card.orange h4:before {
+  border-color: transparent transparent transparent #a9c929;
+}
+div.property-rent-card.orange .rent-price:before {
+  border-color: transparent transparent #a9c929;
+}
+/*div.property-rent-card:hover img,
+div.property-rent-card.hover img {
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
+}*/
+.property-details-sf {
+    margin-bottom: 50px;
+}
+.rent-main-section{
+    margin: 3em auto 0;
+    text-align: center;
+    width: 30%;
+    z-index: 3;
+    position: absolute;
+    /*margin-top: 60px;*/
+    margin-left: 30px;
+}
+
+.section-property{
+  background: #fff;
+  padding: 3em;
+      border-radius: 50px 50px 50px 50px;
+    box-shadow: 4px 0px 7px 2px #33333373;
+
+}
+.section-property input[type="text"] {
+    font-size: 15px;
+    /* outline: auto; */
+    padding: .8em 1em;
+    color: #222;
+    /* margin-top: 1em; */
+    width: 90%;
+    /* border: 1px solid#eee; */
+    background: #eee;
+}
+.section-property h2 {
+    font-size: 2.0em;
+    /*color: #fd7622;*/
+    /*color: #fd7622;*/
+    color: #686e74;
+}
+.property-rent-search{
+
+}
+
+a.dropdown-toggle.property-type-checkbox {
+    background-color: #d57132d9;
+    border: none;
+    box-shadow: 1px 3px 8px 1px #d571326b;
+}
+
+/*
+.rrssb-buttons{box-sizing:border-box;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:12px;height:36px;margin:0;padding:0;width:100%}.rrssb-buttons:after{clear:both}.rrssb-buttons:after,.rrssb-buttons:before{content:' ';display:table}.rrssb-buttons li{box-sizing:border-box;float:left;height:100%;line-height:13px;list-style:none;margin:0;padding:0 2px}.rrssb-buttons li.rrssb-email a{background-color:#0a88ff}.rrssb-buttons li.rrssb-email a:hover{background-color:#006ed6}.rrssb-buttons li.rrssb-facebook a{background-color:#306199}.rrssb-buttons li.rrssb-facebook a:hover{background-color:#244872}.rrssb-buttons li.rrssb-tumblr a{background-color:#32506d}.rrssb-buttons li.rrssb-tumblr a:hover{background-color:#22364a}.rrssb-buttons li.rrssb-linkedin a{background-color:#007bb6}.rrssb-buttons li.rrssb-linkedin a:hover{background-color:#005983}.rrssb-buttons li.rrssb-twitter a{background-color:#26c4f1}.rrssb-buttons li.rrssb-twitter a:hover{background-color:#0eaad6}.rrssb-buttons li.rrssb-googleplus a{background-color:#e93f2e}.rrssb-buttons li.rrssb-googleplus a:hover{background-color:#ce2616}.rrssb-buttons li.rrssb-youtube a{background-color:#df1c31}.rrssb-buttons li.rrssb-youtube a:hover{background-color:#b21627}.rrssb-buttons li.rrssb-reddit a{background-color:#8bbbe3}.rrssb-buttons li.rrssb-reddit a:hover{background-color:#62a3d9}.rrssb-buttons li.rrssb-pinterest a{background-color:#b81621}.rrssb-buttons li.rrssb-pinterest a:hover{background-color:#8a1119}.rrssb-buttons li.rrssb-pocket a{background-color:#ed4054}.rrssb-buttons li.rrssb-pocket a:hover{background-color:#e4162d}.rrssb-buttons li.rrssb-github a{background-color:#444}.rrssb-buttons li.rrssb-github a:hover{background-color:#2b2b2b}.rrssb-buttons li.rrssb-instagram a{background-color:#125688}.rrssb-buttons li.rrssb-instagram a:hover{background-color:#0c3a5b}.rrssb-buttons li.rrssb-delicious a{background-color:#0b79e5}.rrssb-buttons li.rrssb-delicious a:hover{background-color:#095fb4}.rrssb-buttons li.rrssb-vk a{background-color:#4d71a9}.rrssb-buttons li.rrssb-vk a:hover{background-color:#3d5a86}.rrssb-buttons li.rrssb-hackernews a{background-color:#f60}.rrssb-buttons li.rrssb-hackernews a:hover{background-color:#cc5200}.rrssb-buttons li.rrssb-whatsapp a{background-color:#43d854}.rrssb-buttons li.rrssb-whatsapp a:hover{background-color:#28c039}.rrssb-buttons li.rrssb-print a{background-color:#8d98a2}.rrssb-buttons li.rrssb-print a:hover{background-color:#717f8b}.rrssb-buttons li a{background-color:#ccc;border-radius:2px;box-sizing:border-box;display:block;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;font-weight:700;height:100%;padding:11px 7px 12px 27px;position:relative;text-align:center;text-decoration:none;text-transform:uppercase;-webkit-transition:background-color .2s ease-in-out;transition:background-color .2s ease-in-out;width:100%}.rrssb-buttons li a .rrssb-icon{display:block;left:10px;padding-top:9px;position:absolute;top:0;width:10%}.rrssb-buttons li a .rrssb-icon svg{height:17px;width:17px}.rrssb-buttons li a .rrssb-icon svg path{fill:#fff}.rrssb-buttons li a .rrssb-text{color:#fff}.rrssb-buttons li a:active{box-shadow:inset 1px 3px 15px 0 rgba(22,0,0,.25)}.rrssb-buttons li.small a{padding:0}.rrssb-buttons li.small a .rrssb-icon{left:auto;margin:0 auto;overflow:hidden;position:relative;top:auto;width:100%}.rrssb-buttons li.small a .rrssb-text{visibility:hidden}.rrssb-buttons.large-format,.rrssb-buttons.large-format li{height:auto}.rrssb-buttons.large-format li a{-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:.2em;padding:8.5% 0 8.5% 12%}.rrssb-buttons.large-format li a .rrssb-icon{height:100%;left:7%;padding-top:0;width:12%}.rrssb-buttons.large-format li a .rrssb-icon svg{height:100%;position:absolute;top:0;width:100%}.rrssb-buttons.large-format li a .rrssb-text{-webkit-backface-visibility:hidden;backface-visibility:hidden}.rrssb-buttons.small-format{padding-top:5px}.rrssb-buttons.small-format li{height:80%;padding:0 1px}.rrssb-buttons.small-format li a .rrssb-icon{height:100%;padding-top:0}.rrssb-buttons.small-format li a .rrssb-icon svg{height:48%;position:relative;top:6px;width:80%}.rrssb-buttons.tiny-format{height:22px;position:relative}.rrssb-buttons.tiny-format li{padding-right:7px}.rrssb-buttons.tiny-format li a{background-color:transparent;padding:0}.rrssb-buttons.tiny-format li a .rrssb-icon svg{height:70%;width:100%}.rrssb-buttons.tiny-format li a:active,.rrssb-buttons.tiny-format li a:hover{background-color:transparent}.rrssb-buttons.tiny-format li.rrssb-email a .rrssb-icon svg path{fill:#0a88ff}.rrssb-buttons.tiny-format li.rrssb-email a .rrssb-icon:hover .rrssb-icon svg path{fill:#0054a3}.rrssb-buttons.tiny-format li.rrssb-facebook a .rrssb-icon svg path{fill:#306199}.rrssb-buttons.tiny-format li.rrssb-facebook a .rrssb-icon:hover .rrssb-icon svg path{fill:#18304b}.rrssb-buttons.tiny-format li.rrssb-tumblr a .rrssb-icon svg path{fill:#32506d}.rrssb-buttons.tiny-format li.rrssb-tumblr a .rrssb-icon:hover .rrssb-icon svg path{fill:#121d27}.rrssb-buttons.tiny-format li.rrssb-linkedin a .rrssb-icon svg path{fill:#007bb6}.rrssb-buttons.tiny-format li.rrssb-linkedin a .rrssb-icon:hover .rrssb-icon svg path{fill:#003650}.rrssb-buttons.tiny-format li.rrssb-twitter a .rrssb-icon svg path{fill:#26c4f1}.rrssb-buttons.tiny-format li.rrssb-twitter a .rrssb-icon:hover .rrssb-icon svg path{fill:#0b84a6}.rrssb-buttons.tiny-format li.rrssb-googleplus a .rrssb-icon svg path{fill:#e93f2e}.rrssb-buttons.tiny-format li.rrssb-googleplus a .rrssb-icon:hover .rrssb-icon svg path{fill:#a01e11}.rrssb-buttons.tiny-format li.rrssb-youtube a .rrssb-icon svg path{fill:#df1c31}.rrssb-buttons.tiny-format li.rrssb-youtube a .rrssb-icon:hover .rrssb-icon svg path{fill:#84111d}.rrssb-buttons.tiny-format li.rrssb-reddit a .rrssb-icon svg path{fill:#8bbbe3}.rrssb-buttons.tiny-format li.rrssb-reddit a .rrssb-icon:hover .rrssb-icon svg path{fill:#398bcf}.rrssb-buttons.tiny-format li.rrssb-pinterest a .rrssb-icon svg path{fill:#b81621}.rrssb-buttons.tiny-format li.rrssb-pinterest a .rrssb-icon:hover .rrssb-icon svg path{fill:#5d0b11}.rrssb-buttons.tiny-format li.rrssb-pocket a .rrssb-icon svg path{fill:#ed4054}.rrssb-buttons.tiny-format li.rrssb-pocket a .rrssb-icon:hover .rrssb-icon svg path{fill:#b61124}.rrssb-buttons.tiny-format li.rrssb-github a .rrssb-icon svg path{fill:#444}.rrssb-buttons.tiny-format li.rrssb-github a .rrssb-icon:hover .rrssb-icon svg path{fill:#111}.rrssb-buttons.tiny-format li.rrssb-instagram a .rrssb-icon svg path{fill:#125688}.rrssb-buttons.tiny-format li.rrssb-instagram a .rrssb-icon:hover .rrssb-icon svg path{fill:#061d2e}.rrssb-buttons.tiny-format li.rrssb-delicious a .rrssb-icon svg path{fill:#0b79e5}.rrssb-buttons.tiny-format li.rrssb-delicious a .rrssb-icon:hover .rrssb-icon svg path{fill:#064684}.rrssb-buttons.tiny-format li.rrssb-vk a .rrssb-icon svg path{fill:#4d71a9}.rrssb-buttons.tiny-format li.rrssb-vk a .rrssb-icon:hover .rrssb-icon svg path{fill:#2d4263}.rrssb-buttons.tiny-format li.rrssb-hackernews a .rrssb-icon svg path{fill:#f60}.rrssb-buttons.tiny-format li.rrssb-hackernews a .rrssb-icon:hover .rrssb-icon svg path{fill:#993d00}.rrssb-buttons.tiny-format li.rrssb-whatsapp a .rrssb-icon svg path{fill:#43d854}.rrssb-buttons.tiny-format li.rrssb-whatsapp a .rrssb-icon:hover .rrssb-icon svg path{fill:#1f962d}.rrssb-buttons.tiny-format li.rrssb-print a .rrssb-icon svg path{fill:#8d98a2}.rrssb-buttons.tiny-format li.rrssb-print a .rrssb-icon:hover .rrssb-icon svg path{fill:#5a656f}.rrssb-buttons li.rrssb-print a .rrssb-icon svg path:nth-child(2){fill:none}*/
+
+
+.rrssb-buttons {
+    box-sizing: border-box;
+    font-size: 12px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    width: 100%
+}
+.rrssb-buttons:after {
+    clear: both
+}
+.rrssb-buttons:after,
+.rrssb-buttons:before {
+    content: ' ';
+    display: table
+}
+.rrssb-buttons li {
+    box-sizing: border-box;
+    float: left;
+    height: 100%;
+    line-height: 13px;
+    list-style: none;
+    margin: 0;
+    padding: 0 2px
+}
+.rrssb-buttons li.rrssb-email a {
+    background-color: #0a88ff
+}
+.rrssb-buttons li.rrssb-email a:hover {
+    background-color: #006ed6
+}
+/*.rrssb-buttons li.rrssb-facebook a {
+    background-color: #306199
+}
+.rrssb-buttons li.rrssb-facebook a:hover {
+    background-color: #244872
+}*/
+.rrssb-buttons li.rrssb-tumblr a {
+    background-color: #32506d
+}
+.rrssb-buttons li.rrssb-tumblr a:hover {
+    background-color: #22364a
+}
+.rrssb-buttons li.rrssb-linkedin a {
+    background-color: #007bb6
+}
+.rrssb-buttons li.rrssb-linkedin a:hover {
+    background-color: #005983
+}
+/*.rrssb-buttons li.rrssb-twitter a {
+    background-color: #26c4f1
+}
+.rrssb-buttons li.rrssb-twitter a:hover {
+    background-color: #0eaad6
+}*/
+.rrssb-buttons li.rrssb-googleplus a {
+    background-color: #e93f2e
+}
+.rrssb-buttons li.rrssb-googleplus a:hover {
+    background-color: #ce2616
+}
+.rrssb-buttons li.rrssb-youtube a {
+    background-color: #df1c31
+}
+.rrssb-buttons li.rrssb-youtube a:hover {
+    background-color: #b21627
+}
+.rrssb-buttons li.rrssb-reddit a {
+    background-color: #8bbbe3
+}
+.rrssb-buttons li.rrssb-reddit a:hover {
+    background-color: #62a3d9
+}
+.rrssb-buttons li.rrssb-pinterest a {
+    background-color: #b81621
+}
+.rrssb-buttons li.rrssb-pinterest a:hover {
+    background-color: #8a1119
+}
+.rrssb-buttons li.rrssb-pocket a {
+    background-color: #ed4054
+}
+.rrssb-buttons li.rrssb-pocket a:hover {
+    background-color: #e4162d
+}
+.rrssb-buttons li.rrssb-github a {
+    background-color: #444
+}
+.rrssb-buttons li.rrssb-github a:hover {
+    background-color: #2b2b2b
+}
+.rrssb-buttons li.rrssb-instagram a {
+    background-color: #125688
+}
+.rrssb-buttons li.rrssb-instagram a:hover {
+    background-color: #0c3a5b
+}
+.rrssb-buttons li.rrssb-delicious a {
+    background-color: #0b79e5
+}
+.rrssb-buttons li.rrssb-delicious a:hover {
+    background-color: #095fb4
+}
+.rrssb-buttons li.rrssb-vk a {
+    background-color: #4d71a9
+}
+.rrssb-buttons li.rrssb-vk a:hover {
+    background-color: #3d5a86
+}
+.rrssb-buttons li.rrssb-hackernews a {
+    background-color: #f60
+}
+.rrssb-buttons li.rrssb-hackernews a:hover {
+    background-color: #cc5200
+}
+.rrssb-buttons li.rrssb-whatsapp a {
+    background-color: #43d854
+}
+.rrssb-buttons li.rrssb-whatsapp a:hover {
+    background-color: #28c039
+}
+.rrssb-buttons li.rrssb-print a {
+    background-color: #8d98a2
+}
+.rrssb-buttons li.rrssb-print a:hover {
+    background-color: #717f8b
+}
+.rrssb-buttons li a {
+    /*background-color: #ccc;*/
+    border-radius: 2px;
+    box-sizing: border-box;
+    display: block;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-weight: 700;
+    height: 100%;
+    padding: 11px 7px 12px 27px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    -webkit-transition: background-color .2s ease-in-out;
+    transition: background-color .2s ease-in-out;
+    width: 100%
+}
+.rrssb-buttons li a .rrssb-icon {
+    display: block;
+    left: 10px;
+    padding-top: 9px;
+    position: absolute;
+    top: 0;
+    width: 10%
+}
+.rrssb-buttons li a .rrssb-icon svg {
+    height: 17px;
+    width: 17px
+}
+.rrssb-buttons li a .rrssb-icon svg path {
+    fill: #fff
+}
+.rrssb-buttons li a .rrssb-text {
+    color: #fff
+}
+.rrssb-buttons li a:active {
+    box-shadow: inset 1px 3px 15px 0 rgba(22, 0, 0, .25)
+}
+.rrssb-buttons li.small a {
+    padding: 0
+}
+.rrssb-buttons li.small a .rrssb-icon {
+    left: auto;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    top: auto;
+    width: 100%
+}
+.rrssb-buttons li.small a .rrssb-text {
+    visibility: hidden
+}
+.rrssb-buttons.large-format,
+.rrssb-buttons.large-format li {
+    height: auto
+}
+.rrssb-buttons.large-format li a {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: .2em;
+    padding: 8.5% 0 8.5% 12%
+}
+.rrssb-buttons.large-format li a .rrssb-icon {
+    height: 100%;
+    left: 7%;
+    padding-top: 0;
+    width: 12%
+}
+.rrssb-buttons.large-format li a .rrssb-icon svg {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 100%
+}
+.rrssb-buttons.large-format li a .rrssb-text {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden
+}
+.rrssb-buttons.small-format {
+    padding-top: 5px
+}
+.rrssb-buttons.small-format li {
+    height: 80%;
+    padding: 0 1px
+}
+.rrssb-buttons.small-format li a .rrssb-icon {
+    height: 100%;
+    padding-top: 0
+}
+.rrssb-buttons.small-format li a .rrssb-icon svg {
+    height: 48%;
+    position: relative;
+    top: 6px;
+    width: 80%
+}
+.rrssb-buttons.tiny-format {
+    height: 22px;
+    position: relative
+}
+.rrssb-buttons.tiny-format li {
+    padding-right: 7px
+}
+.rrssb-buttons.tiny-format li a {
+    background-color: transparent;
+    padding: 0
+}
+.rrssb-buttons.tiny-format li a .rrssb-icon svg {
+    height: 70%;
+    width: 100%
+}
+.rrssb-buttons.tiny-format li a:active,
+.rrssb-buttons.tiny-format li a:hover {
+    background-color: transparent
+}
+.rrssb-buttons.tiny-format li.rrssb-email a .rrssb-icon svg path {
+    fill: #0a88ff
+}
+.rrssb-buttons.tiny-format li.rrssb-email a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #0054a3
+}
+.rrssb-buttons.tiny-format li.rrssb-facebook a .rrssb-icon svg path {
+    fill: #306199
+}
+.rrssb-buttons.tiny-format li.rrssb-facebook a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #18304b
+}
+.rrssb-buttons.tiny-format li.rrssb-tumblr a .rrssb-icon svg path {
+    fill: #32506d
+}
+.rrssb-buttons.tiny-format li.rrssb-tumblr a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #121d27
+}
+.rrssb-buttons.tiny-format li.rrssb-linkedin a .rrssb-icon svg path {
+    fill: #007bb6
+}
+.rrssb-buttons.tiny-format li.rrssb-linkedin a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #003650
+}
+.rrssb-buttons.tiny-format li.rrssb-twitter a .rrssb-icon svg path {
+    fill: #26c4f1
+}
+.rrssb-buttons.tiny-format li.rrssb-twitter a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #0b84a6
+}
+.rrssb-buttons.tiny-format li.rrssb-googleplus a .rrssb-icon svg path {
+    fill: #e93f2e
+}
+.rrssb-buttons.tiny-format li.rrssb-googleplus a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #a01e11
+}
+.rrssb-buttons.tiny-format li.rrssb-youtube a .rrssb-icon svg path {
+    fill: #df1c31
+}
+.rrssb-buttons.tiny-format li.rrssb-youtube a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #84111d
+}
+.rrssb-buttons.tiny-format li.rrssb-reddit a .rrssb-icon svg path {
+    fill: #8bbbe3
+}
+.rrssb-buttons.tiny-format li.rrssb-reddit a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #398bcf
+}
+.rrssb-buttons.tiny-format li.rrssb-pinterest a .rrssb-icon svg path {
+    fill: #b81621
+}
+.rrssb-buttons.tiny-format li.rrssb-pinterest a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #5d0b11
+}
+.rrssb-buttons.tiny-format li.rrssb-pocket a .rrssb-icon svg path {
+    fill: #ed4054
+}
+.rrssb-buttons.tiny-format li.rrssb-pocket a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #b61124
+}
+.rrssb-buttons.tiny-format li.rrssb-github a .rrssb-icon svg path {
+    fill: #444
+}
+.rrssb-buttons.tiny-format li.rrssb-github a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #111
+}
+.rrssb-buttons.tiny-format li.rrssb-instagram a .rrssb-icon svg path {
+    fill: #125688
+}
+.rrssb-buttons.tiny-format li.rrssb-instagram a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #061d2e
+}
+.rrssb-buttons.tiny-format li.rrssb-delicious a .rrssb-icon svg path {
+    fill: #0b79e5
+}
+.rrssb-buttons.tiny-format li.rrssb-delicious a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #064684
+}
+.rrssb-buttons.tiny-format li.rrssb-vk a .rrssb-icon svg path {
+    fill: #4d71a9
+}
+.rrssb-buttons.tiny-format li.rrssb-vk a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #2d4263
+}
+.rrssb-buttons.tiny-format li.rrssb-hackernews a .rrssb-icon svg path {
+    fill: #f60
+}
+.rrssb-buttons.tiny-format li.rrssb-hackernews a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #993d00
+}
+.rrssb-buttons.tiny-format li.rrssb-whatsapp a .rrssb-icon svg path {
+    fill: #43d854
+}
+.rrssb-buttons.tiny-format li.rrssb-whatsapp a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #1f962d
+}
+.rrssb-buttons.tiny-format li.rrssb-print a .rrssb-icon svg path {
+    fill: #8d98a2
+}
+.rrssb-buttons.tiny-format li.rrssb-print a .rrssb-icon:hover .rrssb-icon svg path {
+    fill: #5a656f
+}
+.rrssb-buttons li.rrssb-print a .rrssb-icon svg path:nth-child(2) {
+    fill: none
+}
+
+
+
+

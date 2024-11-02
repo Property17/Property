@@ -1,0 +1,289 @@
+<odoo>
+    <template id="property_homepage" name="Homepage" inherit_id="website.homepage">
+        <xpath expr="//div[@id='wrap']" position="inside">
+            <div class="oe_structure"/>
+            <div id="site-wrapper" class="site-wrapper home-main">
+                <div class="content-wrap">
+                    <section id="section-01" class="home-main-intro">
+                        <div class="home-main-intro-container offset-sm-1 col-lg-4 col-md-5 col-sm-6 offset-1 col-10 pt32 pb64">
+                            <form name="search_property" class="search_property" role="form"
+                                  method="post" id="home_page_search_property"
+                                  action="/properties"
+                                  t-if="not message" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <div class="container bg-black-75" style="border-radius: 25px;">
+                                    <div class="heading pt32 pr-3 pl-3 pb-2">
+                                        <h2 class="text-white font-weight-bold pb-2">
+                                            <span class="d-block" data-animate="slideInLeft">Discover</span>
+                                            <span class="font-weight-light d-block" data-animate="fadeInRight">your amazing  property
+                                            </span>
+                                        </h2>
+                                        <div>
+                                        <div class="custom-control custom-radio custom-control-inline stylist-radio">
+                                            <input type="radio" class="custom-control-input" id="sale_chk" name="rent_sale_type" value="sale" checked="checked"/>
+                                            <label class="custom-control-label text-white" for="sale_chk">SALE</label>
+                                        </div>
+                                        <div class="custom-control custom-radio custom-control-inline stylist-radio">
+                                            <input type="radio" class="custom-control-input" id="rent_chk" name="rent_sale_type" value="rent"/>
+                                            <label class="custom-control-label text-white" for="rent_chk">RENT</label>
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-search form-search-style-02 pb32" data-animate="fadeInDown">
+                                        <div class="row align-items-end">
+                                            <div class="col-12 mb-4 mb-xl-0 py-3 px-4 position-relative  form-search-item">
+                                                <label for="key-word"
+                                                       class="font-size-md font-weight-semibold mb-0 lh-1">
+                                                    Property Type
+                                                </label>
+                                                <select data-live-search="true"
+                                                        t-attf-class="form-control search_property_select2" multiple="multiple">
+                                                    <t t-foreach="property_types or []" t-as="p_type">
+                                                        <option t-att-data-tokens="p_type.id"
+                                                                t-att-value="p_type.id"
+                                                                t-att-selected="p_type.id == property.type_id.id if property and property.type_id else None">
+                                                            <t t-esc="p_type.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                            <input name="type_id" type="hidden" value=""/>
+                                            <div class="col-12 mb-4 mb-xl-0 py-3 px-4 position-relative  form-search-item">
+                                                <label for="key-word"
+                                                       class="font-size-md font-weight-semibold mb-0 lh-1">
+                                                    Search Location
+                                                </label>
+                                                <input type="text"
+                                                       class="form-control search-location"
+                                                       name="search_by_address"/>
+                                            </div>
+                                            <div class="button mx-auto">
+                                                <button type="submit"
+                                                        class="btn btn-lg btn-icon-left btn-block custom-search-bar"><i
+                                                        class="fa fa-search"></i> Search
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </form>
+                            </div>
+                        </section>
+                        </div>
+                        </div>
+            <div class="oe_structure"/>
+            <div class='container'>
+                <div class='row mt64 mb64'>
+                    <div class="section-custom title col-md-12">
+                        <p>We Can Give You The Best Service</p>
+                    </div>
+                </div>
+                <div class="row property-services">
+                    <div class='col-md-3 col-6 mt16'>
+                                <div class="services-card">
+                                    <div class='property-container'>
+                                        <div class="property-wrapper">
+                                            <img src="/property_website/static/src/image/dream.png" class="img img-responsive" style="height: 110px;margin: 0 auto;"/>
+                                        </div>
+                                    </div>
+                                    <div class="services-container">
+                                        <div class="services-text">
+                                            <span class="services-big">DREAM HOME</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-md-3 col-6 mt16'>
+                            <div class="services-card">
+                                <div class='property-container'>
+                                    <div class="property-wrapper">
+                                        <img src="/property_website/static/src/image/my-house.png" class="img img-responsive" style="height: 110px;margin: 0 auto;"/>
+                                    </div>
+                                </div>
+                                <div class="services-container">
+                                    <div class="services-text">
+                                        <span class="services-big">HASSLE FREE</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='col-md-3 col-6 mt16'>
+                            <div class="services-card">
+                                <div class='property-container'>
+                                    <div class="property-wrapper">
+                                        <img src="/property_website/static/src/image/house-rent.png" style="height: 110px;margin: 0 auto;" class="img img-responsive"/>
+                                    </div>
+                                </div>
+                                <div class="services-container">
+                                    <div class="services-text">
+                                        <span class="services-big">FLEXIBLE RENTALS</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='col-md-3 col-6 mt16'>
+                            <div class="services-card">
+                                <div class='property-container'>
+                                    <div class="property-wrapper">
+                                        <img src="/property_website/static/src/image/target.png" class='img img-responsive' style="height: 110px;margin: 0 auto;"/>
+                                    </div>
+                                </div>
+                                <div class="services-container">
+                                    <div class="services-text">
+                                        <span class="services-big">LEGAL SUPPORT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="oe_structure"/>
+            <div class='container' t-if="lease_properties">
+                <div class='row mt64 mb64'>
+                    <div class='section-custom ml-1 col-12 title'>
+                        <p class="d-inline-block">Explore Renting</p>
+                        <a class="pull-right pms-button responsive-width" href="/properties?rent_sale_type=rent" style="cursor:pointer;">View all</a>
+                    </div>
+                </div>
+                <div class='row mt32'>
+                    <t t-foreach="lease_properties" t-as="my_properties_values">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb16 property-images">
+                            <t t-call="property_website.render_properties_grid"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <div class="oe_structure"/>
+            <div class='container' t-if="sale_properties">
+                <div class='row mt64 mb64'>
+                    <div class='section-custom ml-1 col-12 title'>
+                        <p class="d-inline-block">Explore Buying</p>
+                        <a class="pull-right pms-button responsive-width" href="/properties?rent_sale_type=sale" style="cursor:pointer;">View all</a>
+                    </div>
+                </div>
+                <div class='row mt32'>
+                    <t t-foreach="sale_properties" t-as="my_properties_values">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb16 property-images">
+                            <t t-call="property_website.render_properties_grid"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <div class="oe_structure"/>
+            <section class="testimonial_block mt64 mb64">
+                <div class="container">
+                    <div class='row'>
+                        <div class='section-custom col-12 title'>
+                            <p>What Our Clients Say</p>
+                        </div>
+                        <section class="s_carousel_wrapper" data-vxml="001">
+				            <div id="myCarousel" class="container carousel slide s_carousel common_carousel_items"
+				                 data-interval="5000">
+				                <div class="carousel-inner container te_arrow_set">
+				                    <div class="carousel-item active">
+				                        <div class="row align-items-center pt16">
+				                            <section class="col-lg-12 te_employee_main">
+				                                <div class="row">
+				                                    <span class="col-lg-8 mx-auto text-center te_icon_content">
+				                                        <p class="d-inline-block">
+				                                            <span class="fa fa-5x fa-quote-left pr16 te_quotes_icon"/>
+				                                            Lorem ipsum dolor sit amet, eam et reque justo quidam, te
+				                                            est
+				                                            audire persius. Duis meis quas vim ex, ius no oblique
+				                                            phaedrum
+				                                            pertinacia. Lorem ipsum dolor sit amet, eam et reque justo
+				                                            quidam, te est audire persius.
+				                                            <span class="fa fa-quote-right te_quotes_icon_right"/>
+				                                        </p>
+				
+				                                    </span>
+				                                </div>
+				                            </section>
+				                            <section class="col-lg-12 te_employee_main te_emp_img_name">
+				                                <div class="text-center pt-4">
+				                                    <div class="mx-auto">
+				                                        <img alt="Clarico-Customer-2"
+				                                             src="/property_website/static/src/image/avtar.jpeg"
+				                                             class="te_cust_img"/>
+				                                    </div>
+				                                    <section class="text-center pt-0 pt-sm-4">
+				                                        <h4 class="te_c_employee_name">My Heading 4</h4>
+				                                        <h6 class="te_designation_name">My Heading 6</h6>
+				                                    </section>
+				                                </div>
+				                            </section>
+				                        </div>
+				                    </div>
+				                    <div class="carousel-item">
+                                        <div class="row align-items-center pt16">
+                                            <section class="col-lg-12 te_employee_main">
+                                                <div class="row">
+                                                    <span class="col-lg-8 mx-auto text-center te_icon_content">
+                                                        <p class="d-inline-block">
+                                                            <span class="fa fa-5x fa-quote-left pr16 te_quotes_icon"/>
+                                                            Lorem ipsum dolor sit amet, eam et reque justo quidam, te
+                                                            est
+                                                            audire persius. Duis meis quas vim ex, ius no oblique
+                                                            phaedrum
+                                                            pertinacia. Lorem ipsum dolor sit amet, eam et reque justo
+                                                            quidam, te est audire persius.
+                                                            <span class="fa fa-quote-right te_quotes_icon_right"/>
+                                                        </p>
+                
+                                                    </span>
+                                                </div>
+                                            </section>
+                                            <section class="col-lg-12 te_employee_main te_emp_img_name">
+                                                <div class="text-center pt-4">
+                                                    <div class="mx-auto">
+                                                        <img alt="Clarico-Customer-2"
+                                                             src="/property_website/static/src/image/avtar.jpeg"
+                                                             class="te_cust_img"/>
+                                                    </div>
+                                                    <section class="text-center pt-0 pt-sm-4">
+                                                        <h4 class="te_c_employee_name">My Heading 4</h4>
+                                                        <h6 class="te_designation_name">My Heading 6</h6>
+                                                    </section>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </div>
+				                    <div class="carousel-control-prev te_team_arrow" role="button" data-slide="prev"
+				                         data-target="#myCarousel">
+				                        <span class="te_next_prev">
+				                            <span class="fa fa-angle-left"/>
+				                        </span>
+				                    </div>
+				                    <div class="carousel-control-next text-faded abc te_team_arrow" role="button"
+				                         data-slide="next" data-target="#myCarousel">
+				                        <span class="te_next_prev">
+				                            <span class="fa fa-angle-right"/>
+				                        </span>
+				                    </div>
+				                </div>
+				            </div>
+				        </section>
+                    </div>
+                </div>
+               </section>
+               <div class="oe_structure"/>
+               <section class="s_call_to_action bg_gradient pt48">
+	                <div class="container">
+	                    <div class="row">
+	                        <div class="col-lg-9 text-black pb24">
+	                            <h3>Post your Property for <b>Free</b></h3>
+	                            <p class="lead">List it on website and get genuine leads</p>
+	                        </div>
+	                        <div class="col-lg-3 pb24">
+	                            <a href="/post-property" class="btn btn-primary border-0 bg-black-75 pull-right">Post Property <span class="badge badge-light">free</span></a>
+	                        </div>
+	                    </div>
+	                </div>
+	            </section>
+	            <div class="oe_structure"/>
+        </xpath>
+    </template>
+</odoo>

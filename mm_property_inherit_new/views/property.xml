@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <!--Activity Type VIEW-->
+	<!--Activity Type Form View-->
+	<record id="activity_type_form_new" model="ir.ui.view">
+		<field name="name">activity.type.form</field>
+		<field name="model">activity.type</field>
+		<field name="arch" type="xml">
+			<form string="Activity Type">
+				<sheet>
+					<group>
+						<field name="name"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Activity Type Tree View-->
+	<record id="activity_type_tree_new" model="ir.ui.view">
+		<field name="name">activity.type.tree</field>
+		<field name="model">activity.type</field>
+		<field name="arch" type="xml">
+			<tree string="Activity Type">
+				<field name="name"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Activity Type Search View-->
+	<record id="activity_type_view_search_new" model="ir.ui.view">
+		<field name="name">activity.type.search</field>
+		<field name="model">activity.type</field>
+		<field name="arch" type="xml">
+			<search string="Search Property">
+				<field name="name"/>
+			</search>
+		</field>
+	</record>
+
+	<!-- Action for Activity Type Views -->
+	<record id="action_activity_type_view_new" model="ir.actions.act_window">
+		<field name="name">Activity Type</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">activity.type</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+
+    <!--legal Type VIEW-->
+    <!--legal Type Form View-->
+    <record id="legal_type_form_new" model="ir.ui.view">
+        <field name="name">legal.type.form</field>
+        <field name="model">legal.type</field>
+        <field name="arch" type="xml">
+            <form string="legal Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--legal Type Tree View-->
+    <record id="legal_type_tree_new" model="ir.ui.view">
+        <field name="name">legal.type.tree</field>
+        <field name="model">legal.type</field>
+        <field name="arch" type="xml">
+            <tree string="legal Type">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--legal Type Search View-->
+    <record id="legal_type_view_search_new" model="ir.ui.view">
+        <field name="name">legal.type.search</field>
+        <field name="model">legal.type</field>
+        <field name="arch" type="xml">
+            <search string="Search Property">
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for legal Type Views -->
+    <record id="action_legal_type_view_new" model="ir.actions.act_window">
+        <field name="name">legal Type</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">legal.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!--Activity Types-->
+    <menuitem id="menu_activity_type_view_new" name="Activity Type" parent="property_management.menu_types_main" action="action_activity_type_view_new"/>
+
+    <!--legal Types-->
+    <menuitem id="menu_legal_type_view_new" name="Legal Type" parent="property_management.menu_types_main" action="action_legal_type_view_new"/>
+</odoo>

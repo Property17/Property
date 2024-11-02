@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="report.paperformat" id="mm_deposite_report_paperformat_report">
+            <field name="name">paperformat.report</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">8</field>
+            <field name="margin_bottom">2</field>
+            <field name="margin_left">2</field>
+            <field name="margin_right">2</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">9</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="mm_multi_deposite_report_action" model="ir.actions.report">
+            <field name="name">Deposite Report</field>
+            <field name="model">account.move</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">pyment_report.mm_multi_deposite_report</field>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="paperformat_id" ref="pyment_report.mm_deposite_report_paperformat_report"/>
+        </record>
+
+        <template id="mm_multi_deposite_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc1" >
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <div>
+                            <style>
+
+                                .gs_table {
+                                border: 1px solid #000000;
+                                float:right !important;
+                                width:100%;
+                                margin:auto;
+                                }
+                                .gs_table td {
+                                height: 35px;
+                                border-bottom: 1px solid #000000;
+                                vertical-align: middle;
+                                font-size:18px;
+                                padding:5;
+                                }
+                                .gs_table th {
+                                height: 35px;
+                                border-bottom: 1px solid #000000;
+                                vertical-align: middle;
+                                font-size:18px;
+                                padding:5;
+                                }
+                            </style>
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                    <table style="text-align: center;width:100%;border:1px solid #ffffff;">
+                                        <tr>
+                                            <th style="text-align: center;">
+                                                ايصال  تامين
+                                            </th>
+                                        </tr>
+                                    </table>
+                                    <table class="mt-2 gs_table" style="border:1;direction:rtl;width:100%;">
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:15%;">
+                                                رقم الايصال
+                                            </th>
+                                            <td style="text-align: right;width:17%;">
+                                                <span t-esc="doc1['name']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:12%;">
+                                                رقم العقد
+                                            </th>
+                                            <td style="text-align: right;width:22%;">
+                                                <span t-esc="doc1['contract_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:16%;">
+                                                تاريخ الاستحقاق
+                                            </th>
+                                            <td style="text-align: right;width:18%;">
+                                                <span t-esc="doc1['invoice_date']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم الوحدة
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['property_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                الرقم الالي
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['auto_add_no']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وصلنا من السيد
+                                            </th>
+                                            <td colspan="5" style="text-align: right;">
+                                                <span t-esc="doc1['partner_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وذلك عن
+                                            </th>
+                                            <td colspan="5" style="text-align: right;font-size: 14px;">
+                                                <span>تأمين يسترد عند الاخلاء بشرط التنبية بقبل شهرين بكتاب رسمي والاخلاء قبل بأسبوع من الشهر الاخير</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                المبلغ المدفوع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['amount_paid']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                            <td colspan="2" style="text-align: right;">
+                                                <span t-esc="doc1['num_word']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                قيمة التأمين
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['rent']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                تاريخ الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['paid_date']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                طريقة الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['journal_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم شيك / البنك
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['cheque_detail']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                اسم المحصل
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                التوقيع / الختم
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span>.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="text-align: right;direction: ltr;">
+                                        <span style="text-align: right;direction: ltr;">لا يعتبر الايصال صالحا مالم يكن مختوما وموقعا من قبل
+                                            الشركة .
+                                        </span>
+                                        <br/>
+                                        <span style="text-align: right;direction: ltr;">هذا الايصال اثبات بالدفع فقط ولا يعتد به في تحديد
+                                            القيمة الايجارية .
+                                        </span>
+                                        <span style="text-align: right;direction: ltr;">يعتبر هذا الايصال لاغي في حالة عدم تحصيل الشيك .
+                                        </span>
+                                    </div>
+                                    <table style="text-align: right;width:100%;">
+                                        <tr>
+                                            <th style="text-align: right;">
+                                            --------------------------------------------------------------------------------------------------------------------
+                                            </th>
+                                        </tr>
+                                    </table>
+                                    <div style="text-align: right;direction: ltr;">
+                                        <span t-esc="doc1['property_manager']"/>
+                                        <br/>
+                                        <span t-esc="doc1['company_st']"/>-<span t-esc="doc1['company_st2']"/>-<span t-esc="doc1['company_city']"/>-
+                                        <span t-esc="doc1['country_name']"/>
+                                    </div>
+                                    <table style="text-align: center;width:100%;border:1px solid #ffffff;">
+                                        <tr>
+                                            <th style="text-align: center;">
+                                                ايصال  تامين
+                                            </th>
+                                        </tr>
+                                    </table>
+                                    <table class="mt-2 gs_table" style="border:1;direction:rtl;width:100%;">
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:15%;">
+                                                رقم الايصال
+                                            </th>
+                                            <td style="text-align: right;width:17%;">
+                                                <span t-esc="doc1['name']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:12%;">
+                                                رقم العقد
+                                            </th>
+                                            <td style="text-align: right;width:22%;">
+                                                <span t-esc="doc1['contract_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:16%;">
+                                                تاريخ الاستحقاق
+                                            </th>
+                                            <td style="text-align: right;width:18%;">
+                                                <span t-esc="doc1['invoice_date']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم الوحدة
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['property_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                الرقم الالي
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['auto_add_no']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وصلنا من السيد
+                                            </th>
+                                            <td colspan="5" style="text-align: right;">
+                                                <span t-esc="doc1['partner_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وذلك عن
+                                            </th>
+                                            <td colspan="5" style="text-align: right;font-size: 14px;">
+                                                <span>تأمين يسترد عند الاخلاء بشرط التنبية بقبل شهرين بكتاب رسمي والاخلاء قبل بأسبوع من الشهر الاخير</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                المبلغ المدفوع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['amount_paid']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                            <td colspan="2" style="text-align: right;">
+                                                <span t-esc="doc1['num_word']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                قيمة التأمين
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['rent']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                تاريخ الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['paid_date']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                طريقة الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['journal_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم شيك / البنك
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['cheque_detail']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                اسم المحصل
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                التوقيع / الختم
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span>.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="text-align: right;direction: ltr;">
+                                        <span style="text-align: right;direction: ltr;">لا يعتبر الايصال صالحا مالم يكن مختوما وموقعا من قبل
+                                            الشركة .
+                                        </span>
+                                        <br/>
+                                        <span style="text-align: right;direction: ltr;">هذا الايصال اثبات بالدفع فقط ولا يعتد به في تحديد
+                                            القيمة الايجارية .
+                                        </span>
+                                        <span style="text-align: right;direction: ltr;">يعتبر هذا الايصال لاغي في حالة عدم تحصيل الشيك .
+                                        </span>
+                                    </div>
+                                    <table style="text-align: right;width:100%;">
+                                        <tr>
+                                            <th style="text-align: right;">
+                                            --------------------------------------------------------------------------------------------------------------------
+                                            </th>
+                                        </tr>
+                                    </table>
+                                    <div style="text-align: right;direction: ltr;">
+                                        <span t-esc="doc1['property_manager']"/>
+                                        <br/>
+                                        <span t-esc="doc1['company_st']"/>-<span t-esc="doc1['company_st2']"/>-<span t-esc="doc1['company_city']"/>-
+                                        <span t-esc="doc1['country_name']"/>
+                                    </div>
+                                    <table style="text-align: center;width:100%;border:1px solid #ffffff;">
+                                        <tr>
+                                            <th style="text-align: center;">
+                                                ايصال  تامين
+                                            </th>
+                                        </tr>
+                                    </table>
+                                    <table class="mt-2 gs_table" style="border:1;direction:rtl;width:100%;">
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:15%;">
+                                                رقم الايصال
+                                            </th>
+                                            <td style="text-align: right;width:17%;">
+                                                <span t-esc="doc1['name']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:12%;">
+                                                رقم العقد
+                                            </th>
+                                            <td style="text-align: right;width:22%;">
+                                                <span t-esc="doc1['contract_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;width:16%;">
+                                                تاريخ الاستحقاق
+                                            </th>
+                                            <td style="text-align: right;width:18%;">
+                                                <span t-esc="doc1['invoice_date']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم الوحدة
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['property_no']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                الرقم الالي
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['auto_add_no']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وصلنا من السيد
+                                            </th>
+                                            <td colspan="5" style="text-align: right;">
+                                                <span t-esc="doc1['partner_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                وذلك عن
+                                            </th>
+                                            <td colspan="5" style="text-align: right;font-size: 14px;">
+                                                <span>تأمين يسترد عند الاخلاء بشرط التنبية بقبل شهرين بكتاب رسمي والاخلاء قبل بأسبوع من الشهر الاخير</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                المبلغ المدفوع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['amount_paid']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                            <td colspan="2" style="text-align: right;">
+                                                <span t-esc="doc1['num_word']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                قيمة التأمين
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['rent']"/>
+                                                <span t-esc="doc1['currency_id']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                تاريخ الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['paid_date']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                طريقة الدفع
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['journal_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                رقم شيك / البنك
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span t-esc="doc1['cheque_detail']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                اسم المحصل
+                                            </th>
+                                            <td colspan="3" style="text-align: right;">
+                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                            </td>
+                                            <th style="background-color:#D8D8D8;text-align: right;">
+                                                التوقيع / الختم
+                                            </th>
+                                            <td style="text-align: right;">
+                                                <span>.</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="text-align: right;direction: ltr;">
+                                        <span style="text-align: right;direction: ltr;">لا يعتبر الايصال صالحا مالم يكن مختوما وموقعا من قبل
+                                            الشركة .
+                                        </span>
+                                        <br/>
+                                        <span style="text-align: right;direction: ltr;">هذا الايصال اثبات بالدفع فقط ولا يعتد به في تحديد
+                                            القيمة الايجارية .
+                                        </span>
+                                        <span style="text-align: right;direction: ltr;">يعتبر هذا الايصال لاغي في حالة عدم تحصيل الشيك .
+                                        </span>
+                                    </div>
+                            </div>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

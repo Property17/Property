@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+"",,,,,,,
+access_account_asset_asset_user,account.asset.user,model_account_asset,,1,1,1,1
+access_property_photo_user,property.photo.user,model_property_photo,,1,1,1,1
+access_property_suggested,access_property_suggested,model_property_suggested,,1,1,1,1
+access_ir_config_parameter_id,access_ir_config_parameter,base.model_ir_config_parameter,,1,1,1,1
+access_website_setting,access_website_setting,model_website_setting,,1,1,1,1
+access_account_asset_asset_p_owner,access_account_asset_asset_p_owner,account_asset.model_account_asset,property_management.group_property_owner,1,1,1,1
+access_sale_order_line_owner,access_sale_order_line_owner,sale.model_sale_order_line,property_management.group_property_owner,1,1,1,1
+access_crm_lead_public,access_crm_lead_public,crm.model_crm_lead,base.group_public,1,0,1,0

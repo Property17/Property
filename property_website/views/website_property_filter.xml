@@ -1,0 +1,167 @@
+<odoo>
+    <template id="search_property_content">
+    	<form id="searchForm" class="form_filter_rent" name="body_property" action="/properties" role="form" method="post">
+    		<input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+            <input type="hidden" class="selected_property_types" name="selected_property_types"/>
+    	<div class="row p-2">
+    		<input type="hidden" id="property_type" name="property_type" t-att-value="property_type"/>
+	        <div class="col-md-3 col-sm-6 col-12 location-filter mb8">
+	            <ul class="nav navbar-nav nav-pills" role="tablist" data-dropdown-in="fadeInDown" data-dropdown-out="fadeOutUp">
+	                <li role="presentation" class="dropdown">
+	                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Location Filter<span class="caret"></span>
+	                    </a>
+	                    <ul class="dropdown-menu search-code-filter">
+	                        <li>
+		                        <div class="p-3">
+		                        	<h5>Post Code</h5>
+		                            <input type="text" class="form-control" t-att-value="postcode" id="postcode" name="postcode" placeholder="Post Code"/>
+		                        <h5>City</h5>
+		                            <input type="text" class="form-control" t-att-value="city" id="city" name="city" placeholder="City"/>
+		                        <h5>State</h5>
+		                            <input type="text" class="form-control" t-att-value="state" id="state" name="state" placeholder="State"/>
+		                        <h5>Country</h5>
+		                            <input type="text" class="form-control" t-att-value="country" id="country" name="country" placeholder="Country"/>
+		                        </div>
+	                        </li>
+	                    </ul>
+	                </li>
+	            </ul>
+	        </div>
+	        <div class="col-md-3 col-sm-6 col-12 mb8">
+    			<ul class="nav navbar-nav nav-pills" role="tablist" data-dropdown-in="fadeInDown" data-dropdown-out="fadeOutUp" style="height:inherit;width: 100%;border-radius: 0px;">
+                   <li role="presentation" class="dropdown">
+                   		<a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Property Type<span class="caret"></span>
+	                    </a>
+                       <ul class="dropdown-menu">
+                           <li>
+                               <div class="row p-2">
+                                   <t t-foreach="property_types" t-as="one_property_type">
+                                       <div class="col-12">
+                                           <div class="checkbox">
+                                               <label>
+                                                   <t t-if="one_property_type.id in selected_property_types">
+                                                       <input type="checkbox" id="check_property" class="check_property" t-att-data-property_type_id="one_property_type.id" checked="checked"/>
+                                                   </t>
+                                                   <t t-if="one_property_type.id not in selected_property_types">
+                                                       <input type="checkbox" id="check_property" class="check_property" t-att-data-property_type_id="one_property_type.id"/>
+                                                   </t>
+                                                   <t t-esc="one_property_type.name"/>
+                                               </label>
+                                           </div>
+                                       </div>
+                                   </t>
+                               </div>
+                           </li>
+                       </ul>
+                   </li>
+               </ul>
+    		</div>
+	        <div class="col-md-3 col-sm-6 col-12 mb8">
+	            <ul class="nav navbar-nav nav-pills" role="tablist" data-dropdown-in="fadeInDown" data-dropdown-out="fadeOutUp">
+	                <li role="presentation" class="dropdown">
+	                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Price Filter<span class="caret"></span>
+	                    </a>
+	                    <ul class="dropdown-menu">
+	                        <li>
+	                            <div class='col-12 location-filter'>
+	                                <div>
+	                                    <h5>Price</h5>
+	                                    <p style="text-align:center;">
+	                                        <input type="text" class="dropdown_filter_change text-center" id="price_slider" style="border:0; color:#c0392b; font-weight:bold; background-color: #d2d2d2;"/>
+	                                    </p>
+	                                </div>
+	                                <div class="row mb4 p-2">
+	                                    <div class="col-6">Min
+	                                        <input type="hidden" class="dropdown_filter_change" t-att-value="min_range" name="min_range" id="min_price_range_id"/>
+	                                    </div>
+	                                    <div class="col-6 text-right">Max
+	                                        <input type="hidden" class="dropdown_filter_change" t-att-value="max_range" name="max_range" id="max_price_range_id"/>
+	                                    </div>
+	                                </div>
+	                                <div class="form-group price-slider">
+	                                    <div id="price_slider_range" class="col-11"></div>
+	                                </div>
+	                            </div>
+	                        </li>
+	                    </ul>
+	                </li>
+	            </ul>
+	        </div>
+	        <div class="col-md-3 col-sm-6 col-12 mb8">
+	            <ul class="nav navbar-nav nav-pills" role="tablist" data-dropdown-in="fadeInDown" data-dropdown-out="fadeOutUp">
+	                <li role="presentation" class="dropdown">
+	                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Advance Filter<span class="caret"></span>
+	                    </a>
+	                    <ul class="col-12 location-filter dropdown-menu">
+	                        <li class="p-3">
+	                            <div>
+	                                <h5>Bedrooms</h5>
+	                                <p style="text-align:center;">
+	                                    <input type="text" class="dropdown_filter_change text-center" id="bead_amount" name="bead_amount" readonly="true" style="border:0; color:#c0392b; font-weight:bold; background-color: #d2d2d2;"/>
+	                                </p>
+	                            </div>
+	                            <div class="row mb4">
+	                                <div class="col-6">Min
+	                                    <input type="hidden" class="dropdown_filter_change" t-att-value="min_bead" name="min_bead" id="min_bead_range_id"/></div>
+	                                <div class="col-6 text-right">Max
+	                                    <input type="hidden" class="dropdown_filter_change" t-att-value="max_bead" name="max_bead" id="max_bead_range_id"/></div>
+	                            </div>
+	                            <div class="form-group price-slider">
+	                                <div id="bead_slider_range" class="col-11"></div>
+	                            </div>
+	                            <br/>
+	                            <div>
+	                                <h5>Bathroom</h5>
+	                                <p style="text-align:center;">
+	                                    <input type="text" class="dropdown_filter_change text-center" id="bath_amount" name="bath_amount" readonly="true" style="border:0; color:#c0392b; font-weight:bold; background-color: #d2d2d2;"/>
+	                                </p>
+	                            </div>
+	                            <div class="row mb4">
+	                                <div class="col-6">Min
+	                                    <input type="hidden" class="dropdown_filter_change" t-att-value="min_bath" name="min_bath" id="min_bath_range_id"/></div>
+	                                <div class="col-6 text-right">Max
+	                                    <input type="hidden" class="dropdown_filter_change" t-att-value="max_bath" name="max_bath" id="max_bath_range_id"/></div>
+	                            </div>
+	                            <div class="form-group price-slider">
+	                                <div id="bath_slider_range" class="col-11"></div>
+	                            </div>
+	                            <div class="mt32">
+	                                <h5>Type of Property</h5>
+	                                <select name="dropdown_price" class="dropdown_filter_change form-control" id="inputsorting">
+	                                    <option value="all" t-att-selected="dropdown_price == &quot;all&quot;">ALL</option>
+	                                    <option value="lowest" t-att-selected="dropdown_price == &quot;lowest&quot;">Price (lowest first)</option>
+	                                    <option value="highest" t-att-selected="dropdown_price == &quot;highest&quot;">Price (highest first)</option>
+	                                    <option value="newest" t-att-selected="dropdown_price == &quot;newest&quot;">Newest first</option>
+	                                </select>
+	                                <h5>Furnish</h5>
+	                                <select name="dropdown_furnish" t-att-value="dropdown_furnish" class="dropdown_filter_change form-control" id="inputFurnished">
+	                                    <option value="all" t-att-selected="dropdown_furnish == &quot;all&quot;">ALL</option>
+	                                    <option value="full_furnished" t-att-selected="dropdown_furnish == &quot;full_furnished&quot;">Furnished</option>
+	                                    <option value="semi_furnished" t-att-selected="dropdown_furnish == &quot;semi_furnished&quot;">Semi Furnished</option>
+	                                    <option value="none" t-att-selected="dropdown_furnish == &quot;none&quot;">Unfurnished</option>
+	                                </select>
+	                                <h5>Facing</h5>
+	                                <select name="dropdown_facing" t-att-value="dropdown_facing" class="dropdown_filter_change form-control" id="inputFacing">
+	                                    <option value="all" t-att-selected="dropdown_facing == &quot;all&quot;">ALL</option>
+	                                    <option value="east" t-att-selected="dropdown_facing == &quot;east&quot;">East</option>
+	                                    <option value="west" t-att-selected="dropdown_facing == &quot;west&quot;">West</option>
+	                                    <option value="north" t-att-selected="dropdown_facing == &quot;north&quot;">North</option>
+	                                    <option value="south" t-att-selected="dropdown_facing == &quot;south&quot;">South</option>
+	                                </select>
+	                            </div>
+	                        </li>
+	                    </ul>
+	                </li>
+	            </ul>
+	        </div>
+    	</div>
+    	<div class="row">
+    		<div class="col-12">
+    			<div class="form-group">
+                   <button type="submit" class="mb8 btn btn-primary">Search</button>
+               	</div>
+    		</div>
+    	</div>
+    	</form>
+    </template>
+</odoo>

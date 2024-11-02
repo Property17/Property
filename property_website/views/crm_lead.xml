@@ -1,0 +1,17 @@
+<odoo>
+    <record id="website_crm_lead_view_form_inherit" model="ir.ui.view">
+        <field name="name">website.crm.ead.view.form.inherit</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form" />
+        <field name="arch" type="xml">
+            <field name="team_id" position="after">
+                <field name="property_rent_sale"/>
+                <field name="property_user"/>
+                <field name="type_id"/>
+            </field>
+            <xpath expr="//field[@name='stage_id']" position="before">
+                <button string="Create User" name="register_authorized_user" type="object" class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
