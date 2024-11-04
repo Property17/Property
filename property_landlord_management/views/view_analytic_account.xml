@@ -7,6 +7,7 @@
             <tree string="Tenancy Details">
                 <field name="ten_date"/>
                 <field name="name" string="Tenancy Name "/>
+                <field name="plan_id"/>
                 <field name="code" string="Code"/>
                 <field name="property_id"/>
                 <field name="property_owner_id"/>
@@ -112,6 +113,7 @@
                             <field readonly="state != 'draft'" name="property_id" placeholder="Property Name" required="1" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                             <field readonly="state != 'draft'" context="{'default_is_owner':True,}" domain="[('is_owner','=',True)]" name="property_owner_id" placeholder="Owner Name" required="1"/>
                             <field name="manager_id"/>
+                            <field name="plan_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                             <field invisible="1" name="tenancy_cancelled"/>
