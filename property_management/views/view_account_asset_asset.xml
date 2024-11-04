@@ -107,7 +107,7 @@
                                     <div>
                                         <field name="method_time" class="oe_inline"/>
                                         <button name="action_asset_modify_new" invisible="state != 'open'" string="Modify Depreciation" type="object" data-hotkey="e" class="oe_highlight"/>
-                            
+                    
                                     </div>
                                     <field name="prorata" invisible="method_time == 'end'"/>
                                     <field name="method_number" invisible="method_time == 'end'" required="method_time == 'number'"/>
@@ -659,7 +659,7 @@
     </record>
 
     <!-- Property Graph View -->
-    <record id="view_property_graph_view" model="ir.ui.view">
+    <!-- <record id="view_property_graph_view" model="ir.ui.view">
         <field name="name">Property_graph</field>
         <field name="model">account.asset</field>
         <field name="arch" type="xml">
@@ -668,13 +668,14 @@
                 <field name="gross_increase_value" type="measure"/>
             </pivot>
         </field>
-    </record>
+    </record> -->
 
     <!-- Action For Property Views -->
     <record id="action_property_assets_view" model="ir.actions.act_window">
         <field name="name">Property</field>
         <field name="res_model">account.asset</field>
-        <field name="view_mode">kanban,tree,form,pivot</field>
+        <!-- <field name="view_mode">kanban,tree,form,pivot</field> -->
+        <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="property_management.view_account_asset_search"/>
         <field name="context">{'search_default_grpstate':1, 'default_is_property': True,}</field>
         <field name="domain">[('is_property', '=', True)]</field>
@@ -710,12 +711,12 @@
     </record>
 
     <!--Property Tenancy Graph -->
-    <record id="action_property_asset_graph_view" model="ir.actions.act_window.view">
+    <!-- <record id="action_property_asset_graph_view" model="ir.actions.act_window.view">
         <field eval="4" name="sequence"/>
         <field name="view_mode">graph</field>
         <field name="view_id" ref="view_property_graph_view"/>
         <field name="act_window_id" ref="action_property_assets_view"/>
-    </record>
+    </record> -->
 
     <!--Hierarchical Tree view for Department -->
     <!-- <record id="view_account_asset_hirarch_tree" model="ir.ui.view">
