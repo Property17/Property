@@ -429,7 +429,8 @@ class AccountAssetAsset(models.Model):
     tenancy_entries_count = fields.Integer(
         compute='_get_tenancy_count', string='Tenancy')
     # analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
-
+    prorata_date = fields.Date(string="Prorata Date", default=fields.Date.today())
+    
     def _get_tenancy_count(self):
         self.tenancy_entries_count = len(self.tenancy_property_ids)
 

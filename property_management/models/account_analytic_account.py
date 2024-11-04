@@ -100,7 +100,10 @@ class AccountAnalyticAccount(models.Model):
                         + relativedelta(years=1)})
         return res
 
-
+    plan_id = fields.Many2one(
+        comodel_name='account.analytic.plan',
+        string='Analytic Plan')
+     
     contract_attachment = fields.Binary(
         string='Tenancy Contract',
         help='Contract document attachment for selected property')

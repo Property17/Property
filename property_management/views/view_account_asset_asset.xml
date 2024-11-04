@@ -60,6 +60,7 @@
                             <field name="latitude"/>
                             <field name="longitude"/>
                             <field name="acquisition_date"/>
+                            <field name="prorata_date"/>
                             <field name="no_of_towers" invisible="parent_id != False"/>
                             <field name="floor" invisible="parent_id == False"/>
                             <field name="gfa_feet"/>
