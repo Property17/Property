@@ -11,6 +11,8 @@ from odoo.exceptions import UserError, ValidationError
 class AccountMoveInheritNew(models.Model):
     _inherit = "account.move"
     _order = "invoice_date ASC"
+    
+
 
     user_paid_by_id = fields.Many2one('res.users', string="Paid By")
     paid_date = fields.Date()
@@ -36,6 +38,8 @@ class AccountMoveInheritNew(models.Model):
     state_ch = fields.Char()
     run_comp = fields.Boolean('Run Comp')
     # run_comp = fields.Boolean(compute='_compute_analytic_account')
+    
+   
 
     def action_update_fields(self):
         for rec in self:
@@ -60,6 +64,16 @@ class AccountMoveInheritNew(models.Model):
 
 class AccountPaymentRegisterInheritNew(models.TransientModel):
     _inherit = "account.payment.register"
+    
+    @api.model
+    def default_get(self, fields_list):
+        res = super(AccountPaymentRegisterInheritNew, self).default_get(fields_list)
+        context = self.env.context
+        invoice_obj = self.env['account.move']
+        if self._context.get('active_id'):
+            invoice_id = invoice_obj.browse(context['active_id'])
+            res['tenancy_id'] = invoice_id.tenancy_id.id
+        return res
 
     def action_create_payments(self):
         active_id = self._context.get('active_ids') or self._context.get('active_id')
@@ -142,13 +156,18 @@ class AccountPaymentRegisterInheritNew(models.TransientModel):
                         p.move_id._compute_analytic_account()
             return action
 
-
-    def _create_payment_vals_from_wizard(self):
-        active_id = self._context.get('active_ids') or self._context.get('active_id')
-        account_move = self.env['account.move'].search([('id', '=', active_id)])
-        res = super()._create_payment_vals_from_wizard()
-        res.update({'tenancy_id': account_move.tenancy_id.id if account_move.tenancy_id.id else False,})
-        return res
+    # def _create_payment_vals_from_wizard(self):
+    #     active_id = self._context.get('active_ids') or self._context.get('active_id')
+    #     account_move = self.env['account.move'].search([('id', '=', active_id)])
+    #     res = super()._create_payment_vals_from_wizard()
+    #     res.update({'tenancy_id': account_move.tenancy_id.id if account_move.tenancy_id.id else False,})
+    #     return res
+    
+    def _create_payment_vals_from_wizard(self, batch_result):
+        payment_vals = super(AccountPaymentRegisterInheritNew, self)._create_payment_vals_from_wizard(batch_result)
+        payment_vals['tenancy_id'] = self.tenancy_id.id
+        return payment_vals
+    
 
 
 class AccountAssetAssetNew(models.Model):

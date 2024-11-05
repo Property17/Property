@@ -57,23 +57,39 @@ class AccountPaymentRegister(models.TransientModel):
         comodel_name='account.asset',
         string='Property',
         help='Property Name.')
-
+    
+    
     @api.model
     def default_get(self, fields_list):
-        # OVERRIDE
-        res = super().default_get(fields_list)
-        context = dict(self._context) or {}
-        active_id = self.env[context.get('active_model')].browse(
-            context.get('active_id'))
-        if active_id:
-            res['property_id'] = active_id.property_id.id or False
-            # res['tenancy_id'] = active_id.new_tenancy_id.id or False
+        res = super(AccountPaymentRegister, self).default_get(fields_list)
+        context = self.env.context
+        invoice_obj = self.env['account.move']
+        if self._context.get('active_id'):
+            invoice_id = invoice_obj.browse(context['active_id'])
+            res['property_id'] = invoice_id.property_id.id
         return res
 
-    def _create_payment_vals_from_wizard(self):
-        res = super()._create_payment_vals_from_wizard()
-        res.update({'property_id': self.property_id.id})
-        return res
+    # @api.model
+    # def default_get(self, fields_list):
+    #     # OVERRIDE
+    #     res = super().default_get(fields_list)
+    #     context = dict(self._context) or {}
+    #     active_id = self.env[context.get('active_model')].browse(
+    #         context.get('active_id'))
+    #     if active_id:
+    #         res['property_id'] = active_id.property_id.id or False
+    #         # res['tenancy_id'] = active_id.new_tenancy_id.id or False
+    #     return res
+
+    # def _create_payment_vals_from_wizard(self):
+    #     res = super()._create_payment_vals_from_wizard()
+    #     res.update({'property_id': self.property_id.id})
+    #     return res
+    
+    def _create_payment_vals_from_wizard(self, batch_result):
+        payment_vals = super(AccountPaymentRegister, self)._create_payment_vals_from_wizard(batch_result)
+        payment_vals['property_id'] = self.property_id.id
+        return payment_vals 
 
 
 class AccountPayment(models.Model):
