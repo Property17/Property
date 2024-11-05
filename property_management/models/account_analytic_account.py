@@ -477,7 +477,8 @@ class AccountAnalyticAccount(models.Model):
                 'quantity': 1,
                 'account_id': rec.property_id.expense_account_id.id or False,
                 'price_unit': rec.deposit or 0.00,
-                'analytic_account_id': rec.id or False,
+                # 'analytic_distribution': rec.id or False,
+                'analytic_distribution': {rec.id : 100} if rec.id else {},
             }
             if rec.multi_prop:
                 for data in rec.prop_ids:

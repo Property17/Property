@@ -152,7 +152,8 @@ class CommissionInvoice(models.Model):
         for data in self:
             inv_line_values = {
                 'name': 'Commission For ' + data.number or "",
-                'analytic_account_id': data.tenancy.id or False,
+                # 'analytic_distribution': data.tenancy.id or False,
+                'analytic_distribution': {data.tenancy_id.id : 100} if data.tenancy_id else {},
                 # 'origin': 'Commission',
                 'quantity': 1,
                 'account_id': data.property_id.expense_account_id.id or False,

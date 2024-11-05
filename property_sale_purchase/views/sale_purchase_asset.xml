@@ -101,8 +101,6 @@
             <xpath expr="/form/sheet/notebook/page[@name='occupancy']/group[@name='property_performance']/field[@name='operational_costs']" position="before">
                 <field name="return_period" />
             </xpath>
-
         </field>
     </record>
-
 </odoo>

@@ -109,8 +109,12 @@ class TenancyRentSchedule(models.Model):
                 'quantity': 1,
                 'account_id':
                 rec.tenancy_id.property_id.income_acc_id.id or False,
-                'analytic_account_id': rec.tenancy_id.id or False,
+                # 'analytic_distribution': rec.tenancy_id.id or False,
+                'analytic_distribution': {rec.tenancy_id.id : 100} if rec.tenancy_id else {},
             }
+            # if rec.tenancy_id:
+            #     inv_line['analytic_distribution'] =  {rec.tenancy_id.id : 100}
+            #     inv_line.append((0, 0, inv_line))
         return [(0, 0, inv_line)]
 
     def create_invoice(self):
@@ -128,7 +132,7 @@ class TenancyRentSchedule(models.Model):
                 'invoice_date': rec.start_date or False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
-                'auto_post': True
+                'auto_post': 'at_date'
             }
             invoice_id = inv_obj.create(inv_values)
             rec.write({'invoice_id': invoice_id.id, 'is_invoiced': True})

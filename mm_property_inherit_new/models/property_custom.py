@@ -34,7 +34,8 @@ class AccountMoveInheritNew(models.Model):
     ], string='Status', required=True, readonly=True, copy=False, tracking=True,
         default='draft')
     state_ch = fields.Char()
-    run_comp = fields.Boolean(compute='_compute_analytic_account')
+    run_comp = fields.Boolean('Run Comp')
+    # run_comp = fields.Boolean(compute='_compute_analytic_account')
 
     def action_update_fields(self):
         for rec in self:
@@ -45,16 +46,16 @@ class AccountMoveInheritNew(models.Model):
                 if rec.note:
                     tenancy_rent.note = rec.note
 
-    def _compute_analytic_account(self):
-        for rec in self:
-            rec.run_comp = True
-            if rec.tenancy_id:
-                for line in rec.invoice_line_ids:
-                    if line.account_id.user_type_id.id == self.env.ref("account.data_account_type_receivable").id:
-                        if not line.analytic_account_id:
-                            line.analytic_account_id = rec.tenancy_id.id
-                    else:
-                        line.analytic_account_id = False
+    # def _compute_analytic_account(self):
+    #     for rec in self:
+    #         rec.run_comp = True
+    #         if rec.tenancy_id:
+    #             for line in rec.invoice_line_ids:
+    #                 if line.account_id.user_type_id.id == self.env.ref("account.data_account_type_receivable").id:
+    #                     if not line.analytic_distribution:
+    #                         line.analytic_distribution = rec.tenancy_id.id
+    #                 else:
+    #                     line.analytic_distribution = False
 
 
 class AccountPaymentRegisterInheritNew(models.TransientModel):
@@ -235,7 +236,9 @@ class TenancyRentScheduleNew(models.Model):
                 'price_unit': rec.amount or 0.00,
                 'quantity': 1,
                 'account_id': rec.tenancy_id.property_id.income_acc_id.id or False,
-                'analytic_account_id': rec.tenancy_id.id or False,
+                # 'analytic_distribution': rec.tenancy_id.id or False,
+                'analytic_distribution': {rec.tenancy_id.id : 100} if rec.tenancy_id else {},
+
             }
         return [(0, 0, inv_line)]
 
@@ -259,7 +262,7 @@ class TenancyRentScheduleNew(models.Model):
                 'note': rec.note or False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
-                'auto_post': True
+                'auto_post': 'at_date'
             }
             print("inv_values", inv_values)
             invoice_id = inv_obj.with_company(rec.company_id.id).create(inv_values)

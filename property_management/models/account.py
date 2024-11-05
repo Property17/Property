@@ -67,7 +67,7 @@ class AccountPaymentRegister(models.TransientModel):
             context.get('active_id'))
         if active_id:
             res['property_id'] = active_id.property_id.id or False
-            res['tenancy_id'] = active_id.new_tenancy_id.id or False
+            # res['tenancy_id'] = active_id.new_tenancy_id.id or False
         return res
 
     def _create_payment_vals_from_wizard(self):
