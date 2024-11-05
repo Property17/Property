@@ -324,22 +324,39 @@ class AccountAnalyticAccountNew(models.Model):
         for rec in self:
             rec.run_comp = True
             rec._compute_total_rent()
-
+            
     @api.depends('rent_schedule_ids', 'rent', 'rent_type_id')
     def _compute_total_rent(self):
         """
-        This method is used to calculate Total Rent of current Tenancy.
-        @param self: The object pointer
-        @return: Calculated Total Rent.
+        Calculate the Total Rent based on the type of tenancy (Monthly, Yearly, Weekly).
         """
         for tenancy_brw in self:
             tenancy_brw.total_rent = 0
-            if tenancy_brw.rent_type_id.renttype == 'Monthly':
-                tenancy_brw.total_rent = tenancy_brw.rent * int(tenancy_brw.rent_type_id.name)
-            if tenancy_brw.rent_type_id.renttype == 'Yearly':
-                tenancy_brw.total_rent = tenancy_brw.rent * (int(tenancy_brw.rent_type_id.name) * 12)
-            if tenancy_brw.rent_type_id.renttype == 'Weekly':
-                tenancy_brw.total_rent = tenancy_brw.rent * (int(tenancy_brw.rent_type_id.name) / 4)
+            if tenancy_brw.rent_type_id and tenancy_brw.rent_type_id.name.isdigit():
+                rent_duration = int(tenancy_brw.rent_type_id.name)
+                if tenancy_brw.rent_type_id.renttype == 'Monthly':
+                    tenancy_brw.total_rent = tenancy_brw.rent * rent_duration
+                elif tenancy_brw.rent_type_id.renttype == 'Yearly':
+                    tenancy_brw.total_rent = tenancy_brw.rent * (rent_duration * 12)
+                elif tenancy_brw.rent_type_id.renttype == 'Weekly':
+                    tenancy_brw.total_rent = tenancy_brw.rent * (rent_duration / 4)
+        
+
+    # @api.depends('rent_schedule_ids', 'rent', 'rent_type_id')
+    # def _compute_total_rent(self):
+    #     """
+    #     This method is used to calculate Total Rent of current Tenancy.
+    #     @param self: The object pointer
+    #     @return: Calculated Total Rent.
+    #     """
+    #     for tenancy_brw in self:
+    #         tenancy_brw.total_rent = 0
+    #         if tenancy_brw.rent_type_id.renttype == 'Monthly':
+    #             tenancy_brw.total_rent = tenancy_brw.rent * int(tenancy_brw.rent_type_id.name)
+    #         if tenancy_brw.rent_type_id.renttype == 'Yearly':
+    #             tenancy_brw.total_rent = tenancy_brw.rent * (int(tenancy_brw.rent_type_id.name) * 12)
+    #         if tenancy_brw.rent_type_id.renttype == 'Weekly':
+    #             tenancy_brw.total_rent = tenancy_brw.rent * (int(tenancy_brw.rent_type_id.name) / 4)
 
     def name_get(self):
         res = []
