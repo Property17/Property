@@ -23,7 +23,7 @@ class AccountMoveInheritNew(models.Model):
         help='Tenancy Name.', required=0)
     property_manager_id = fields.Many2one('res.partner', string='Property Manager', related='tenancy_id.property_manager_id', store=True)
     property_id = fields.Many2one('account.asset', string='Property', related='tenancy_id.property_id', store=True)
-    analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account', related='tenancy_id.analytic_account_id', store=True)
+    # analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account', related='tenancy_id.analytic_account_id', store=True)
     cheque_detail = fields.Char(string='Cheque Detail',)
     rent_residual = fields.Monetary(string='Pending Amount', currency_field='currency_id',)
     note = fields.Text(string='Notes')
@@ -173,14 +173,18 @@ class AccountPaymentRegisterInheritNew(models.TransientModel):
 class AccountAssetAssetNew(models.Model):
     _inherit = "account.asset"
 
-    analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
+    # analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     auto_add_no = fields.Char(string='Auto - Address No ')
+    # plan_id = fields.Many2one('account.analytic.account', 'Analytic Account')
+    plan_id = fields.Many2one(
+        comodel_name='account.analytic.plan',
+        string='Analytic Plan')
 
-    @api.onchange('parent_id')
-    def _onchange_parent_id(self):
-        for rec in self:
-            if rec.parent_id:
-                rec.analytic_account_id = rec.parent_id.analytic_account_id.id
+    # @api.onchange('parent_id')
+    # def _onchange_parent_id(self):
+    #     for rec in self:
+    #         if rec.parent_id:
+    #             rec.analytic_account_id = rec.parent_id.analytic_account_id.id
 
 
 class AccountPaymentInhNew(models.Model):
@@ -306,7 +310,7 @@ class AccountAnalyticAccountNew(models.Model):
     legal_type_id = fields.Many2one('legal.type', string='Legal Type', )
     activity_type_lo_id = fields.Many2one('activity.type', string='Activity Type', )
     property_manager_id = fields.Many2one(comodel_name='res.partner', string='Property Manager')
-    analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
+    # analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     close_date = fields.Date(string='Close Date')
     legal = fields.Boolean(string='Legal', )
     legal_case = fields.Boolean(string='Legal Case', )
@@ -319,6 +323,9 @@ class AccountAnalyticAccountNew(models.Model):
     contract_count = fields.Integer(compute='get_mm_contract_count')
     name = fields.Char('Description', required=False)
     run_comp = fields.Boolean(compute='_compute_run_func')
+    plan_id = fields.Many2one(
+        comodel_name='account.analytic.plan',
+        string='Analytic Plan')
 
     def _compute_run_func(self):
         for rec in self:
@@ -427,12 +434,12 @@ class AccountAnalyticAccountNew(models.Model):
     def _onchange_property_id001(self):
         for rec in self:
             if rec.property_id:
-                rec.analytic_account_id = rec.property_id.analytic_account_id.id
+                rec.plan_id = rec.property_id.plan_id.id
 
     @api.onchange('property_manager_id')
     def domain_property_id(self):
         self.property_id = False
-        self.analytic_account_id = False
+        self.plan_id = False
         return {'domain': {'property_id': [('property_manager', '=', self.property_manager_id.id), ('state', '=','draft'), ('property_sale_rent', '=', 'rent')]}}
 
     def compute_amount_in_word_en(self, amount):

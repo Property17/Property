@@ -6,13 +6,16 @@
         <field name="model">account.asset</field>
         <field name="inherit_id" ref="property_management.property_asset_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//h1" position="after">
+            <!-- <xpath expr="//h1" position="after">
                 <div class="o_row">
                     <field name="analytic_account_id" required="1" placeholder="Analytic Account"/>
                 </div>
-            </xpath>
+            </xpath> --> 
             <xpath expr="//field[@name='latitude']" position="before">
                 <field name="auto_add_no"/>
+            </xpath>
+             <xpath expr="//field[@name='income_acc_id']" position="before">
+                <field name="plan_id"/>
             </xpath>
         </field>
     </record>
@@ -39,8 +42,8 @@
             <xpath expr="//group" position="inside">
                 <filter name="property_manager_id" string="Property Manager"
                         context="{'group_by':'property_manager_id'}"/>
-                <filter name="analytic_account_id" string="Analytic Account"
-                        context="{'group_by':'analytic_account_id'}"/>
+                <!-- <filter name="analytic_account_id" string="Analytic Account"
+                        context="{'group_by':'analytic_account_id'}"/> -->
                 <filter string="Legal" name="legal" context="{'group_by':'legal'}"/>
                 <filter string="Legal Case" name="legal_case" context="{'group_by':'legal_case'}"/>
                 <filter name="close_date" string="Close Date" context="{'group_by':'close_date'}"/>
@@ -71,7 +74,7 @@
                         </group>
                         <group>
                             <field name="property_id"/>
-                            <field name="analytic_account_id"/>
+                            <!-- <field name="analytic_account_id"/> -->
                             <field name="cheque_detail" invisible="0"/>
                             <field name="rent_residual" invisible="1"/>
                             <field name="note" invisible="0"/>
@@ -89,7 +92,7 @@
         <field name="arch" type="xml">
             <field name="name" position="before">
                 <field name="property_manager_id"/>
-                <field name="analytic_account_id"/>
+                <!-- <field name="analytic_account_id"/> -->
                 <field name="property_id"/>
                 <field name="tenancy_id"/>
             </field>
@@ -104,8 +107,8 @@
             <xpath expr="//group" position="inside">
                 <filter string="Property Manager" name="property_manager_id" domain="[]"
                         context="{'group_by':'property_manager_id'}"/>
-                <filter string="Analytic Account" name="analytic_account_id" domain="[]"
-                        context="{'group_by':'analytic_account_id'}"/>
+                <!-- <filter string="Analytic Account" name="analytic_account_id" domain="[]"
+                        context="{'group_by':'analytic_account_id'}"/> -->
                 <filter string="Property" name="property_id" domain="[]" context="{'group_by':'property_id'}"/>
                 <filter string="Tenancy" name="tenancy_id" domain="[]" context="{'group_by':'tenancy_id'}"/>
             </xpath>
@@ -121,7 +124,7 @@
                 <field name="property_manager_id"/>
             </xpath>
             <xpath expr="//field[@name='tenant_id']" position="after">
-                <field name="analytic_account_id"/>
+                <field name="plan_id"/>
             </xpath>
         </field>
     </record>
@@ -165,7 +168,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='manager_id']" position="after">
-                <field name="analytic_account_id" required="1" placeholder="Analytic Account" readonly="0"/>
+                <!-- <field name="analytic_account_id" required="1" placeholder="Analytic Account" readonly="0"/> -->
             </xpath>
             <xpath expr="//page/field[@name='rent_schedule_ids']/tree//field[@name='is_readonly']" position="after">
                 <field name="is_blocked" invisible="1"/>
