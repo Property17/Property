@@ -13,37 +13,34 @@ class AccountAnalyticAccount(models.Model):
     _inherit = ["account.analytic.account", "mail.activity.mixin"]
     _order = 'code'
 
-    @api.depends('account_move_line_ids')
+    @api.depends('total_credit_amt', 'total_debit_amt')
     def _compute_total_deb_cre_amt(self):
         """
-        This method is used to calculate Total income amount.
-        @param self: The object pointer
+        This method is used to calculate the total income amount by subtracting 
+        total debit amount from total credit amount.
         """
-        for tenancy_brw in self:
-            total = tenancy_brw.total_credit_amt - tenancy_brw.total_debit_amt
-            tenancy_brw.total_deb_cre_amt = total or 0.0
+        for tenancy in self:
+            total = tenancy.total_credit_amt - tenancy.total_debit_amt
+            tenancy.total_deb_cre_amt = total or 0.0
 
-    @api.depends('account_move_line_ids')
+    @api.depends('account_move_line_ids.credit')
     def _compute_total_credit_amt(self):
         """
-        This method is used to calculate Total credit amount.
-        @param self: The object pointer
+        This method calculates the total credit amount by summing the 'credit' 
+        field values from the related account move lines.
         """
-        for tenancy_brw in self:
-            tenancy_brw.total_credit_amt = sum(
-                credit_amt.credit for credit_amt in
-                tenancy_brw.account_move_line_ids)
+        for tenancy in self:
+            tenancy.total_credit_amt = sum(line.credit for line in tenancy.account_move_line_ids) or 0.0
 
-    @api.depends('account_move_line_ids')
+
+    @api.depends('account_move_line_ids.debit')
     def _compute_total_debit_amt(self):
         """
-        This method is used to calculate Total debit amount.
-        @param self: The object pointer
+        Calculates the total debit amount for each tenancy by summing 
+        the debit values from related account move lines.
         """
-        for tenancy_brw in self:
-            tenancy_brw.total_debit_amt = sum(
-                debit_amt.debit for debit_amt in
-                tenancy_brw.account_move_line_ids)
+        for tenancy in self:
+            tenancy.total_debit_amt = sum(line.debit for line in tenancy.account_move_line_ids) or 0.0
 
     @api.depends('rent_schedule_ids', 'rent_schedule_ids.amount')
     def _compute_total_rent(self):
@@ -91,14 +88,14 @@ class AccountAnalyticAccount(models.Model):
             else:
                 pro_record.rent = prop_val
 
-    @api.model
-    def default_get(self, fields):
-        res = super(AccountAnalyticAccount,
-                    self).default_get(fields)
-        if res.get('date_start'):
-            res.update({'date': res.get('date_start')
-                        + relativedelta(years=1)})
-        return res
+    # @api.model
+    # def default_get(self, fields):
+    #     res = super(AccountAnalyticAccount,
+    #                 self).default_get(fields)
+    #     if res.get('date_start'):
+    #         res.update({'date': res.get('date_start')
+    #                     + relativedelta(years=1)})
+    #     return res
 
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
