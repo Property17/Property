@@ -87,16 +87,14 @@ class AccountAnalyticAccount(models.Model):
                 pro_record.rent = total + prop_val
             else:
                 pro_record.rent = prop_val
-
-    # @api.model
-    # def default_get(self, fields):
-    #     res = super(AccountAnalyticAccount,
-    #                 self).default_get(fields)
-    #     if res.get('date_start'):
-    #         res.update({'date': res.get('date_start')
-    #                     + relativedelta(years=1)})
-    #     return res
-
+                
+    @api.model
+    def default_get(self, fields):
+        res = super(AccountAnalyticAccount, self).default_get(fields)
+        if res.get('date_start'):
+            res.update({'date': res['date_start'] + relativedelta(years=1)})
+        return res
+        
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
         string='Analytic Plan')
@@ -669,12 +667,16 @@ class AccountAnalyticAccount(models.Model):
                         rent_obj.create(
                             {'start_date': d1,
                              'amount': tenancy_rec.rent * interval or 0.0,
-                             'property_id': tenancy_rec.property_id
-                                and tenancy_rec.property_id.id or False,
+                            #  'property_id': tenancy_rec.property_id
+                            #     and tenancy_rec.property_id.id or False,
+                            #  'tenancy_id': tenancy_rec.id,
+                            #  'currency_id': tenancy_rec.currency_id.id
+                            #     or False,
+                            #  'rel_tenant_id': tenancy_rec.tenant_id.id
+                            'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
                              'tenancy_id': tenancy_rec.id,
-                             'currency_id': tenancy_rec.currency_id.id
-                                or False,
-                             'rel_tenant_id': tenancy_rec.tenant_id.id
+                             'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                             'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
                              })
                         d1 = d1 + relativedelta(days=(7 * interval))
                 if wek_tot > 0:
@@ -685,11 +687,15 @@ class AccountAnalyticAccount(models.Model):
                         {'start_date': d1.strftime(
                             DEFAULT_SERVER_DATE_FORMAT),
                          'amount': (one_day_rent * (wek_tot)) or 0.0,
-                         'property_id': tenancy_rec.property_id
-                            and tenancy_rec.property_id.id or False,
-                         'tenancy_id': tenancy_rec.id,
-                         'currency_id': tenancy_rec.currency_id.id or False,
-                         'rel_tenant_id': tenancy_rec.tenant_id.id
+                        #  'property_id': tenancy_rec.property_id
+                        #     and tenancy_rec.property_id.id or False,
+                        #  'tenancy_id': tenancy_rec.id,
+                        #  'currency_id': tenancy_rec.currency_id.id or False,
+                        #  'rel_tenant_id': tenancy_rec.tenant_id.id
+                        'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+                        'tenancy_id': tenancy_rec.id,
+                        'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                        'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
                          })
             elif tenancy_rec.rent_type_id.renttype != 'Weekly':
                 if tenancy_rec.rent_type_id.renttype == 'Monthly':
@@ -710,24 +716,30 @@ class AccountAnalyticAccount(models.Model):
                         rent_obj.create(
                             {'start_date': d1,
                              'amount': tenancy_rec.rent * interval or 0.0,
-                             'property_id': tenancy_rec.property_id
-                                and tenancy_rec.property_id.id or False,
+                             'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
                              'tenancy_id': tenancy_rec.id,
-                             'currency_id': tenancy_rec.currency_id.id
-                                or False,
-                             'rel_tenant_id': tenancy_rec.tenant_id.id
+                             'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                             'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
                              })
                         d1 = d1 + relativedelta(months=interval, day=tenancy_rec.date_start.day)
                 if tot_rec2 > 0:
                     rent_obj.create({
                         'start_date': d1,
-                        'amount': tenancy_rec.rent * tot_rec2 or 0.0,
-                        'property_id': tenancy_rec.property_id
-                        and tenancy_rec.property_id.id or False,
+                        'amount': tenancy_rec.rent * interval or 0.0,
+                        'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
                         'tenancy_id': tenancy_rec.id,
-                        'currency_id': tenancy_rec.currency_id.id or False,
-                        'rel_tenant_id': tenancy_rec.tenant_id.id
+                        'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                        'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
                     })
+                    # rent_obj.create({
+                    #     'start_date': d1,
+                    #     'amount': tenancy_rec.rent * tot_rec2 or 0.0,
+                    #     'property_id': tenancy_rec.property_id
+                    #     and tenancy_rec.property_id.id or False,
+                    #     'tenancy_id': tenancy_rec.id,
+                    #     'currency_id': tenancy_rec.currency_id.id or False,
+                    #     'rel_tenant_id': tenancy_rec.tenant_id.id
+                    # })
             return tenancy_rec.write({'rent_entry_chck': True})
 
     def button_cancel_tenancy(self):
