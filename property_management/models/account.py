@@ -149,8 +149,8 @@ class AccountPayment(models.Model):
     #                     })
     #     return result
     
-    def _prepare_move_line_default_vals(self, write_off_line_vals=None, **kwargs):
-        result = super()._prepare_move_line_default_vals(write_off_line_vals, **kwargs)
+    def _prepare_move_line_default_vals(self, write_off_line_vals, force_balance=False):
+        result = super(AccountPayment, self)._prepare_move_line_default_vals(write_off_line_vals, force_balance)
         context = dict(self._context) or {}
         for line in result:
             if not self.move_id.property_id:
