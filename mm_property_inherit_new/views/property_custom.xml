@@ -199,8 +199,8 @@
                 <field name="close_date"/>
             </xpath>
             <xpath expr="//header" position="inside">
-                <button name="button_blocked" string="Blocked" type="object" invisible="state != 'open'"  class="oe_highlight"/>
-                <button name="button_un_blocked" string="Un Blocked" type="object" invisible="state != 'blocked'" 
+                <button name="button_blocked" string="Blocked" type="object"  invisible="state not in ['open']" class="oe_highlight"/>
+                <button name="button_un_blocked" string="Un Blocked" type="object"  invisible="state not in ['blocked']"
                         class="oe_highlight"/>
             </xpath>
         </field>

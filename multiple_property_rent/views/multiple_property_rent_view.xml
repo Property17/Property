@@ -14,7 +14,7 @@
                     <field name="prop_ids" required="multi_prop == True">
                         <!-- <separator string="Property Details" colspan="4"/> -->
                         <tree editable="bottom">
-                            <field name="property_id" string="Property" context="{'tree_view_ref': 'property_management_ee.property_view_asset_tree', 'form_view_ref':'property_management_ee.property_asset_form'}"/>
+                            <field name="property_id" string="Property" context="{'tree_view_ref': 'property_management_ee.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                             <field name="ground"/>
                         </tree>
                     </field>

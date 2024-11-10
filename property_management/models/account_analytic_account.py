@@ -6,7 +6,10 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
-
+class AccountMoveLine(models.Model):
+    _inherit ="account.move.line"
+    
+    analytic_account_id = fields.Many2one("account.analytic.account", string="Analytic Account")
 class AccountAnalyticAccount(models.Model):
     _name = "account.analytic.account"
     _description = 'Tenant Tenancy'
@@ -167,10 +170,10 @@ class AccountAnalyticAccount(models.Model):
         string='Rent Schedule')
     account_move_line_ids = fields.One2many(
         comodel_name='account.move.line',
-        inverse_name='analytic_distribution',
-        string='Entries',
-        readonly=True,
-        states={'draft': [('readonly', False)]})
+        inverse_name='analytic_account_id',
+        string='Entries',)
+        # readonly=True,
+        # states={'draft': [('readonly', False)]})
     rent = fields.Monetary(
         string='Tenancy Rent',
         default=0.0,

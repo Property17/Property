@@ -135,8 +135,22 @@ class AccountPayment(models.Model):
                 res.tenancy_id.write({'acc_pay_dep_ret_id': res.id})
         return res
 
-    def _prepare_move_line_default_vals(self, write_off_line_vals):
-        result = super()._prepare_move_line_default_vals(write_off_line_vals)
+    # def _prepare_move_line_default_vals(self, write_off_line_vals):
+    #     result = super()._prepare_move_line_default_vals(write_off_line_vals)
+    #     context = dict(self._context) or {}
+    #     for line in result:
+    #         if not self.move_id.property_id:
+    #             self.move_id.property_id = self.property_id.id or False
+    #         if context.get('account_deposit_received') and line.get('debit') > 0 and self.tenancy_id.id:
+    #             if self.payment_type in ('inbound', 'outbound'):
+    #                 line.update({
+    #                     # 'analytic_account_id': self.tenancy_id.id,
+    #                     'property_id': self.property_id.id
+    #                     })
+    #     return result
+    
+    def _prepare_move_line_default_vals(self, write_off_line_vals=None, **kwargs):
+        result = super()._prepare_move_line_default_vals(write_off_line_vals, **kwargs)
         context = dict(self._context) or {}
         for line in result:
             if not self.move_id.property_id:
@@ -144,10 +158,10 @@ class AccountPayment(models.Model):
             if context.get('account_deposit_received') and line.get('debit') > 0 and self.tenancy_id.id:
                 if self.payment_type in ('inbound', 'outbound'):
                     line.update({
-                        # 'analytic_account_id': self.tenancy_id.id,
                         'property_id': self.property_id.id
-                        })
+                    })
         return result
+
 
     def _seek_for_lines(self):
         rec = super(AccountPayment, self)._seek_for_lines()
