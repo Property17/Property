@@ -406,6 +406,7 @@ class AccountAnalyticAccount(models.Model):
         @return: Dictionary of values.
         """
         context = dict(self._context) or {}
+        print("contextcontextbutton_receivebutton_receive", context)
         payment_id = False
         acc_pay_form = self.env.ref(
             'account.view_account_payment_form')

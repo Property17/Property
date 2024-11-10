@@ -134,6 +134,22 @@ class AccountPayment(models.Model):
             if res.payment_type == 'outbound':
                 res.tenancy_id.write({'acc_pay_dep_ret_id': res.id})
         return res
+    
+    def _prepare_move_line_default_vals(self, write_off_line_vals, **kwargs):
+        result = super()._prepare_move_line_default_vals(write_off_line_vals, **kwargs)
+        context = dict(self._context or {})
+        print("contextcontextcontextcontext", context)
+        for line in result:
+            if not self.move_id.property_id:
+                self.move_id.property_id = self.property_id.id or False
+            if context.get('account_deposit_received') and line.get('debit') > 0 and self.tenancy_id.id:
+                if self.payment_type in ('inbound', 'outbound'):
+                    line.update({
+                        'property_id': self.property_id.id
+                    })
+                    print("contextcontextcontextcontextlineline", line)
+        return result
+
 
     # def _prepare_move_line_default_vals(self, write_off_line_vals):
     #     result = super()._prepare_move_line_default_vals(write_off_line_vals)
@@ -149,19 +165,6 @@ class AccountPayment(models.Model):
     #                     })
     #     return result
     
-    # def _prepare_move_line_default_vals(self, write_off_line_vals, force_balance=False):
-    #     result = super(AccountPayment, self)._prepare_move_line_default_vals(write_off_line_vals, force_balance)
-    #     context = dict(self._context) or {}
-    #     for line in result:
-    #         if not self.move_id.property_id:
-    #             self.move_id.property_id = self.property_id.id or False
-    #         if context.get('account_deposit_received') and line.get('debit') > 0 and self.tenancy_id.id:
-    #             if self.payment_type in ('inbound', 'outbound'):
-    #                 line.update({
-    #                     'property_id': self.property_id.id
-    #                 })
-    #     return result
-
 
     def _seek_for_lines(self):
         rec = super(AccountPayment, self)._seek_for_lines()
