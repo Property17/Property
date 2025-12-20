@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="cdiscount_rent_form" model="ir.ui.view">
+        <field name="name">discount.rent.form</field>
+        <field name="model">discount.rent</field>
+        <field name="arch" type="xml">
+            <form string="Tenancy Discount Details">
+                <header>
+                
+                    <button name="apply_discount_to_rent" string="Active"
+                        class="btn-success" type="object"
+                        invisible="status == 'active'" />
+
+                    <button name="action_set_inactive" string="In Active"
+                        class="btn-danger" type="object"
+                        invisible="status != 'active'" />
+
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="tenancy_id" readonly="status == 'active'" />
+                            <field name="properties" />
+                            <field name="tenant_id" />
+                            <field name="date" readonly="status == 'active'" />
+                            <field name="description" readonly="status == 'active'" />
+                            <field name="start_date" readonly="status == 'active'" />
+                            <field name="end_date" readonly="status == 'active'" />
+                        </group>
+                        <group>
+                            <field name="discount_type" readonly="status == 'active'" />
+                            <field name="discount" readonly="status == 'active'" />
+                            <field name="discount_amount" readonly="status == 'active'" />
+                            <field name="status" readonly="1" />
+                            <field name="rent" readonly="status == 'active'" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="cdiscount_rent_tree" model="ir.ui.view">
+        <field name="name">discount.rent.tree</field>
+        <field name="model">discount.rent</field>
+        <field name="arch" type="xml">
+            <tree string="Tenancy Discount Details">
+                <field name="tenancy_id" />
+                <field name="properties" />
+                <field name="tenant_id" />
+                <field name="date" />
+                <field name="description" />
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="discount_type" />
+                <field name="discount_amount" />
+                <field name="discount" />
+                <field name="status" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_discount_rent" model="ir.actions.act_window">
+        <field name="name">Tenancy Discount Details</field>
+        <field name="res_model">discount.rent</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        name="Tenancy Discount Details"
+        parent="property_management.menu_tenant_details_sub"
+        action="action_discount_rent"
+        id="menu_tenancy_discount_details"
+        sequence="4"
+    />
+
+</odoo>

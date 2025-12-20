@@ -59,7 +59,7 @@ class TenancyRentSchedule(models.Model):
         string='End Date',
         help='End Date.')
     cheque_detail = fields.Char(
-        string='Cheque Detail',
+        string='Cheque Detail', related='invoice_id.payment_reference',
         size=30)
     move_check = fields.Boolean(
         compute='compute_move_check',
@@ -97,10 +97,14 @@ class TenancyRentSchedule(models.Model):
         help="Pending Ammount.")
     is_readonly = fields.Boolean(
         string='Readonly')
+    has_created = fields.Boolean(
+        string='Has Created')
+    
 
     def get_invloice_lines(self):
         """TO GET THE INVOICE LINES"""
         inv_line = {}
+        print("")
         for rec in self:
             inv_line = {
                 # 'origin': 'tenancy.rent.schedule',
@@ -109,9 +113,16 @@ class TenancyRentSchedule(models.Model):
                 'quantity': 1,
                 'account_id':
                 rec.tenancy_id.property_id.income_acc_id.id or False,
-                # 'analytic_distribution': rec.tenancy_id.id or False,
+                'analytic_account_id': rec.tenancy_id.id,
                 'analytic_distribution': {rec.tenancy_id.id : 100} if rec.tenancy_id else {},
             }
+            if self.tenancy_id.multi_prop:
+                for data in self.tenancy_id.prop_ids:
+                    if data.property_id and data.property_id.income_acc_id:
+                        for account in data.property_id.income_acc_id:
+                            account_id = account.id
+                        inv_line.update({'account_id': account_id})
+            print("inv_lineinv_lineinv_line", inv_line)
             # if rec.tenancy_id:
             #     inv_line['analytic_distribution'] =  {rec.tenancy_id.id : 100}
             #     inv_line.append((0, 0, inv_line))
@@ -132,7 +143,8 @@ class TenancyRentSchedule(models.Model):
                 'invoice_date': rec.start_date or False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
-                'auto_post': 'at_date'
+                'auto_post': 'at_date',
+                'company_id': rec.tenancy_id.company_id.id,
             }
             invoice_id = inv_obj.create(inv_values)
             rec.write({'invoice_id': invoice_id.id, 'is_invoiced': True})

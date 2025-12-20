@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="tem_property_ava_id">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t class="page">
+                    <div>
+                        <center>
+                            <div class="panel panel-primary">
+                                <div>
+                                    <table>
+                                        <tr>
+                                            <h2>
+                                                <strong>Property Available Report</strong>
+                                            </h2>
+                                        </tr>
+                                        <tr>
+                                            <h6>
+                                                <strong>Print Date:</strong>
+                                                <t t-esc="time.strftime('%Y-%m-%d %H:%M:%S')" />
+                                            </h6>
+                                        </tr>
+                                        <!-- <tr>
+                                            <div style="text-align:center">
+                                                <h6>
+                                                    <t t-if="form.get('from_date')">
+                                                        <t t-esc="form['from_date']" />
+                                                    </t>
+                                                    <strong>To</strong>
+                                                    <t t-if="form.get('to_date')">
+                                                        <t t-esc="form['to_date']" />
+                                                    </t>
+                                                </h6>
+                                            </div>
+                                        </tr> -->
+                                        <tr>
+                                            <div style="text-align:center">
+                                                <h6>
+                                                    <t t-if="form.get('company_id')">
+                                                        <strong>Company</strong>
+                                                        <t t-esc="form['company_id']" />
+                                                    </t>
+                                                    <br />
+                                                    <t t-if="form.get('property_manager_id')">
+                                                        <strong>Property Manager</strong>
+                                                        <t t-esc="form['property_manager_id']" />
+                                                    </t>
+                                                    <br />
+                                                    <t t-if="form.get('parent_property_id')">
+                                                        <strong>Parent Property</strong>
+                                                        <t t-esc="form['parent_property_id']" />
+                                                    </t>
+                                                </h6>
+                                            </div>
+                                        </tr>
+                                       
+                                    </table>
+                                </div>
+                            </div>
+                        </center>
+                    </div>
+                    <table class="table table-condensed table-bordered" style="width:100%;">
+                        <thead>
+                            <tr style="font-size:18px;text-align: center;">
+                                <td>
+                                    <b>
+                                        NO
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Properties
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Property Type
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Auto-Address No  
+                                    </b>
+                                </td>
+                                <td >
+                                    <b>
+                                        Address  
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Last Tenancy Rant  
+                                    </b>
+                                </td>
+                                <td style="width:15%;">
+                                    <b>
+                                        Last Close Date
+                                    </b>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="count" t-value="0" />
+
+                            <t t-foreach="docs" t-as="loc">
+                                <tr>
+                                    <td style="width: 1%;">
+                                        <t t-set="count" t-value="count + 1" />
+                                        <t t-esc="count" />
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['properties']" />
+                                        </n>
+                                    </td>
+                                    <td style="width:10%;" class="text-center">
+                                        <n>
+                                            <span t-esc="loc['property_type']" />
+                                        </n>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['auto_address_no']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['address']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['last_tenancy_rant_amount']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['Last_close_date']" />
+                                        </n>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="report_property_available_id" model="ir.actions.report"> 
+       <field name="name">Property Available</field>
+       <field name="model">property.available.wiz</field>
+       <field name="report_type">qweb-pdf</field>
+       <field name="report_name">mm_property_inherit_new.tem_property_ava_id</field>
+       <field name="report_file">mm_property_inherit_new.tem_property_ava_id</field>
+       <field name="print_report_name">'Property Available'</field>
+       <field name="binding_model_id" eval= "False"/>
+       <field name="binding_type">report</field>
+   </record>
+   
+</odoo>

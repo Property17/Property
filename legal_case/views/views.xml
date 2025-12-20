@@ -1,0 +1,85 @@
+<odoo>
+
+    <!-- Form -->
+    <record id="view_request_type_form" model="ir.ui.view">
+        <field name="name">request.type.form</field>
+        <field name="model">request.type</field>
+        <field name="arch" type="xml">
+            <form string="Request Type">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree -->
+    <record id="view_request_type_tree" model="ir.ui.view">
+        <field name="name">request.type.tree</field>
+        <field name="model">request.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form -->
+    <record id="view_case_type_form" model="ir.ui.view">
+        <field name="name">case.type.form</field>
+        <field name="model">case.type</field>
+        <field name="arch" type="xml">
+            <form string="Case Type">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree -->
+    <record id="view_case_type_tree" model="ir.ui.view">
+        <field name="name">case.type.tree</field>
+        <field name="model">case.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form -->
+    <record id="view_lawyer_office_form" model="ir.ui.view">
+        <field name="name">lawyer.office.form</field>
+        <field name="model">lawyer.office</field>
+        <field name="arch" type="xml">
+            <form string="Lawyer Office">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree -->
+    <record id="view_lawyer_office_tree" model="ir.ui.view">
+        <field name="name">lawyer.office.tree</field>
+        <field name="model">lawyer.office</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+
+
+
+
+</odoo>

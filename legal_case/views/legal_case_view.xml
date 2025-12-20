@@ -1,0 +1,81 @@
+<odoo>
+    <!-- Form -->
+    <record id="view_legal_case_form" model="ir.ui.view">
+        <field name="name">legal.case.form</field>
+        <field name="model">legal.case</field>
+        <field name="arch" type="xml">
+            <form string="Legal Case Requests">
+                <!-- <header>
+                    <button name="action_send_lwyer_office" string="Send To Lwyer Office"
+                        type="object" class="btn-primary"
+                        invisible="state != 'new'" />
+
+                    <button name="action_stop_case" string="Stop Legal Sase"
+                        type="object" class="btn-primary"
+                        invisible="state != 'case_created'" />
+
+                    <button name="action_case_created" string="Create Legal Case"
+                        type="object" class="btn-primary"
+                        invisible="state != 'send_lwyer_office'" />
+
+                    <button name="action_cancelled" string="Cancel"
+                        type="object" class="btn-primary"
+                        invisible="state not in ('send_lwyer_office','case_created','stop_case')" />
+
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="new,send_lwyer_office,case_created,stop_case" />
+                </header> -->
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Legal Information">
+                            <field name="electronic_case_number" />
+                            <field name="date_of_lawsuit" />
+                            <field name="case_type_id" />
+                            <field name="lawyer_office_id" />
+                            <field name="case_attachments" readonlt="1" string="Case Attachments" widget="many2many_binary" />     
+                        </group>
+                        <group string="Tenancy Information">
+                            <field name="tenancy_id" />
+                            <field name="properties" />
+                            <field name="tenant_id" />
+                            <field name="tenancy_rent" />
+                            <field name="company_id" />
+                            <!-- <field name="total_expenditure" />
+                            <field name="note" /> -->
+                                      
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree -->
+    <record id="view_legal_case_tree" model="ir.ui.view">
+        <field name="name">legal.case.tree</field>
+        <field name="model">legal.case</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="electronic_case_number" />
+                <field name="date_of_lawsuit" />
+                <field name="case_type_id" />
+                <field name="lawyer_office_id" />
+                <field name="tenancy_id" />
+                <field name="properties" />
+                <field name="tenant_id" />
+                <field name="company_id" />
+                <!-- <field name="state" /> -->
+            </tree>
+        </field>
+    </record>
+</odoo>

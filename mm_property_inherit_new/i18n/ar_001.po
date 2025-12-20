@@ -1,0 +1,1224 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mm_property_inherit_new
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 19:16+0000\n"
+"PO-Revision-Date: 2025-05-10 19:16+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,print_report_name:mm_property_inherit_new.report_net_balance_tenants_id
+msgid "'Net Balance Tenants'"
+msgstr "تقرير ارصدة المستاجرين"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,print_report_name:mm_property_inherit_new.report_property_available_id
+msgid "'Property Available'"
+msgstr " الوحدات المتاحة للتاجير"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,print_report_name:mm_property_inherit_new.report_tenancy_expiry_id
+msgid "'Tenancy Expiry'"
+msgstr "العقود المنتهية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        Address  \n"
+"                                    </b>"
+msgstr "العنوان"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        Auto-Address No  \n"
+"                                    </b>"
+msgstr "الرقم الالي للوحدة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Close Date\n"
+"                                    </b>"
+msgstr "تاريخ الاغلاق"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Expiration Date \n"
+"                                    </b>"
+msgstr "تاريخ الانتهاء"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Initial Balance\n"
+"                                    </b>"
+msgstr "رصيد مرحل"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        Last Close Date\n"
+"                                    </b>"
+msgstr "تاريخ اخر اخلاء"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        Last Tenancy Rant  \n"
+"                                    </b>"
+msgstr "قيمة اخر قيمة ايجار"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Legal\n"
+"                                    </b>"
+msgstr "الحالة القضائية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Months due\n"
+"                                    </b>"
+msgstr "الأشهر المستحقة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        NO\n"
+"                                    </b>"
+msgstr "رقم"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Parent Property\n"
+"                                    </b>"
+msgstr "البناية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Phone\n"
+"                                    </b>"
+msgstr "رقم الهاتف"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Properties\n"
+"                                    </b>"
+msgstr "الوحدة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid ""
+"<b>\n"
+"                                        Property Type\n"
+"                                    </b>"
+msgstr "نوع الوحدة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        State\n"
+"                                    </b>"
+msgstr "حالة العقد"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Tenancy\n"
+"                                    </b>"
+msgstr "العقد"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Tenancy Rent\n"
+"                                    </b>"
+msgstr "قيمة العقد"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Tenancy Rent \n"
+"                                    </b>"
+msgstr "قيمة الاجار"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Tenancy name\n"
+"                                    </b>"
+msgstr "العقد"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid ""
+"<b>\n"
+"                                        Tenant\n"
+"                                    </b>"
+msgstr "االمستأجر"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                        Total Balance\n"
+"                                    </b>"
+msgstr "اجمالي الأرصدة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<b>\n"
+"                                     Balance\n"
+"                                    </b>"
+msgstr "الرصيد"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid ""
+"<span style=\"font-size: 15px; margin-right: 5px;\">\n"
+"                                                Legal</span>"
+msgstr "الحالة القضائية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<span style=\"font-size: 15px;\">, Legal Case</span>"
+msgstr "الحالة القضائية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.custom_invoice_report
+msgid ""
+"<span>Approved By</span>\n"
+"                                <br/>"
+msgstr "تمت الموافقة عليه بواسطة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.custom_invoice_report
+msgid ""
+"<span>Checked By</span>\n"
+"                                <br/>"
+msgstr "تم الفحص بواسطة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.custom_invoice_report
+msgid ""
+"<span>Prepared By</span>\n"
+"                                <br/>"
+msgstr "أُعدت بواسطة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.custom_invoice_report
+msgid ""
+"<span>Received By</span>\n"
+"                                <br/>"
+msgstr "تم الاستلام بواسطة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<strong>Balance Accurate:</strong>"
+msgstr "الرصيد المستحق"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<strong>Balance Advanced:</strong>"
+msgstr "الرصيد المقدم"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid "<strong>Company</strong>"
+msgstr "الشركة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<strong>Date</strong>"
+msgstr "تاريخ"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<strong>Net Balance Tenants Report</strong>"
+msgstr "تقرير ارصدة المستاجرين"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid "<strong>Parent Property</strong>"
+msgstr "البناية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid "<strong>Print Date:</strong>"
+msgstr "تاريخ الطباعة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+msgid "<strong>Property Available Report</strong>"
+msgstr "الوحدات المتاحة للتاجير"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_property_ava_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid "<strong>Property Manager</strong>"
+msgstr "المدير العقاري"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid "<strong>Tenancy Expiry Report</strong>"
+msgstr "العقود المنتهية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_tenancy_exp_id
+msgid "<strong>To</strong>"
+msgstr "الي"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tem_net_balance_ten_id
+msgid "<strong>Totals:</strong>"
+msgstr "اجمالي"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_account_move
+msgid "Account Entry"
+msgstr "قيد اليومية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Activate"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__discount_rent__status__active
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Active"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_activity_type_view_new
+#: model:ir.model,name:mm_property_inherit_new.model_activity_type
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__activity_type_name
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_activity_type_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.activity_type_form_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.activity_type_tree_new
+msgid "Activity Type"
+msgstr "نوع النشاط"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__amount
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__amount
+msgid "Amount"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__plan_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_asset__plan_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__plan_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__plan_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__plan_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.mm_view_account_invoice_filter2_new
+msgid "Analytic Plan"
+msgstr "مركز التكلفة "
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.cdiscount_rent_form
+msgid "Apply Discount"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_account_asset
+msgid "Asset"
+msgstr "إثبات الأصل/الإيرادات "
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_asset__auto_add_no
+msgid "Auto - Address No "
+msgstr "الرقم الالي"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.server,name:mm_property_inherit_new.create_automatic_close_cron_ir_actions_server
+msgid "Automatic Close"
+msgstr "إغلاق تلقائي"
+
+#. module: mm_property_inherit_new
+#. odoo-python
+#: code:addons/mm_property_inherit_new/reports/property_available_report.py:0
+#: code:addons/property/mm_property_inherit_new/reports/property_available_report.py:0
+#, python-format
+msgid "Available Properties"
+msgstr "الوحدات المتاحة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__bank_reference
+msgid "Bank Reference"
+msgstr "مرجع البنك"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__account_move__state__blocked
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Blocked"
+msgstr "بلوك"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.net_balance_tenants_wiz_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_available_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tenancy_expiry_view_id
+msgid "Cancel"
+msgstr "الغاء"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__account_move__state__cancel
+msgid "Cancelled"
+msgstr "ملغي"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__cheque_detail
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__cheque_detail
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__cheque_detail
+msgid "Cheque Detail"
+msgstr "تفاصيل الشيك"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__cheque_reference
+msgid "Cheque Reference"
+msgstr "مرجع الشيك"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__civil_number
+msgid "Civil Number"
+msgstr "الرقم المدني - الشركة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__close_date
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+msgid "Close Date"
+msgstr "تاريخ الإغلاق"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__company_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__company_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__company_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__company_id
+msgid "Company"
+msgstr "الشركة"
+
+#. module: mm_property_inherit_new
+#. odoo-python
+#: code:addons/mm_property_inherit_new/models/property_custom.py:0
+#: code:addons/property/mm_property_inherit_new/models/property_custom.py:0
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_property_contract_template_view_new
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_property_contract_template_view_new
+#: model:ir.ui.menu,name:mm_property_inherit_new.sub_menu_property_contract_template_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+#, python-format
+msgid "Contract"
+msgstr "العقود"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__contract_count
+msgid "Contract Count"
+msgstr "عدد العقود"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,name:mm_property_inherit_new.mm_contract_report_action_new
+#: model:ir.model,name:mm_property_inherit_new.model_report_mm_property_inherit_new_mm_contract_report_new
+msgid "Contract Report"
+msgstr "طباعة العقد"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_contract_template_view_new
+#: model:ir.model,name:mm_property_inherit_new.model_contract_template
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_contract_template_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.contract_template_form_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.contract_template_tree_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_contract_template_form_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_contract_template_tree_new
+msgid "Contract Template"
+msgstr "نموذج العقود  "
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__create_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__create_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__currency_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__currency_id
+msgid "Currency"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__date
+msgid "Date"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__date_ch
+msgid "Date Ch"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__from_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__from_date
+msgid "Date From"
+msgstr "من التاريخ"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__to_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__to_date
+msgid "Date To"
+msgstr "الي التاريخ"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__description
+msgid "Description"
+msgstr "الوصف"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__discount_ids
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__discount
+msgid "Discount"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__discount_amount
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_rent_schedule__discount_amount
+msgid "Discount Amount"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Discount Details"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_discount_rent
+msgid "Discount Rent"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__discount_type
+msgid "Discount Type"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Discounts"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__display_name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__display_name
+msgid "Display Name"
+msgstr "اسم العرض "
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__filedata
+msgid "Download file"
+msgstr "تحميل الملف"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__account_move__state__draft
+msgid "Draft"
+msgstr "مسودة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__effective_date
+msgid "Effective Date"
+msgstr "تاريخ التسليم الفعلي"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_payment__effective_date
+msgid "Effective date of PDC"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__end_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__end_date
+msgid "End Date"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.net_balance_tenants_wiz_view_id
+msgid "Export Excel"
+msgstr "تصدير اكسل"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__filename
+msgid "Filename"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__discount_rent__discount_type__fixed_amount
+msgid "Fixed Amount"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.net_balance_tenants_wiz_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tenancy_expiry_view_id
+msgid "From"
+msgstr "من"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__id
+msgid "ID"
+msgstr "المُعرف"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__include_initial_balance
+msgid "Include initial balance"
+msgstr "تشمل الرصيد المرحل"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__mm_invoice_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__move_id
+msgid "Invoice"
+msgstr "الفاتورة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__is_invoiced
+msgid "Invoiced?"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_rent_schedule__is_blocked
+msgid "Is Blocked"
+msgstr "بلوك"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__is_created
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_rent_schedule__is_created
+msgid "Is Created"
+msgstr "انشاء من"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__is_deposit_receive
+msgid "Is Deposit Receive"
+msgstr "دفع التأمين"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__write_uid
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__write_uid
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_common_xlsx_out__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__write_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__write_date
+msgid "Last Updated on"
+msgstr "آخر تحديث في"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__legal
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+msgid "Legal"
+msgstr "قضية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__legal_attachment
+msgid "Legal Attachment"
+msgstr "مرفق قانوني"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__legal_case
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+msgid "Legal Case"
+msgstr "قضية قانونية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__legal_date
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+msgid "Legal Date"
+msgstr "تاريخ رفع القضية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Legal Information"
+msgstr "معلومات قانونية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_legal_type
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__legal_type_id
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_legal_type_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+msgid "Legal Type"
+msgstr "نوع القضية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__mm_journal_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__mm_journal_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__mm_journal_id
+msgid "Mm Journal"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_bank_statement_line__multi_properitis
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_bank_statement_line__properitis
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_move__multi_properitis
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_move__properitis
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_payment__multi_properitis
+#: model:ir.model.fields,help:mm_property_inherit_new.field_discount_rent__properties
+msgid "Multiple property."
+msgstr "متعددة الوحدات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_activity_type__name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__name
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_legal_type__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__country_id
+msgid "Nationality"
+msgstr "الجنسية"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,name:mm_property_inherit_new.report_net_balance_tenants_id
+msgid "Net Balance Tenants"
+msgstr "ارصدة المستاجرين"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.net_balance_tenants_action
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_net_balance_tenants_report
+msgid "Net Balance Tenants Report"
+msgstr "تقرير ارصدة المستاجرين"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__discount_rent__status__not_active
+msgid "Not Active"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__note
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__note
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__note
+msgid "Notes"
+msgstr "الملاحظات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__paid
+msgid "Paid"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__user_paid_by_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__user_paid_by_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__user_paid_by_id
+msgid "Paid By"
+msgstr "دفع بواسطة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__paid_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__paid_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__paid_date
+msgid "Paid Date"
+msgstr "تاريخ الدفع"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__parent_property_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__parent_property_id
+msgid "Parent Property"
+msgstr "البناية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__civil_number3
+msgid "Partner Civil Number"
+msgstr "الرقم المدني - الضامن"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__country_id3
+msgid "Partner Nationality"
+msgstr "جنسية - الضامن"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__notes3
+msgid "Partner Notes"
+msgstr "ملاحظات - الضامن"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__name3
+msgid "Partner's Name "
+msgstr "إسم الضامن"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_account_payment
+msgid "Payments"
+msgstr "الدفعات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__rent_residual
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__rent_residual
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__rent_residual
+msgid "Pending Amount"
+msgstr "المبلغ المتبقي"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__discount_rent__discount_type__percentage
+msgid "Percentage"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__posted
+#: model:ir.model.fields.selection,name:mm_property_inherit_new.selection__account_move__state__posted
+msgid "Posted"
+msgstr "تم النشر"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.net_balance_tenants_wiz_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_available_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tenancy_expiry_view_id
+msgid "Print PDF"
+msgstr "طباعة PDF"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.mm_view_account_invoice_filter2_new
+msgid "Properitis"
+msgstr "الوحدات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__multi_properitis
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__properitis
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__multi_properitis
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__properitis
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__multi_properitis
+msgid "Properties"
+msgstr "الوحدات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__property_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__property_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__properties
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__property_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.mm_view_account_invoice_filter2_new
+msgid "Property"
+msgstr "الملكية"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.report,name:mm_property_inherit_new.report_property_available_id
+msgid "Property Available"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.property_available_action
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_property_available_report
+msgid "Property Available Report"
+msgstr "الوحدات المتاحة للتاجير"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_property_contract_template
+msgid "Property Contract Template"
+msgstr "نموذج العقود الملكية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_net_balance_tenants_wiz__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_available_wiz__property_manager_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenancy_expiry_wiz__property_manager_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_account_search_inherit_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.mm_view_account_invoice_filter2_new
+msgid "Property Manager"
+msgstr "المدير العقاري"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_bank_statement_line__property_id
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_move__property_id
+msgid "Property Name."
+msgstr "اسم الوحدة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_account_payment_register
+msgid "Register Payment"
+msgstr "تسجيل الدفع "
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__rent
+msgid "Rent"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__civil_number2
+msgid "Represented Civil Number"
+msgstr "الرقم المدني - المدير"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__name2
+msgid "Represented In Name"
+msgstr "إسم المدير"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__country_id2
+msgid "Represented Nationality"
+msgstr "جنسية - المدير"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__notes2
+msgid "Represented Notes"
+msgstr "ملاحظات - المدير"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__run_comp
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__run_comp
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__run_comp
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__run_comp
+msgid "Run Comp"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.activity_type_view_search_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.contract_template_view_search_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.legal_type_view_search_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_contract_template_view_search_new
+msgid "Search Property"
+msgstr "بحث للعقار"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_asset__serial_number
+msgid "Serial Number"
+msgstr "رقم متسلسل"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_asset__service_account_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__service_account_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__service_account_id
+msgid "Service Account"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Service Details"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__service_ids
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Services"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_service_rent
+msgid "Services Rent"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_services_type
+#: model:ir.model,name:mm_property_inherit_new.model_services_type
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_services_type
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.services_type_form
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.services_type_tree
+msgid "Services Type"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__start_date
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__start_date
+msgid "Start Date"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__state_ch
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__state_ch
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__state_ch
+msgid "State Ch"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__state
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__state
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_payment__state
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__status
+msgid "Status"
+msgstr "الحالة"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.property_available_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tenancy_expiry_view_id
+msgid "Table View"
+msgstr "عرض قائنمة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__temp
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__temp
+msgid "Temp"
+msgstr "الصيغة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__temp_id
+msgid "Temp id"
+msgstr "نوع الصيغة"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_bank_statement_line__tenancy_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_move__tenancy_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_contract_template__tenancy_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__tenancy_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_property_contract_template__tenancy_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__tenancy_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.mm_view_account_invoice_filter2_new
+msgid "Tenancy"
+msgstr "العقود الايجار"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_discount_rent
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_tenancy_discount_details
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.cdiscount_rent_form
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.cdiscount_rent_tree
+msgid "Tenancy Discount Details"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#. odoo-python
+#: code:addons/mm_property_inherit_new/reports/tenancy_expiry_report.py:0
+#: code:addons/property/mm_property_inherit_new/reports/tenancy_expiry_report.py:0
+#: model:ir.actions.report,name:mm_property_inherit_new.report_tenancy_expiry_id
+#, python-format
+msgid "Tenancy Expiry"
+msgstr "العقود المنتهية"
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.tenancy_expiry_action
+#: model:ir.ui.menu,name:mm_property_inherit_new.menu_tenancy_expiry_report
+msgid "Tenancy Expiry Report"
+msgstr "تقرير العقود المنتهية"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_move_form_inherit_view_new
+msgid "Tenancy Information"
+msgstr "معلومات الالعقود"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_bank_statement_line__tenancy_id
+#: model:ir.model.fields,help:mm_property_inherit_new.field_account_move__tenancy_id
+msgid "Tenancy Name."
+msgstr "اسم عقد الايجار"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__tenancy_rent_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__tenancy_rent_id
+msgid "Tenancy Rent"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_tenancy_rent_schedule
+msgid "Tenancy Rent Schedule"
+msgstr "جدول الايجارات"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_discount_rent__rent
+msgid "Tenancy rent for selected property per Month."
+msgstr ""
+
+#. module: mm_property_inherit_new
+#. odoo-python
+#: code:addons/mm_property_inherit_new/models/property_custom.py:0
+#: code:addons/property/mm_property_inherit_new/models/property_custom.py:0
+#, python-format
+msgid "Tenancy(Rent) Cost"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_discount_rent__tenant_id
+msgid "Tenant"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_discount_rent__tenant_id
+msgid "Tenant Name of Tenancy."
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_tenant_partner
+msgid "Tenant Partner"
+msgstr "المستاجر"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_account_analytic_account
+msgid "Tenant Tenancy"
+msgstr "الحساب التحليلي"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.net_balance_tenants_wiz_view_id
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.tenancy_expiry_view_id
+msgid "To"
+msgstr "الي"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,help:mm_property_inherit_new.field_service_rent__paid
+msgid "True if this rent is paid by tenant"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_service_rent__service_type_id
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_services_type__name
+msgid "Type"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_analytic_form_inherit_view_new
+msgid "Un Blocked"
+msgstr "الغاء البلوك"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_account_analytic_account__property_ids
+msgid "Units"
+msgstr "الوحدات"
+
+#. module: mm_property_inherit_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.account_move_form_inherit_view_new
+msgid "Update"
+msgstr "تحديث"
+
+#. module: mm_property_inherit_new
+#: model:ir.model.fields,field_description:mm_property_inherit_new.field_tenant_partner__work_address
+msgid "Work Address"
+msgstr "عنوان العمل"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_common_xlsx_out
+msgid "common.xlsx.out"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.actions.act_window,name:mm_property_inherit_new.action_legal_type_view_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.legal_type_form_new
+#: model_terms:ir.ui.view,arch_db:mm_property_inherit_new.legal_type_tree_new
+msgid "legal Type"
+msgstr "نوع القضية"
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_net_balance_tenants_wiz
+msgid "net.balance.tenants.wiz"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_property_available_wiz
+msgid "property.available.wiz"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_report_mm_property_inherit_new_tem_net_balance_ten_id
+msgid "report.mm_property_inherit_new.tem_net_balance_ten_id"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_report_mm_property_inherit_new_tem_property_ava_id
+msgid "report.mm_property_inherit_new.tem_property_ava_id"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_report_mm_property_inherit_new_tem_tenancy_exp_id
+msgid "report.mm_property_inherit_new.tem_tenancy_exp_id"
+msgstr ""
+
+#. module: mm_property_inherit_new
+#: model:ir.model,name:mm_property_inherit_new.model_tenancy_expiry_wiz
+msgid "tenancy.expiry.wiz"
+msgstr ""

@@ -4,7 +4,14 @@ access_activity_type_new,activity_type_new,model_activity_type,,1,1,1,1
 access_legal_type_new,legal_type_new,model_legal_type,,1,1,1,1
 access_contract_template_new,contract_template_new,model_contract_template,,1,1,1,1
 access_property_contract_template_new,property_contract_template_new,model_property_contract_template,,1,1,1,1
-
+access_tenancy_expiry_wiz,tenancy_expiry_wiz,model_tenancy_expiry_wiz,,1,1,1,1
+access_property_available_wiz,property_available_wiz,model_property_available_wiz,,1,1,1,1
+access_net_balance_tenants_wiz,net_balance_tenants_wiz,model_net_balance_tenants_wiz,,1,1,1,1
+access_discount_rent,discount_rent,model_discount_rent,,1,1,1,1
+access_services_type,services_type,model_services_type,,1,1,1,1
+access_service_rent,service_rent,model_service_rent,,1,1,1,1
+access_service_schedule,service_schedule,model_service_schedule,,1,1,1,1
+access_tenancy_close_wizard,tenancy_close_wizard,model_tenancy_close_wizard,,1,1,1,1
 
 
 

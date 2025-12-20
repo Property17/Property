@@ -4,21 +4,67 @@
     <record id="inherited_view_analytic_form_id" model="ir.ui.view">
         <field name="name">inherited.view.analytic.form</field>
         <field name="model">account.analytic.account</field>
-        <field name="inherit_id" ref="property_management.property_analytic_view_form"/>
+        <field name="inherit_id" ref="property_management.property_analytic_view_form" />
         <field name="arch" type="xml">
             <field name='multi_prop' position="attributes">
                 <attribute name="invisible">False</attribute>
+
+            </field>
+             <field name='multi_prop' position="after">
+                <field name="multi_properitis"  readonly="0" />
             </field>
             <xpath expr="//page[@name='rent_schedule']" position="before">
                 <page name="multi_property" string="Properties" invisible="multi_prop == False">
                     <field name="prop_ids" required="multi_prop == True">
                         <!-- <separator string="Property Details" colspan="4"/> -->
                         <tree editable="bottom">
-                            <field name="property_id" string="Property" context="{'tree_view_ref': 'property_management_ee.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
-                            <field name="ground"/>
+                            <field name="property_id" string="Property"
+                                context="{'tree_view_ref': 'property_management_ee.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}" />
+                            <field name="ground" />
                         </tree>
                     </field>
                 </page>
+            </xpath>
+        </field>
+    </record> 
+    <!--Inherited account invoice form view to add property id-->
+    <record id="view_account_move_prop_form_inherit_rent" model="ir.ui.view">
+        <field name="name">view.account.move.prop.form.inherit.rent</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+             <xpath expr="//notebook/page[@id='tenancy_tab']/group" position="inside">
+                <group>
+                    <field name="prop_ids" readonly="1">
+                        <tree editable="bottom">
+                            <field name="property_id" />
+                            <field name="ground" />
+                        </tree>
+                    </field>                     
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_analytic_account_inherit_rent" model="ir.ui.view">
+        <field name="name">view.account.analytic.account.prop.inherit</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="property_management.property_analytic_view_tree" />
+        <field name="arch" type="xml"> 
+            <xpath expr="//field[@name='property_id']" position="after">
+               <field name="multi_properitis"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_analytic_account_search_inherit1_view_new" model="ir.ui.view">
+        <field name="name">account.analytic.account.search.inherit1</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="property_management.property_analytic_search_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter name="multi_properitis" string="Properitis"
+                    context="{'group_by':'multi_properitis'}" />
             </xpath>
         </field>
     </record>

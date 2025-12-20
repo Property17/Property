@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="general_ledger_report_memo" model="account.report.column">
+        <field name="name">Payment Reference</field>
+        <field name="expression_label">memo</field>
+        <field name="figure_type">string</field>
+    </record>
+
+    <record id="general_ledger_report_communication" model="account.report.column">
+        <field name="name">Bill Reference</field>
+        <field name="expression_label">communication</field>
+        <field name="figure_type">string</field>
+    </record>
+
+    <!-- <record id="general_ledger_report_move_ref" model="account.report.column">
+        <field name="name">bill Reference</field>
+        <field name="expression_label">move_ref</field>
+        <field name="figure_type">string</field>
+    </record> -->
+
+    <record id="account_reports.general_ledger_report" model="account.report">
+        <field name="name">Custom General Ledger</field>
+        <field name="column_ids" eval="[(4, ref('mm_property_inherit_new.general_ledger_report_memo'))]" />
+        <field name="column_ids" eval="[(4, ref('mm_property_inherit_new.general_ledger_report_communication'))]" />
+
+        <!-- <field name="column_ids" eval="[(4, ref('mm_property_inherit_new.general_ledger_report_move_ref'))]" /> -->
+    </record>
+</odoo>

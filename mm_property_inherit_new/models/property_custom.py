@@ -6,7 +6,8 @@ from odoo import models, fields, api, tools, _
 from datetime import datetime
 from datetime import date, datetime, time
 from odoo.exceptions import UserError, ValidationError
-# test
+from dateutil.relativedelta import relativedelta
+
 
 class AccountMoveInheritNew(models.Model):
     _inherit = "account.move"
@@ -27,7 +28,10 @@ class AccountMoveInheritNew(models.Model):
     cheque_detail = fields.Char(string='Cheque Detail',)
     rent_residual = fields.Monetary(string='Pending Amount', currency_field='currency_id',)
     note = fields.Text(string='Notes')
-
+    plan_id = fields.Many2one(
+        comodel_name='account.analytic.plan',
+        string='Analytic Plan')
+    
     state = fields.Selection(selection=[
             ('draft', 'Draft'),
             ('posted', 'Posted'),
@@ -37,7 +41,42 @@ class AccountMoveInheritNew(models.Model):
         default='draft')
     state_ch = fields.Char()
     run_comp = fields.Boolean('Run Comp')
+    multi_properitis = fields.Text(
+        string='Properties',
+        help="Multiple property.",
+        store=True)
+    
+    properitis = fields.Text(
+        string='Properties',
+        help="Multiple property.", compute="_compute_properitis",
+        store=True)
     # run_comp = fields.Boolean(compute='_compute_analytic_account')
+    
+    hide_reset_to_draft = fields.Boolean(compute='_compute_hide_reset_to_draft', store=True)
+
+    @api.depends('amount_total', 'amount_residual')
+    def _compute_hide_reset_to_draft(self):
+        for move in self:
+            amount_paid = move.amount_total - move.amount_residual
+            move.hide_reset_to_draft = move.amount_total > 0 and amount_paid > 0
+
+    def _compute_payment_reference(self):
+        for move in self.filtered(lambda m: (
+            m.state == 'posted'
+            and m.move_type == 'out_invoice'
+            and not m.payment_reference
+        )):
+            move.payment_reference = ''
+        self._inverse_payment_reference()
+
+
+    @api.depends('multi_properitis', 'property_id')
+    def _compute_properitis(self):
+        for record in self:
+            if record.property_id:
+                record.properitis = record.property_id.name
+            else:
+                record.properitis = record.multi_properitis
     
    
 
@@ -49,6 +88,8 @@ class AccountMoveInheritNew(models.Model):
                     tenancy_rent.cheque_detail = rec.cheque_detail
                 if rec.note:
                     tenancy_rent.note = rec.note
+    
+                      
 
     # def _compute_analytic_account(self):
     #     for rec in self:
@@ -65,6 +106,22 @@ class AccountMoveInheritNew(models.Model):
 class AccountPaymentRegisterInheritNew(models.TransientModel):
     _inherit = "account.payment.register"
     
+
+    
+    @api.depends('can_edit_wizard')
+    def _compute_communication(self):
+        # The communication can't be computed in '_compute_from_lines' because
+        # it's a compute editable field and then, should be computed in a separated method.
+        for wizard in self:
+            pass
+            # if wizard.can_edit_wizard:
+            #     batches = wizard._get_batches()
+            #     wizard.communication = wizard._get_batch_communication(batches[0])
+            # else:
+            #     wizard.communication = False
+    
+
+    
     @api.model
     def default_get(self, fields_list):
         res = super(AccountPaymentRegisterInheritNew, self).default_get(fields_list)
@@ -74,87 +131,88 @@ class AccountPaymentRegisterInheritNew(models.TransientModel):
             invoice_id = invoice_obj.browse(context['active_id'])
             res['tenancy_id'] = invoice_id.tenancy_id.id
         return res
+    
+ 
+    # def action_create_payments(self):
+    #     active_id = self._context.get('active_ids') or self._context.get('active_id')
+    #     account_move = self.env['account.move'].search([('id', '=', active_id)])
+    #     tenancy_rent = self.env['tenancy.rent.schedule'].search(
+    #         [('tenancy_id', '=', account_move.tenancy_id.id), ('start_date', '<=', account_move.invoice_date)])
+    #     if tenancy_rent:
+    #         for line in tenancy_rent:
+    #             if not line.paid:
+    #                 if line.invoice_id.id != account_move.id:
+    #                     raise UserError(
+    #                         _('You cannot paid this entry please paid this entry first: %s ') % (line.invoice_id.name,))
+    #                 else:
+    #                     account_move.user_paid_by_id = self.env.user.id
+    #                     account_move.mm_journal_id = self.journal_id.id
+    #                     account_move.paid_date = self.payment_date
 
-    def action_create_payments(self):
-        active_id = self._context.get('active_ids') or self._context.get('active_id')
-        account_move = self.env['account.move'].search([('id', '=', active_id)])
-        tenancy_rent = self.env['tenancy.rent.schedule'].search(
-            [('tenancy_id', '=', account_move.tenancy_id.id), ('start_date', '<=', account_move.invoice_date)])
-        if tenancy_rent:
-            for line in tenancy_rent:
-                if not line.paid:
-                    if line.invoice_id.id != account_move.id:
-                        raise UserError(
-                            _('You cannot paid this entry please paid this entry first: %s ') % (line.invoice_id.name,))
-                    else:
-                        account_move.user_paid_by_id = self.env.user.id
-                        account_move.mm_journal_id = self.journal_id.id
-                        account_move.paid_date = self.payment_date
+    #                     payments = self._create_payments()
 
-                        payments = self._create_payments()
+    #                     if self._context.get('dont_redirect_to_payments'):
+    #                         return True
+    #                     action = {
+    #                         'name': _('Payments'),
+    #                         'type': 'ir.actions.act_window',
+    #                         'res_model': 'account.payment',
+    #                         'context': {'create': False},
+    #                     }
+    #                     if len(payments) == 1:
+    #                         action.update({
+    #                             'view_mode': 'form',
+    #                             'res_id': payments.id,
+    #                         })
+    #                         # pay = self.env['account.payment'].search([('id', '=', payments.id)])
+    #                         # if pay.move_id:
+    #                         #     pay.move_id._compute_analytic_account()
 
-                        if self._context.get('dont_redirect_to_payments'):
-                            return True
-                        action = {
-                            'name': _('Payments'),
-                            'type': 'ir.actions.act_window',
-                            'res_model': 'account.payment',
-                            'context': {'create': False},
-                        }
-                        if len(payments) == 1:
-                            action.update({
-                                'view_mode': 'form',
-                                'res_id': payments.id,
-                            })
-                            pay = self.env['account.payment'].search([('id', '=', payments.id)])
-                            if pay.move_id:
-                                pay.move_id._compute_analytic_account()
+    #                     else:
+    #                         action.update({
+    #                             'view_mode': 'tree,form',
+    #                             'domain': [('id', 'in', payments.ids)],
+    #                         })
+    #                         # pay2 = self.env['account.payment'].search([('id', 'in', payments.ids)])
+    #                         # for p in pay2:
+    #                         #     if p.move_id:
+    #                         #         p.move_id._compute_analytic_account()
+    #                     return action
+    #     else:
+    #         account_move.user_paid_by_id = self.env.user.id
+    #         account_move.mm_journal_id = self.journal_id.id
+    #         account_move.paid_date = self.payment_date
 
-                        else:
-                            action.update({
-                                'view_mode': 'tree,form',
-                                'domain': [('id', 'in', payments.ids)],
-                            })
-                            pay2 = self.env['account.payment'].search([('id', 'in', payments.ids)])
-                            for p in pay2:
-                                if p.move_id:
-                                    p.move_id._compute_analytic_account()
-                        return action
-        else:
-            account_move.user_paid_by_id = self.env.user.id
-            account_move.mm_journal_id = self.journal_id.id
-            account_move.paid_date = self.payment_date
+    #         payments = self._create_payments()
 
-            payments = self._create_payments()
+    #         if self._context.get('dont_redirect_to_payments'):
+    #             return True
 
-            if self._context.get('dont_redirect_to_payments'):
-                return True
+    #         action = {
+    #             'name': _('Payments'),
+    #             'type': 'ir.actions.act_window',
+    #             'res_model': 'account.payment',
+    #             'context': {'create': False},
+    #         }
+    #         if len(payments) == 1:
+    #             action.update({
+    #                 'view_mode': 'form',
+    #                 'res_id': payments.id,
+    #             })
+    #             # pay = self.env['account.payment'].search([('id', '=', payments.id)])
+    #             # if pay.move_id:
+    #             #     pay.move_id._compute_analytic_account()
 
-            action = {
-                'name': _('Payments'),
-                'type': 'ir.actions.act_window',
-                'res_model': 'account.payment',
-                'context': {'create': False},
-            }
-            if len(payments) == 1:
-                action.update({
-                    'view_mode': 'form',
-                    'res_id': payments.id,
-                })
-                pay = self.env['account.payment'].search([('id', '=', payments.id)])
-                if pay.move_id:
-                    pay.move_id._compute_analytic_account()
-
-            else:
-                action.update({
-                    'view_mode': 'tree,form',
-                    'domain': [('id', 'in', payments.ids)],
-                })
-                pay2 = self.env['account.payment'].search([('id', 'in', payments.ids)])
-                for p in pay2:
-                    if p.move_id:
-                        p.move_id._compute_analytic_account()
-            return action
+    #         else:
+    #             action.update({
+    #                 'view_mode': 'tree,form',
+    #                 'domain': [('id', 'in', payments.ids)],
+    #             })
+    #             # pay2 = self.env['account.payment'].search([('id', 'in', payments.ids)])
+    #             # for p in pay2:
+    #             #     if p.move_id:
+    #             #         p.move_id._compute_analytic_account()
+    #         return action
 
     # def _create_payment_vals_from_wizard(self):
     #     active_id = self._context.get('active_ids') or self._context.get('active_id')
@@ -166,6 +224,8 @@ class AccountPaymentRegisterInheritNew(models.TransientModel):
     def _create_payment_vals_from_wizard(self, batch_result):
         payment_vals = super(AccountPaymentRegisterInheritNew, self)._create_payment_vals_from_wizard(batch_result)
         payment_vals['tenancy_id'] = self.tenancy_id.id
+        payment_vals['tenancy_id'] = self.tenancy_id.id
+
         return payment_vals
     
 
@@ -179,6 +239,10 @@ class AccountAssetAssetNew(models.Model):
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
         string='Analytic Plan')
+    
+    serial_number = fields.Integer('Serial Number')
+    service_account_id = fields.Many2one('account.account', string="Service Account")
+
 
     # @api.onchange('parent_id')
     # def _onchange_parent_id(self):
@@ -192,12 +256,49 @@ class AccountPaymentInhNew(models.Model):
 
     date_ch = fields.Char(compute='_compute_get_date')
     mm_invoice_id = fields.Many2one('account.move', string="Invoice")
-
+    is_deposit_receive = fields.Boolean('Is Deposit Receive')
+    
     bank_reference = fields.Char(copy=False)
     cheque_reference = fields.Char(copy=False)
     effective_date = fields.Date('Effective Date',
                                  help='Effective date of PDC', copy=False,
                                  default=False)
+    
+    
+    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None):
+        """Override to add analytic account to journal items during payment"""
+        move_line_vals = super(AccountPaymentInhNew, self)._prepare_move_line_default_vals(write_off_line_vals)
+        
+        # Apply the analytic account to all move lines generated by this payment
+        for move_line in move_line_vals:
+            # Ensure the 'credit' key exists before checking its value
+            if move_line.get('credit', 0) > 0:
+                if self.is_deposit_receive:
+                    move_line.update({
+                        'account_id': self.partner_id.tenancy_insurance_id.id
+                    })
+                if self.tenancy_id and not self.is_deposit_receive:
+                    move_line['analytic_account_id'] = self.tenancy_id.id
+
+        return move_line_vals
+
+    
+    # def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None):
+    #     """Override to add analytic account to journal items during payment"""
+    #     move_line_vals = super(AccountPaymentInhNew, self)._prepare_move_line_default_vals(write_off_line_vals)
+    #     # Apply the analytic account to all move lines generated by this payment
+    #     for move_line in move_line_vals:
+    #         if self.is_deposit_receive == True:
+    #             if move_line.get('credit') > 0:
+    #                 move_line.update({
+    #                         'account_id': self.partner_id.tenancy_insurance_id.id
+    #                 })
+    #         if move_line['credit'] > 0:
+    #             if self.tenancy_id and self.is_deposit_receive != True:
+    #             # if self.tenancy_id:
+    #                 move_line['analytic_account_id'] = self.tenancy_id.id
+
+    #     return move_line_vals
 
 
     def _compute_get_date(self):
@@ -229,6 +330,7 @@ class TenantPartnerNew(models.Model):
     notes3 = fields.Text('Partner Notes')
 
     work_address = fields.Char(string='Work Address')
+    
 
 
 class TenancyRentScheduleNew(models.Model):
@@ -236,7 +338,18 @@ class TenancyRentScheduleNew(models.Model):
 
     is_blocked = fields.Boolean()
     is_created = fields.Boolean()
-
+    # discount_fixed = fields.Float(string="Discount Fixed")
+    discount_amount = fields.Float(string="Discount Amount")
+    service_amount = fields.Float(string="Service Amount", store=True, compute="compute_service_amount")
+    
+    @api.depends('tenancy_id.service_schedule_ids.amount')
+    def compute_service_amount(self):
+        for rec in self:
+            if not rec.move_check:
+                rec.service_amount = sum(
+                    line.amount for line in rec.tenancy_id.service_schedule_ids if line.amount
+                )
+                
     @api.onchange('cheque_detail', 'note')
     def _onchange_cheque_detail_notes(self):
         for rec in self:
@@ -248,22 +361,94 @@ class TenancyRentScheduleNew(models.Model):
 
     def print_invoice_report(self):
         return self.env.ref('pyment_report.mm_multi_invoice_report_action').report_action(self.invoice_id.id)
-
-    def get_invloice_lines(self):
-        """TO GET THE INVOICE LINES"""
-        inv_line = {}
+    
+    def get_invoice_lines(self):
+        """Generate invoice lines for rent and related services."""
+        invoice_lines = []
+        
         for rec in self:
-            inv_line = {
-                # 'origin': 'tenancy.rent.schedule',
+            # Rent invoice line
+            rent_line = {
                 'name': _('Tenancy(Rent) Cost'),
                 'price_unit': rec.amount or 0.00,
                 'quantity': 1,
                 'account_id': rec.tenancy_id.property_id.income_acc_id.id or False,
-                # 'analytic_distribution': rec.tenancy_id.id or False,
-                'analytic_distribution': {rec.tenancy_id.id : 100} if rec.tenancy_id else {},
-
+                'analytic_account_id': rec.tenancy_id.id,
+                'analytic_distribution': {str(rec.tenancy_id.id): 100} if rec.tenancy_id else {},
+                # 'discount_fixed': rec.discount_amount or 0.00,
             }
-        return [(0, 0, inv_line)]
+            
+            # Update account_id for multi-property tenancies
+            if rec.tenancy_id.multi_prop:
+                for data in rec.tenancy_id.prop_ids:
+                    if data.property_id and data.property_id.income_acc_id:
+                        rent_line.update({'account_id': data.property_id.income_acc_id.id})
+            
+            invoice_lines.append((0, 0, rent_line))
+            
+            if rec.discount_amount > 0.00:
+                discount_line = {
+                'name': _('Tenancy(Discount) Cost'),
+                'price_unit': -rec.discount_amount or 0.00,
+                'quantity': 1,
+                'account_id': rec.tenancy_id.property_id.discount_account_id.id or False,
+                # 'analytic_account_id': rec.tenancy_id.id,
+                # 'analytic_distribution': {str(rec.tenancy_id.id): 100} if rec.tenancy_id else {},
+                }
+                if rec.tenancy_id.multi_prop:
+                    for data in rec.tenancy_id.prop_ids:
+                        if data.property_id and data.property_id.discount_account_id:
+                            rent_line.update({'account_id': data.property_id.discount_account_id.id})
+                invoice_lines.append((0, 0, discount_line))
+
+            for service in rec.tenancy_id.service_schedule_ids:            
+                service_line = {
+                    'name': _('Service: %s') % (service.service_type_id.name or 'Unknown Service'),
+                    'price_unit': service.amount or 0.00,
+                    'quantity': 1,
+                    'account_id': (
+                        rec.tenancy_id.property_id.service_account_id.id
+                        if rec.tenancy_id.property_id and rec.tenancy_id.property_id.service_account_id
+                        else service.service_type_id.service_account_id.id
+                    ),
+                    'analytic_account_id': rec.tenancy_id.id,
+                    'analytic_distribution': {str(rec.tenancy_id.id): 100} if rec.tenancy_id else {},
+                }
+                # Update account_id for multi-property tenancies
+                if rec.tenancy_id.multi_prop:
+                    for data in rec.tenancy_id.prop_ids:
+                        if data.property_id and data.property_id.service_account_id:
+                            service_line.update({'account_id': data.property_id.service_account_id.id})
+                
+                invoice_lines.append((0, 0, service_line))
+        
+        return invoice_lines
+
+    # def get_invloice_lines(self):
+    #     """TO GET THE INVOICE LINES"""
+    #     inv_line = {}
+    #     for rec in self:
+    #         inv_line = {
+    #             # 'origin': 'tenancy.rent.schedule',
+    #             'name': _('Tenancy(Rent) Cost'),
+    #             'price_unit': rec.amount or 0.00,
+    #             'quantity': 1,
+    #             'account_id': rec.tenancy_id.property_id.income_acc_id.id or False,
+    #             # 'analytic_distribution': rec.tenancy_id.id or False,
+    #             'analytic_account_id': rec.tenancy_id.id,
+    #             'analytic_distribution': {rec.tenancy_id.id : 100} if rec.tenancy_id else {},
+    #             'discount_fixed': rec.discount_amount,
+    #             # 'discount_fixed': rec.discount_fixed,
+
+    #         }
+    #         if self.tenancy_id.multi_prop:
+    #             for data in self.tenancy_id.prop_ids:
+    #                 if data.property_id and data.property_id.income_acc_id:
+    #                     for account in data.property_id.income_acc_id:
+    #                         account_id = account.id
+    #                     inv_line.update({'account_id': account_id})
+                        
+    #     return [(0, 0, inv_line)]
 
     def create_invoice(self):
         """
@@ -272,8 +457,14 @@ class TenancyRentScheduleNew(models.Model):
         """
         inv_obj = self.env['account.move']
         for rec in self:
-            inv_line_values = rec.get_invloice_lines()
-            print("inv_line_values", inv_line_values)
+            prop_lines = []
+            for rent_line in rec.tenancy_id.prop_ids:
+                prop_lines.append((0, 0, {
+                    'property_id': rent_line.property_id.id,
+                    'ground': rent_line.ground or 0.0,
+                }))
+            
+            inv_line_values = rec.get_invoice_lines()
             inv_values = {
                 'partner_id': rec.tenancy_id.tenant_id.parent_id.id or False,
                 'move_type': 'out_invoice',
@@ -283,15 +474,36 @@ class TenancyRentScheduleNew(models.Model):
                 'cheque_detail': rec.cheque_detail or False,
                 'rent_residual': rec.rent_residual or False,
                 'note': rec.note or False,
+                'multi_properitis': rec.tenancy_id.multi_properitis or False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
-                'auto_post': 'at_date'
+                'auto_post': 'at_date',
+                'prop_ids': prop_lines,
+                'plan_id': rec.tenancy_id.plan_id.id,
+                'company_id': rec.tenancy_id.company_id.id,
+
             }
-            print("inv_values", inv_values)
             invoice_id = inv_obj.with_company(rec.company_id.id).create(inv_values)
+            # for line in invoice_id.invoice_line_ids:
+            #     if line.discount_fixed:
+            #         # Explicitly compute the percentage discount
+            #         line.discount = line._get_discount_from_fixed_discount()
+                
+            for line in invoice_id.line_ids:
+                if line.account_id.account_type == 'asset_receivable':
+                    line.analytic_account_id = rec.tenancy_id.id
+                else:
+                    line.analytic_account_id= False
+                
+                if line.account_id.account_type == 'income':
+                    line.analytic_distribution = {rec.tenancy_id.id : 100} if rec.tenancy_id else {}
+                else:
+                    line.analytic_distribution = []
+                     
             rec.write({'invoice_id': invoice_id.id, 'is_invoiced': True})
         inv_form_id = self.env.ref('account.view_move_form').id
         self.is_created = True
+        
 
         return {
             'view_type': 'form',
@@ -304,11 +516,82 @@ class TenancyRentScheduleNew(models.Model):
         }
 
 
+class TenancyCloseWizard(models.TransientModel):
+    _name = 'tenancy.close.wizard'
+    _description = 'Tenancy Close Wizard'
+
+    tenancy_id = fields.Many2one(
+        'account.analytic.account',
+        string='Tenancy',
+        required=True,
+        readonly=True,
+    )
+    close_date = fields.Date(
+        string='Close Date',
+        required=True,
+    )
+    
+    def action_confirm_close(self):
+        """Confirm closing tenancy but only block if an un-invoiced schedule exists
+        in the same month and year as the close date.
+        """
+        self.ensure_one()
+        tenancy = self.tenancy_id
+
+        if not self.close_date:
+            raise UserError(_("Please select a close date."))
+
+        # Get the close month and year
+        close_month = self.close_date.month
+        close_year = self.close_date.year
+
+        # Find rent schedules in the same month/year
+        same_month_schedules = tenancy.rent_schedule_ids.filtered(
+            lambda r: r.start_date
+            and r.start_date.month == close_month
+            and r.start_date.year == close_year
+        )
+
+        # If there is any schedule in this month that is not invoiced
+        unposted_schedules = same_month_schedules.filtered(lambda r: not r.move_check)
+        if unposted_schedules:
+            raise UserError(_(
+                "You cannot close this tenancy.\n"
+                "Please create an invoice for the rent schedule(s) in %s %s before closing."
+            ) % (self.close_date.strftime('%B'), self.close_date.year))
+        
+         # Find rent schedules after the close date
+        future_schedules = tenancy.rent_schedule_ids.filtered(
+            lambda r: r.start_date and r.start_date > self.close_date
+        )
+
+        # Check if any of them are already posted (move_check=True)
+        posted_schedules = future_schedules.filtered(lambda r: r.move_check)
+        if posted_schedules:
+            raise UserError("You cannot close this tenancy because some future rent schedules are already invoiced/posted.")
+
+        # Optionally delete any unposted schedules before close date (your rule)
+        to_unlink = tenancy.rent_schedule_ids.filtered(
+            lambda r: not r.move_check and r.start_date and r.start_date < self.close_date
+        )
+        to_unlink.unlink()
+
+        # Close tenancy
+        tenancy.close_with_date(self.close_date)
+
+        return {'type': 'ir.actions.act_window_close'}
+    
+ 
+    
+ 
+
 class AccountAnalyticAccountNew(models.Model):
     _inherit = "account.analytic.account"
+    
 
     legal_type_id = fields.Many2one('legal.type', string='Legal Type', )
-    activity_type_lo_id = fields.Many2one('activity.type', string='Activity Type', )
+    # activity_type_lo_id = fields.Many2one('activity.type', string='Activity Type', )
+    activity_type_name = fields.Text(string='Activity Type')
     property_manager_id = fields.Many2one(comodel_name='res.partner', string='Property Manager')
     # analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     close_date = fields.Date(string='Close Date')
@@ -326,6 +609,117 @@ class AccountAnalyticAccountNew(models.Model):
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
         string='Analytic Plan')
+    
+    discount_ids = fields.One2many('discount.rent', 'tenancy_id', string='Discount')
+    service_ids = fields.One2many('service.rent', 'tenancy_id', string='Services')
+    service_schedule_ids = fields.One2many('service.schedule', 'tenancy_id', string='Services Schedule')
+    
+    show_renew_button = fields.Boolean(
+        string='Show Renew Button',
+        compute='_compute_show_renew_button',
+        store=False,
+        readonly=True
+    )
+    
+    def _compute_show_renew_button(self):
+        for record in self:
+            today = date.today()
+            one_month_later = today + relativedelta(months=1)
+            
+            # Expiring Soon (Next Month)
+            expiring_soon = record.date and today <= record.date <= one_month_later
+            
+            # Already Expired (Open)
+            expired_open = record.date and record.date < today and record.state == 'open'
+            
+            record.show_renew_button = expiring_soon or expired_open
+    
+    # def button_close(self):
+    #     """
+    #     Change Tenancy state to close and delete rent_schedule_ids 
+    #     that are not move_check = True.
+    #     """
+    #     for rec in self:
+    #         # Find rent schedules that are not confirmed
+    #         rent_schedules = rec.rent_schedule_ids.filtered(lambda r: not r.move_check)
+    #         # Unlink them (delete from DB)
+    #         rent_schedules.unlink()
+
+    #         # Then close tenancy
+    #         rec.write({'state': 'close'})
+    #         rec.close_date = fields.Date.today()
+
+    
+    def button_close(self):
+        """Open the tenancy close wizard."""
+        self.ensure_one()
+        return {
+            'name': 'Close Tenancy',
+            'type': 'ir.actions.act_window',
+            'res_model': 'tenancy.close.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_tenancy_id': self.id},
+        }
+
+    def close_with_date(self, close_date):
+        """
+        Close the tenancy — remove rent schedules after close date and update tenancy state/date.
+        """
+        for rec in self:
+            # Find and delete future rent schedules
+            future_schedules = rec.rent_schedule_ids.filtered(lambda r: r.start_date and r.start_date > close_date)
+            future_schedules.unlink()
+
+            # Update tenancy info
+            rec.write({
+                'state': 'close',
+                'close_date': close_date,
+            })
+    
+    
+    def link_invoices_to_rent_schedules(self):
+        """Link each rent schedule to the matching invoice based on date and tenancy."""
+        for tenancy in self:
+            # Get all invoices for this tenancy once
+            invoices = self.env['account.move'].search([
+                ('new_tenancy_id', '=', tenancy.id),
+                ('move_type', '=', 'out_invoice'),
+                ('state', '!=', 'cancel'),
+            ])
+            
+            for rent_schedule in tenancy.rent_schedule_ids:
+                # Only process if no invoice is linked yet
+                if not rent_schedule.invoice_id and rent_schedule.start_date:
+                    # Find invoice matching by date
+                    invoice = invoices.filtered(lambda inv: inv.invoice_date == rent_schedule.start_date)
+                    
+                    if invoice:
+                        rent_schedule.invoice_id = invoice[0].id
+                        rent_schedule.is_invoiced = True
+
+                        tenancy.message_post(
+                            body=(
+                                f"Invoice <b>{invoice[0].name or invoice[0].ref}</b> "
+                                f"has been linked to rent schedule dated <b>{rent_schedule.start_date}</b>."
+                            ),
+                            message_type="comment",
+                            subtype_xmlid="mail.mt_note",
+                        )
+
+
+    
+    @api.depends('partner_id')
+    def _compute_display_name(self):
+        for analytic in self:
+            name = analytic.name
+            # pass
+            # if analytic.code:
+            #     name = f'[{analytic.code}] {name}'
+            # if analytic.partner_id.commercial_partner_id.name:
+            #     name = f'{name} - {analytic.partner_id.commercial_partner_id.name}'
+            analytic.display_name = name
+    
 
     def _compute_run_func(self):
         for rec in self:
@@ -373,15 +767,17 @@ class AccountAnalyticAccountNew(models.Model):
                 name = analytic.code
             res.append((analytic.id, name))
         return res
+    
+ 
 
-    def button_close(self):
-        """
-        This button method is used to Change Tenancy state to close.
-        @param self: The object pointer
-        """
-        for rec in self:
-            rec.write({'state': 'close'})
-            rec.close_date = fields.Date.today()
+    # def button_close(self):
+    #     """
+    #     This button method is used to Change Tenancy state to close.
+    #     @param self: The object pointer
+    #     """
+    #     for rec in self:
+    #         rec.write({'state': 'close'})
+    #         rec.close_date = fields.Date.today()
 
     @api.onchange('code')
     def _onchange_mm_code(self):
@@ -511,10 +907,90 @@ class AccountAnalyticAccountNew(models.Model):
                     if line.start_date <= fields.Date.today():
                         line.create_invoice()
                         line.is_created = True
+                        
+                        
+    def automatic_close_action(self):
+        """Automatically close tenancy if all checks pass."""
+        self.ensure_one()
 
+        if not self.close_date:
+            raise UserError(_("Please select a close date."))
+
+        close_month = self.close_date.month
+        close_year = self.close_date.year
+
+        # Rent schedules in same month/year
+        same_month_schedules = self.rent_schedule_ids.filtered(
+            lambda r: r.start_date
+            and r.start_date.month == close_month
+            and r.start_date.year == close_year
+        )
+
+        # Block if any schedule not invoiced
+        unposted_schedules = same_month_schedules.filtered(lambda r: not r.move_check)
+        if unposted_schedules:
+            raise UserError(_(
+                "You cannot close this tenancy.\n"
+                "Please create an invoice for the rent schedule(s) in %s %s before closing."
+            ) % (self.close_date.strftime('%B'), self.close_date.year))
+
+        # Block if any future rent schedules are invoiced
+        future_schedules = self.rent_schedule_ids.filtered(
+            lambda r: r.start_date and r.start_date > self.close_date
+        )
+        posted_schedules = future_schedules.filtered(lambda r: r.move_check)
+        if posted_schedules:
+            raise UserError(
+                "You cannot close this tenancy because some future rent schedules are already invoiced/posted."
+            )
+        
+        future_schedules = self.rent_schedule_ids.filtered(lambda r: r.start_date and r.start_date > self.close_date)
+        future_schedules.unlink()
+        # Delete any unposted schedules before close date
+        # to_unlink = self.rent_schedule_ids.filtered(
+        #     lambda r: not r.move_check and r.start_date and r.start_date < self.close_date
+        # )
+        # to_unlink.unlink()
+        
+        # Close the analytic account
+        self.write({
+            'state': 'close',
+            'close_date': self.close_date,
+        })
+
+        # Post success message to chatter
+        self.message_post(
+            body=_("Tenancy automatically closed on %s.") % (self.close_date)
+        )
+
+        return True
+
+    @api.model
     def _cron_automatic_close_action(self):
-        analytic = self.env['account.analytic.account'].sudo().search([])
-        for rec in analytic:
-            if rec.close_date:
-                if rec.close_date == fields.Date.today():
-                    rec.state = 'close'
+        """Cron job to automatically close tenancies on the close date."""
+        today = fields.Date.today()
+        analytic_accounts = self.sudo().search([
+            ('close_date', '=', today),
+            ('state', '!=', 'close'),
+            ('state', '=', 'open'),
+        ])
+        for rec in analytic_accounts:
+            try:
+                rec.automatic_close_action()
+                rec.message_post(
+                    body=_(" Tenancy automatically closed successfully on %s.") % (today)
+                )
+            except Exception as e:
+                # Post error message to chatter instead of _logger.error
+                rec.message_post(
+                    body=_(" Automatic closing failed: %s") % str(e)
+                )
+        return True
+    
+    # def _cron_automatic_close_action(self):
+    #     analytic = self.env['account.analytic.account'].sudo().search([])
+    #     for rec in analytic:
+    #         if rec.close_date:
+    #             if rec.close_date == fields.Date.today():
+    #                 rec.button_close()
+    #                 # rec.state = 'close'

@@ -9,7 +9,7 @@
      """,
     'author': 'Serpent Consulting Services Pvt. Ltd.',
     'website': 'https://www.serpentcs.in/product/property-management-system',
-    'depends': ['property_management'],
+    'depends': ['property_management','account'],
     'data': [
         'security/ir.model.access.csv',
         'views/multiple_property_rent_view.xml'

@@ -77,9 +77,10 @@
                                     رقم الايصال
                                 </th>
                                 <td style="text-align: right;width:17%;">
-                                    <t t-foreach="o.reconciled_invoice_ids" t-as="line">
+                                    <span t-field="o.name" />
+                                    <!-- <t t-foreach="o.reconciled_invoice_ids" t-as="line">
                                         <span t-esc="line.name"/>
-                                    </t>
+                                    </t> -->
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;width:12%;">
                                     رقم العقد
@@ -91,16 +92,25 @@
                                     تاريخ الاستحقاق
                                 </th>
                                 <td style="text-align: right;width:18%;">
-                                    <span t-field="o.invoice_date"/>
+                                    <span t-field="o.date"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     رقم الوحدة
                                 </th>
-                                <td colspan="3" style="text-align: right;">
+                                <!-- <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
                                     <span t-field="o.property_id.name"/>
+                                </td> -->
+                                <td t-if="o.mm_move_id.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.mm_move_id.properitis" />
                                 </td>
+                                <td t-else="o.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.properitis" />
+                                </td>
+                                
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     الرقم الالي
                                 </th>
@@ -161,7 +171,7 @@
                                     قيمة التأمين
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.tenancy_id.rent"/>
+                                    <span t-field="o.amount" />
                                 </td>
                             </tr>
                             <tr>
@@ -175,13 +185,13 @@
                                     طريقة الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.journal_id.name"/>
+                                    <span t-field="o.payment_method_line_id.name" />
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;">
-                                    رقم شيك / البنك
+                                    تفاصيل الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <span t-field="o.ref" />
                                 </td>
                             </tr>
                             <tr>
@@ -237,9 +247,10 @@
                                     رقم الايصال
                                 </th>
                                 <td style="text-align: right;width:17%;">
-                                    <t t-foreach="o.reconciled_invoice_ids" t-as="line">
+                                    <span t-field="o.name" />
+                                    <!-- <t t-foreach="o.reconciled_invoice_ids" t-as="line">
                                         <span t-esc="line.name"/>
-                                    </t>
+                                    </t> -->
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;width:12%;">
                                     رقم العقد
@@ -251,16 +262,28 @@
                                     تاريخ الاستحقاق
                                 </th>
                                 <td style="text-align: right;width:18%;">
-                                    <span t-field="o.invoice_date"/>
+                                    <span t-field="o.date"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     رقم الوحدة
                                 </th>
-                                <td colspan="3" style="text-align: right;">
-                                    <span t-field="o.property_id.name"/>
+                                <td t-if="o.mm_move_id.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.mm_move_id.properitis" />
                                 </td>
+                                <td t-else="o.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.properitis" />
+                                </td>
+                                <!-- <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
+                                    <span t-field="o.property_id.name" />
+                                </td>
+                                <td t-else="o.mm_move_id.multi_properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.mm_move_id.multi_properitis" />
+                                </td> -->
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     الرقم الالي
                                 </th>
@@ -284,7 +307,7 @@
                                     <span>تأمين يسترد عند الاخلاء بشرط التنبية بقبل شهرين بكتاب رسمي والاخلاء قبل بأسبوع من الشهر الاخير</span>
                                 </td>
                             </tr>
-<!--
+                            <!--
                             <tr>
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     عن الفترة
@@ -320,7 +343,7 @@
                                     قيمة التأمين
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.tenancy_id.rent"/>
+                                    <span t-field="o.amount" />
                                 </td>
                             </tr>
                             <tr>
@@ -334,13 +357,13 @@
                                     طريقة الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.journal_id.name"/>
+                                    <span t-field="o.payment_method_line_id.name" />
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;">
-                                    رقم شيك / البنك
+                                    تفاصيل الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <span t-field="o.ref" />
                                 </td>
                             </tr>
                             <tr>
@@ -395,9 +418,10 @@
                                     رقم الايصال
                                 </th>
                                 <td style="text-align: right;width:17%;">
-                                    <t t-foreach="o.reconciled_invoice_ids" t-as="line">
+                                    <span t-field="o.name" />
+                                    <!-- <t t-foreach="o.reconciled_invoice_ids" t-as="line">
                                         <span t-esc="line.name"/>
-                                    </t>
+                                    </t> -->
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;width:12%;">
                                     رقم العقد
@@ -409,16 +433,28 @@
                                     تاريخ الاستحقاق
                                 </th>
                                 <td style="text-align: right;width:18%;">
-                                    <span t-field="o.invoice_date"/>
+                                    <span t-field="o.date"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     رقم الوحدة
                                 </th>
-                                <td colspan="3" style="text-align: right;">
-                                    <span t-field="o.property_id.name"/>
+                                <td t-if="o.mm_move_id.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.mm_move_id.properitis" />
                                 </td>
+                                <td t-else="o.properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.properitis" />
+                                </td>
+                                <!-- <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
+                                    <span t-field="o.property_id.name" />
+                                </td>
+                                <td t-else="o.mm_move_id.multi_properitis" colspan="3"
+                                    style="text-align: right;">
+                                    <span t-field="o.mm_move_id.multi_properitis" />
+                                </td> -->
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     الرقم الالي
                                 </th>
@@ -442,7 +478,7 @@
                                     <span>تأمين يسترد عند الاخلاء بشرط التنبية بقبل شهرين بكتاب رسمي والاخلاء قبل بأسبوع من الشهر الاخير</span>
                                 </td>
                             </tr>
-<!--
+                            <!--
                             <tr>
                                 <th style="background-color:#D8D8D8;text-align: right;">
                                     عن الفترة
@@ -478,7 +514,7 @@
                                     قيمة التأمين
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.tenancy_id.rent"/>
+                                    <span t-field="o.amount" />
                                 </td>
                             </tr>
                             <tr>
@@ -492,13 +528,13 @@
                                     طريقة الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span t-field="o.journal_id.name"/>
+                                    <span t-field="o.payment_method_line_id.name" />
                                 </td>
                                 <th style="background-color:#D8D8D8;text-align: right;">
-                                    رقم شيك / البنك
+                                    تفاصيل الدفع
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <span t-field="o.ref" />
                                 </td>
                             </tr>
                             <tr>

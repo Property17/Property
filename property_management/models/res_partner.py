@@ -22,6 +22,31 @@ class ResPartner(models.Model):
     mobile = fields.Char(
         string='Mobile',
         size=15)
+    properties = fields.One2many('account.asset', 'property_manager')
+    is_manager = fields.Boolean(
+        string='Is Property Manager',
+        help="Check this box if this contact is a Manager.")
+    
+    # tenancy_insurance_id = fields.Many2one(
+    #     comodel_name='account.account',
+    #     string='Insurance Account',
+    #     help='Insurance Account of Property.')
+    
+    tenancy_insurance_id = fields.Many2one(
+        comodel_name='account.account',
+        string='Insurance Account',
+        help='Insurance Account of Property.',
+        compute="_compute_tenancy_insurance_id",
+        store=True)
+
+    @api.depends('tenant')
+    def _compute_tenancy_insurance_id(self):
+        for partner in self:
+            if partner.tenant:
+                tenant_partner = self.env['tenant.partner'].search([('parent_id', '=', partner.id)], limit=1)
+                partner.tenancy_insurance_id = tenant_partner.tenancy_insurance_id if tenant_partner else False
+            else:
+                partner.tenancy_insurance_id = False
 
     def write(self, vals):
         res = super(ResPartner, self).write(vals)

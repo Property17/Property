@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Payment Reference Column -->
+    <record id="general_ledger_report_memo" model="account.report.column">
+        <field name="name">Payment Reference</field>
+        <field name="expression_label">memo</field>
+        <field name="figure_type">string</field>
+        <field name="report_id" ref="account_reports.general_ledger_report" />
+        <field name="sequence" eval="3" />
+    </record>
+
+    <!-- Bill Reference Column -->
+    <record id="general_ledger_report_bill_ref" model="account.report.column">
+        <field name="name">Bill Reference</field>
+        <field name="expression_label">bill_reference</field>
+        <field name="figure_type">string</field>
+        <field name="report_id" ref="account_reports.general_ledger_report" />
+        <field name="sequence" eval="3" />
+        <field name="sortable" eval="True" />
+    </record>
+
+    <!-- Update General Ledger Report -->
+    <record id="account_reports.general_ledger_report" model="account.report">
+        <field name="name">Custom General Ledger</field>
+    </record>
+</odoo>

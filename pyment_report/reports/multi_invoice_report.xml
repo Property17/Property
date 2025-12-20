@@ -90,7 +90,7 @@
                                                 رقم الوحدة
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['property_no']"/>
+                                                <span t-esc="doc1['properitis']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 الرقم الالي
@@ -158,10 +158,11 @@
                                                 طريقة الدفع
                                             </th>
                                             <td style="text-align: right;">
-                                                <span t-esc="doc1['journal_id']"/>
+                                                <span t-esc="doc1['payment_method_line_id']" />
                                             </td>
+                                    
                                             <th style="background-color:#D8D8D8;text-align: right;">
-                                                رقم شيك / البنك
+                                                تفاصيل الدفع
                                             </th>
                                             <td style="text-align: right;">
                                                 <span t-esc="doc1['cheque_detail']"/>
@@ -172,7 +173,7 @@
                                                 اسم المحصل
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                                <span t-esc="doc1['invoice_user_id']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 التوقيع / الختم
@@ -239,8 +240,9 @@
                                                 رقم الوحدة
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['property_no']"/>
-                                            </td>
+                                            <!-- <span t-esc="doc1['property_no']" />  -->
+                                             <span t-esc="doc1['properitis']" /> 
+                                              </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 الرقم الالي
                                             </th>
@@ -307,10 +309,10 @@
                                                 طريقة الدفع
                                             </th>
                                             <td style="text-align: right;">
-                                                <span t-esc="doc1['journal_id']"/>
+                                                <span t-esc="doc1['payment_method_line_id']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
-                                                رقم شيك / البنك
+                                                تفاصيل الدفع
                                             </th>
                                             <td style="text-align: right;">
                                                 <span t-esc="doc1['cheque_detail']"/>
@@ -321,7 +323,7 @@
                                                 اسم المحصل
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                                <span t-esc="doc1['invoice_user_id']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 التوقيع / الختم
@@ -388,7 +390,7 @@
                                                 رقم الوحدة
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['property_no']"/>
+                                                <span t-esc="doc1['properitis']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 الرقم الالي
@@ -456,10 +458,10 @@
                                                 طريقة الدفع
                                             </th>
                                             <td style="text-align: right;">
-                                                <span t-esc="doc1['journal_id']"/>
+                                                <span t-esc="doc1['payment_method_line_id']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
-                                                رقم شيك / البنك
+                                                تفاصيل الدفع
                                             </th>
                                             <td style="text-align: right;">
                                                 <span t-esc="doc1['cheque_detail']"/>
@@ -470,7 +472,7 @@
                                                 اسم المحصل
                                             </th>
                                             <td colspan="3" style="text-align: right;">
-                                                <span t-esc="doc1['user_paid_by_id']"/>
+                                                <span t-esc="doc1['invoice_user_id']" />
                                             </td>
                                             <th style="background-color:#D8D8D8;text-align: right;">
                                                 التوقيع / الختم

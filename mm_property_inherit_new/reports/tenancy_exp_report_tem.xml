@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="tem_tenancy_exp_id">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t class="page">
+                    <div>
+                        <center>
+                            <div class="panel panel-primary">
+                                <div>
+                                    <table>
+                                        <tr>
+                                            <h2>
+                                                <strong>Tenancy Expiry Report</strong>
+                                            </h2>
+                                        </tr>
+                                        <tr>
+                                            <h6>
+                                                <strong>Print Date:</strong>
+                                                <t t-esc="time.strftime('%Y-%m-%d %H:%M:%S')" />
+                                            </h6>
+                                        </tr>
+                                        <tr>
+                                            <div style="text-align:center">
+                                                <h6>
+                                                    <t t-if="form.get('from_date')">
+                                                        <t t-esc="form['from_date']" />
+                                                    </t>
+                                                    <strong>To</strong>
+                                                    <t t-if="form.get('to_date')">
+                                                        <t t-esc="form['to_date']" />
+                                                    </t>
+                                                </h6>
+                                            </div>
+                                        </tr>
+                                        <tr>
+                                            <div style="text-align:center">
+                                                <h6>
+                                                    <t t-if="form.get('company_id')">
+                                                        <strong>Company</strong>
+                                                        <t t-esc="form['company_id']" />
+                                                    </t>
+                                                    <br/>
+                                                    <t t-if="form.get('property_manager_id')">
+                                                        <strong>Property Manager</strong>
+                                                        <t t-esc="form['property_manager_id']" />
+                                                    </t>
+                                                </h6>
+                                            </div>
+                                        </tr>
+                                       
+                                    </table>
+                                </div>
+                            </div>
+                        </center>
+                    </div>
+                    <table class="table table-condensed table-bordered" style="width:100%;">
+                        <thead>
+                            <tr style="font-size:18px;text-align: center;">
+                                <td>
+                                    <b>
+                                        Parent Property
+                                    </b>
+                                </td>
+                                <td style="width:10%;">
+                                    <b>
+                                        Properties
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Tenancy name
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Tenant
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Tenancy Rent 
+                                    </b>
+                                </td>
+                                <td>
+                                    <b>
+                                        Expiration Date 
+                                    </b>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="loc">
+                                <tr>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['parent_property']" />
+                                        </n>
+                                    </td>
+                                    <td  class="text-center">
+                                        <n>
+                                            <span t-esc="loc['properties']" />
+                                        </n>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['tenancy']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['tenant']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['tenancy_rent']" />
+                                        </n>
+                                    </td>
+                                    <td class="text-center">
+                                        <n>
+                                            <span t-esc="loc['expiration_date']" />
+                                        </n>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="report_tenancy_expiry_id" model="ir.actions.report"> 
+       <field name="name">Tenancy Expiry</field>
+       <field name="model">tenancy.expiry.wiz</field>
+       <field name="report_type">qweb-pdf</field>
+       <field name="report_name">mm_property_inherit_new.tem_tenancy_exp_id</field>
+       <field name="report_file">mm_property_inherit_new.tem_tenancy_exp_id</field>
+       <field name="print_report_name">'Tenancy Expiry'</field>
+       <field name="binding_model_id" eval= "False"/>
+       <field name="binding_type">report</field>
+   </record>
+   
+</odoo>

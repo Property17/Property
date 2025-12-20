@@ -39,7 +39,7 @@
         </record>-->
 
         <record id="create_automatic_close_cron" model="ir.cron">
-            <field name="name">Automatic Close</field>
+            <field name="name">Automatic Tenancy Close</field>
             <field name="model_id" ref="model_account_analytic_account"/>
             <field name="type">ir.actions.server</field>
             <field name="state">code</field>

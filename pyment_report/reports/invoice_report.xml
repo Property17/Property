@@ -15,14 +15,15 @@
             <field name="dpi">90</field>
         </record>
 
-        <record id="mm_invoice_report_action" model="ir.actions.report">
+        <!-- <record id="mm_invoice_report_action" model="ir.actions.report">
             <field name="name">Invoice Report</field>
             <field name="model">account.move</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">pyment_report.mm_invoice_report</field>
             <field name="binding_model_id" ref="account.model_account_move"/>
             <field name="paperformat_id" ref="mm_invoice_report_paperformat_report"/>
-        </record>
+        </record> -->
+        
         <template id="mm_invoice_report">
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
@@ -159,7 +160,7 @@
                                         <span t-esc="journal_id"/>
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
-                                        رقم شيك / البنك
+                                       تفاصيل الدفع
                                     </th>
                                     <td style="text-align: right;">
                                         <span t-esc="cheque_detail"/>
@@ -170,7 +171,7 @@
                                         اسم المحصل
                                     </th>
                                     <td colspan="3" style="text-align: right;">
-                                        <span t-esc="user_paid_by_id"/>
+                                        <!-- <span t-esc="user_paid_by_id"/> -->
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
                                         التوقيع / الختم
@@ -305,7 +306,7 @@
                                         <span t-esc="journal_id"/>
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
-                                        رقم شيك / البنك
+                                        تفاصيل الدفع
                                     </th>
                                     <td style="text-align: right;">
                                         <span t-esc="cheque_detail"/>
@@ -316,7 +317,7 @@
                                         اسم المحصل
                                     </th>
                                     <td colspan="3" style="text-align: right;">
-                                        <span t-esc="user_paid_by_id"/>
+                                        <!-- <span t-esc="user_paid_by_id"/> -->
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
                                         التوقيع / الختم
@@ -451,7 +452,7 @@
                                         <span t-esc="journal_id"/>
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
-                                        رقم شيك / البنك
+                                        تفاصيل الدفع
                                     </th>
                                     <td style="text-align: right;">
                                         <span t-esc="cheque_detail"/>
@@ -462,7 +463,7 @@
                                         اسم المحصل
                                     </th>
                                     <td colspan="3" style="text-align: right;">
-                                        <span t-esc="user_paid_by_id"/>
+                                        <!-- <span t-esc="user_paid_by_id"/> -->
                                     </td>
                                     <th style="background-color:#D8D8D8;text-align: right;">
                                         التوقيع / الختم

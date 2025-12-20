@@ -49,13 +49,18 @@ class DepositeReportView(models.AbstractModel):
                     'amount_paid': amount_paid,
                     'invoice_payments_widget': move.invoice_payments_widget,
                     'journal_id': move.mm_journal_id.name,
+                    'payment_method_line_id': move.payment_method_line_id.name,
                     'user_paid_by_id': move.user_paid_by_id.name,
                     'paid_date': move.paid_date,
                     'cheque_detail': tenancy.cheque_detail,
                     'note': tenancy.note,
                     'rent_residual': tenancy.rent_residual,
-
+                    'invoice_user_id': move.invoice_user_id.name,
                     'num_word': num_word,
+                    'payment_journal_id': move.payment_journal_id.name,
+                    'invoice_user_id': move.invoice_user_id.name,
+                    'properitis': move.properitis,
+                    
 
                 })
 

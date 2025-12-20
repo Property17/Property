@@ -27,9 +27,9 @@ class InvReportView(models.AbstractModel):
                 ttyme = datetime.combine(fields.Date.from_string(move.invoice_date), time.min)
                 locale = self.env.context.get('lang', 'en_US')
                 date_name = tools.ustr(babel.dates.format_date(date=ttyme, format='MMMM-y', locale=locale))
-                print("move.name", move.name)
-                print("move.invoice_date", move.invoice_date)
-                print("tenancy.tenancy_id.code", tenancy.tenancy_id.code)
+                # print("move.name", move.name)
+                # print("move.invoice_date", move.invoice_date)
+                # print("tenancy.tenancy_id.code", tenancy.tenancy_id.code)
                 docs.append({
                     'property_manager': tenancy.tenancy_id.property_manager_id.name,
                     'company_st': tenancy.tenancy_id.property_manager_id.street,
@@ -51,11 +51,16 @@ class InvReportView(models.AbstractModel):
                     'journal_id': move.mm_journal_id.name,
                     'user_paid_by_id': move.user_paid_by_id.name,
                     'paid_date': move.paid_date,
-                    'cheque_detail': move.cheque_detail,
+                    # 'cheque_detail': move.cheque_detail,
+                    'cheque_detail': move.payment_reference,
                     'note': move.note,
                     'rent_residual': tenancy.rent_residual,
-
+                    'invoice_user_id': move.invoice_user_id.name,
                     'num_word': num_word,
+                    'payment_journal_id': move.payment_journal_id.name,
+                    'payment_method_line_id': move.payment_method_line_id.name,
+                    'properitis': move.properitis,
+
 
                 })
 

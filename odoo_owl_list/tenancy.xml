@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_analytic_account_tree_inherit" model="ir.ui.view">
+            <field name="name">account.analytic.account.inherit</field>
+            <field name="model">account.analytic.account</field>
+            <field name="inherit_id" ref="property_management.property_analytic_view_tree" />
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="js_class">owl_list_controller</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

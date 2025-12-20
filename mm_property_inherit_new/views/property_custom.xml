@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <odoo>
+
+    <record id="view_tenancy_close_wizard_form" model="ir.ui.view">
+        <field name="name">tenancy.close.wizard.form</field>
+        <field name="model">tenancy.close.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Close Tenancy">
+                <group>
+                    <field name="tenancy_id" />
+                    <field name="close_date" />
+                </group>
+                <footer>
+                    <button name="action_confirm_close" string="Confirm" type="object"
+                        class="btn-primary" />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_payment_register_form_inherit_view_new" model="ir.ui.view">
+        <field name="name">account.payment.register.form.inherit</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='communication']" position="attributes">
+                <attribute name="string">Payment Reference</attribute>
+            </xpath>
+            <xpath expr="//field[@name='communication']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="account_asset_asset_form_inherit_view_new" model="ir.ui.view">
         <field name="name">account.asset.tree.inherit</field>
         <field name="model">account.asset</field>
@@ -16,6 +49,10 @@
             </xpath>
              <xpath expr="//field[@name='income_acc_id']" position="before">
                 <field name="plan_id"/>
+                <field name="service_account_id" />
+            </xpath>
+            <xpath expr="//field[@name='no_of_towers']" position="after">
+                <field name="serial_number" />
             </xpath>
         </field>
     </record>
@@ -24,9 +61,13 @@
         <field name="model">account.payment</field>
         <field name="inherit_id" ref="account.view_account_payment_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
             <xpath expr="//field[@name='partner_id']" position="before">
                 <field name="date_ch" invisible="1"/>
                 <field name="mm_invoice_id" invisible="1"/>
+                <field name="is_deposit_receive" invisible="1"/>
             </xpath>
         </field>
     </record>
@@ -35,19 +76,27 @@
         <field name="model">account.analytic.account</field>
         <field name="inherit_id" ref="property_management.property_analytic_search_view"/>
         <field name="arch" type="xml">
-<!--            <xpath expr="//filter[@name='close']" position="after">
+
+           
+
+
+            <!--            <xpath expr="//filter[@name='close']" position="after">
                 <filter string="Legal" name="legal" domain="[('legal','=', True)]"/>
                 <filter string="Legal Case" name="legal_case" domain="[('legal_case','=', True)]"/>
             </xpath>-->
             <xpath expr="//group" position="inside">
                 <filter name="property_manager_id" string="Property Manager"
-                        context="{'group_by':'property_manager_id'}"/>
+                    context="{'group_by':'property_manager_id'}" />
                 <!-- <filter name="analytic_account_id" string="Analytic Account"
                         context="{'group_by':'analytic_account_id'}"/> -->
-                <filter string="Legal" name="legal" context="{'group_by':'legal'}"/>
-                <filter string="Legal Case" name="legal_case" context="{'group_by':'legal_case'}"/>
-                <filter name="close_date" string="Close Date" context="{'group_by':'close_date'}"/>
-                <filter name="legal_date" string="Legal Date" context="{'group_by':'legal_date'}"/>
+                <filter string="Legal"
+                    name="legal" context="{'group_by':'legal'}" />
+                <filter string="Legal Case"
+                    name="legal_case" context="{'group_by':'legal_case'}" />
+                <filter
+                    name="close_date" string="Close Date" context="{'group_by':'close_date'}" />
+                <filter
+                    name="legal_date" string="Legal Date" context="{'group_by':'legal_date'}" />
                 <filter name="legal_type_id" string="Legal Type" context="{'group_by':'legal_type_id'}"/>
             </xpath>
         </field>
@@ -57,12 +106,27 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_draft']" position="replace">
+
+                <button name="button_draft" string="Reset to Draft" type="object"
+                    groups="account.group_account_invoice"
+                    invisible="not show_reset_to_draft_button or hide_reset_to_draft"
+                    data-hotkey="r" />
+            </xpath>
+
+            <xpath expr="//header/button[@name='button_draft']" position="after">
+                <button name="button_draft" string="Reset to Draft" type="object"
+                    invisible="not show_reset_to_draft_button or move_type != 'entry'"
+                    groups="account.group_account_invoice" data-hotkey="r" />
+            </xpath>
+
             <xpath expr="//field[@name='payment_reference']" position="before">
                 <field name="user_paid_by_id" invisible="1"/>
                 <field name="paid_date" invisible="1"/>
                 <field name="mm_journal_id" invisible="1"/>
                 <field name="state_ch" invisible="1"/>
                 <field name="run_comp" invisible="1"/>
+                <field name="hide_reset_to_draft" invisible="1" />
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page id="tenancy_tab" string="Tenancy Information">
@@ -70,14 +134,16 @@
                     <group>
                         <group>
                             <field name="tenancy_id" readonly="1"/>
-                            <field name="property_manager_id"/>
+                            <field name="property_manager_id" />
                         </group>
                         <group>
                             <field name="property_id"/>
-                            <!-- <field name="analytic_account_id"/> -->
+                            <field name="plan_id" readonly="1"/>
                             <field name="cheque_detail" invisible="0"/>
                             <field name="rent_residual" invisible="1"/>
                             <field name="note" invisible="0"/>
+                            <field name="multi_properitis" readonly="1"/>
+                            <field name="properitis" invisible="1"/>
                         </group>
                     </group>
                 </page>
@@ -91,9 +157,11 @@
         <field name="inherit_id" ref="account.view_invoice_tree"/>
         <field name="arch" type="xml">
             <field name="name" position="before">
-                <field name="property_manager_id"/>
+                <field name="plan_id" />
+                <field name="property_manager_id" />
                 <!-- <field name="analytic_account_id"/> -->
-                <field name="property_id"/>
+                <field name="property_id" optional="hide" />
+                <field name="properitis" />
                 <field name="tenancy_id"/>
             </field>
         </field>
@@ -106,10 +174,15 @@
         <field name="arch" type="xml">
             <xpath expr="//group" position="inside">
                 <filter string="Property Manager" name="property_manager_id" domain="[]"
-                        context="{'group_by':'property_manager_id'}"/>
+                    context="{'group_by':'property_manager_id'}" />
                 <!-- <filter string="Analytic Account" name="analytic_account_id" domain="[]"
                         context="{'group_by':'analytic_account_id'}"/> -->
-                <filter string="Property" name="property_id" domain="[]" context="{'group_by':'property_id'}"/>
+                <filter string="Analytic Plan" name="plan_id" domain="[]"
+                    context="{'group_by':'plan_id'}" />
+                <filter string="Property" name="property_id" domain="[]"
+                    context="{'group_by':'property_id'}" />
+                <filter string="Properitis" name="properitis" domain="[]"
+                    context="{'group_by':'properitis'}" />
                 <filter string="Tenancy" name="tenancy_id" domain="[]" context="{'group_by':'tenancy_id'}"/>
             </xpath>
         </field>
@@ -118,16 +191,44 @@
     <record id="account_analytic_tree_inherit_view_new" model="ir.ui.view">
         <field name="name">account.analytic.account.tree.inherit</field>
         <field name="model">account.analytic.account</field>
-        <field name="inherit_id" ref="property_management.property_analytic_report_view_tree"/>
+        <field name="inherit_id" ref="property_management.property_analytic_view_tree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='tenant_id']" position="before">
-                <field name="property_manager_id"/>
+                <field name="property_manager_id" />
             </xpath>
             <xpath expr="//field[@name='tenant_id']" position="after">
-                <field name="plan_id"/>
+                <field name="plan_id" />
+
+            </xpath>
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="close_date" />
             </xpath>
         </field>
     </record>
+
+    <record id="tenancy_rent_tree_inherit_view_new" model="ir.ui.view">
+        <field name="name">tenancy.rent.schedule.tree.inherit</field>
+        <field name="model">tenancy.rent.schedule</field>
+        <field name="inherit_id" ref="property_management.tenancy_rent_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="before">
+                <field name="invoice_id" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="tenancy_rent_form_view_new" model="ir.ui.view">
+        <field name="name">tenancy.rent.schedule.form.inherit</field>
+        <field name="model">tenancy.rent.schedule</field>
+        <field name="inherit_id" ref="property_management.tenancy_rent_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    
+
 
     <record id="property_tenant_view_form_inherit_view_new" model="ir.ui.view">
         <field name="name">tenant.partner.from.inherit</field>
@@ -157,8 +258,10 @@
         <field name="model">account.analytic.account</field>
         <field name="inherit_id" ref="property_management.property_analytic_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='tenant_id']" position="before">
-                <field name="property_manager_id" placeholder="Property Manager" required="1"/>
+            <xpath expr="//field[@name='tenant_id']" position="before"> 
+                <field name="property_manager_id"
+                    domain="[('is_manager', '=', True),('company_id', '=', company_id)]"
+                    placeholder="Property Manager" required="1" />
                 <field name="run_comp" invisible="1"/>
             </xpath>
             <xpath expr="//label[@for='name']" position="attributes">
@@ -179,6 +282,14 @@
                         invisible="is_blocked == True"/>
             </xpath>
 
+            <xpath
+                expr="//page/field[@name='rent_schedule_ids']/tree//field[@name='amount']"
+                position="after">
+                 <field name="service_amount" readonly="1" />
+                <field name="discount_amount" readonly="1"/>
+            </xpath>
+
+            
             <xpath expr="//field[@name='rent_entry_chck']" position="after">
                 <button name="open_mm_contract" type="object" class="oe_stat_button" icon="fa-bars">
                     <field name="contract_count" string="Contract" widget="statinfo"/>
@@ -195,14 +306,118 @@
                 </group>
             </xpath>
             <xpath expr="//field[@name='rent_type_id']" position="after">
-                <field name="activity_type_lo_id"/>
+                <!-- <field name="activity_type_lo_id"/> -->
+                <field name="activity_type_name" />
                 <field name="close_date"/>
+                <field name="show_renew_button" invisible="1" />
             </xpath>
+
+            <xpath expr="//header/button[@name='button_set_to_renew']" position="replace">
+                <button name="button_set_to_renew" string="Renew" type="object"
+                    invisible="state != 'close' and show_renew_button != True" icon="fa-undo"
+                    class="oe_highlight" colspan="2"
+                    groups="property_management.group_property_user,property_management.group_property_manager" />
+            </xpath>
+           
             <xpath expr="//header" position="inside">
                 <button name="button_blocked" string="Blocked" type="object"  invisible="state not in ['open']" class="oe_highlight"/>
                 <button name="button_un_blocked" string="Un Blocked" type="object"  invisible="state not in ['blocked']"
                         class="oe_highlight"/>
+                <button name="link_invoices_to_rent_schedules"
+                    string="link invoices With schedules"
+                    type="object"
+                    class="oe_highlight" />
+
+               
+
+                
+
+
+                <!-- <button name="button_new_close"
+                    string="New Close"
+                    type="object"
+                    class="oe_highlight"
+                    invisible="state != 'open'" /> -->
+                 </xpath>
+            
+            <xpath expr="//notebook/page[@name='rent_schedule']" position="after">
+                <page name="service_schedule_ids" string="Service Schedule">
+                    <separator string="Service Schedule" />
+                    <field name="service_schedule_ids">
+                        <tree string="Service Schedule" editable="bottom" default_order="date asc">
+                            <field name="tenancy_rent_id" column_invisible="1" />
+                            <field name="tenancy_id" column_invisible="1" />
+                            <field name="service_type_id" />
+                            <field name="amount" />
+                        </tree>
+                    </field>
+                </page>
+                <page name="discount" string="Discount Details">
+                <separator string="Discount Details" />
+                    <field name="discount_ids">
+                        <tree string="Discounts"  default_order="date asc">
+                        <field name="tenancy_rent_id" column_invisible="1" />
+                        <field name="tenancy_id" column_invisible="1" />
+                        <field name="date" readonly="status == 'active'" />
+                        <field name="description" readonly="status == 'active'" />
+                        <field name="start_date" readonly="status == 'active'" />
+                        <field name="end_date" readonly="status == 'active'" />
+                        <field name="discount_type" readonly="status == 'active'" />
+                        <field name="rent" readonly="status == 'active'" />
+                        <field name="discount" readonly="status == 'active'" />
+                        <field name="discount_amount" widget="monetary"
+                                readonly="status == 'active'" />
+                        <field name="status" readonly="1" />
+                            <!-- <button name="apply_discount_to_rent" string='Active'
+                                class="oe_highlight" type="object" 
+                            >
+                        </button> -->
+
+                            <!-- <button name="apply_discount_to_rent" string="Active"
+                            class="btn btn-success" type="object"
+                            invisible="status != 'active'" />
+
+                        <button name="apply_discount_to_rent" string="Activate"
+                            class="btn btn-secondary" type="object"
+                            invisible="status == 'active'" /> -->
+                    </tree>
+                </field>
+            </page>
+                <page name="services" string="Service Details">
+                    <separator string="Service Details" />
+                    <field name="service_ids">
+                        <tree string="Services" editable="bottom" default_order="date asc">
+                            <field name="tenancy_rent_id" column_invisible="1" />
+                            <field name="tenancy_id" column_invisible="1" />
+                            <field name="date" />
+                            <field name="service_type_id" />
+                            <field name="start_date" />
+                            <field name="end_date" />
+                            <field name="amount" />
+                            <field name="move_id" readonly="1" />
+                            <field name="posted" readonly="1" />
+                            <field name="paid" readonly="1" />
+                            <field name="is_invoiced" column_invisible="1" />
+                            <field name="service_account_id" column_invisible="1" />
+
+                            <!-- column_invisible="is_invoiced == True or is_readonly == True" -->
+                            <button name="create_invoice"
+                                invisible="is_invoiced == True"
+                                class="fa fa-gear" type="object"
+                                context="{'asset':1,'is_tenancy':1}">
+                            </button>
+                            <!-- column_invisible="is_invoiced == False" -->
+                            <button name="open_invoice" invisible="is_invoiced == False"
+                                class="fa fa-arrow-circle-o-right" type="object"
+                                context="{'openinvoice':1}">
+                            </button>
+                            <!-- <button name="print_invoice_report" class="fa fa-print" type="object"
+                                invisible="is_invoiced == False" /> -->
+                        </tree>
+                    </field>
+                </page>
             </xpath>
+
         </field>
     </record>
 </odoo>

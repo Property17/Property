@@ -266,6 +266,10 @@ class AccountAssetAsset(models.Model):
         comodel_name='account.account',
         string='Income Account',
         help='Income Account of Property.')
+    discount_account_id = fields.Many2one(
+        comodel_name='account.account',
+        string='Discount Account',
+        help='Discount Account of Property.')
     expense_account_id = fields.Many2one(
         comodel_name='account.account',
         string='Expense Account',

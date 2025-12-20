@@ -13,6 +13,11 @@ class PropertyContractTemplateNew(models.Model):
     tenancy_id = fields.Many2one('account.analytic.account', 'Tenancy')
     temp_id = fields.Many2one('contract.template', 'Temp id')
     temp = fields.Html(string='Temp')
+    company_id = fields.Many2one(
+        'res.company', 
+        default=lambda self: self.env.company,  
+        string="Company"
+    )
 
     @api.onchange('temp_id', 'tenancy_id')
     def _onchange_temp_id(self):
@@ -121,8 +126,10 @@ class PropertyContractTemplateNew(models.Model):
                     message_string = message_string.replace('{unit_name}', str(rec.tenancy_id.property_id.name))
                 # if property_street
                 message_string = message_string.replace('{prop_no}', str(property_street+' - '+ property_street2 + ' - '+ property_city + ' - ' + property_country_name))
-                if rec.tenancy_id.activity_type_lo_id.name:
-                    message_string = message_string.replace('{activity_type}', str(rec.tenancy_id.activity_type_lo_id.name))
+                # if rec.tenancy_id.activity_type_lo_id.name:
+                #     message_string = message_string.replace('{activity_type}', str(rec.tenancy_id.activity_type_lo_id.name))
+                if rec.tenancy_id.activity_type_name:
+                    message_string = message_string.replace('{activity_type}', str(rec.tenancy_id.activity_type_name))    
                 # if bedroom
                 message_string = message_string.replace('{prop_info}', str(bedroom + "Bedrooms /" + bathroom + "Bathrooms /" + parking + "Parking"))
                 if rec.tenancy_id.rent:

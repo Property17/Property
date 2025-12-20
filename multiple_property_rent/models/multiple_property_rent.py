@@ -21,6 +21,7 @@ class Recurring(models.Model):
     tenancy_id = fields.Many2one(
         comodel_name='account.analytic.account',
         string='Tenancy')
+    move_id = fields.Many2one(comodel_name='account.move')
 
     @api.onchange('property_id')
     def ground_rent(self):
@@ -65,27 +66,74 @@ class AccountAnalyticAccount(models.Model):
     multi_prop = fields.Boolean(
         string='Multiple Property',
         help="Check this box Multiple property.")
-
+    
+    multi_properitis = fields.Text(
+        string='Properties',
+        help="Multiple property.", compute="_compute_multi_properitis",
+        store=True)
+    
+    # @api.depends('prop_ids')
+    # def _compute_multi_properitis(self):
+    #     for record in self:
+    #         property_names = record.prop_ids.mapped('property_id.name')
+    #         record.multi_properitis = ', '.join(property_names)
+            
+    @api.depends('prop_ids', 'property_id')
+    def _compute_multi_properitis(self):
+        for record in self:
+            if record.property_id:
+                # Compute based on property_id if available
+                record.multi_properitis = record.property_id.name
+            else:
+                # Compute based on prop_ids if property_id is not available
+                property_names = record.prop_ids.mapped('property_id.name')
+                record.multi_properitis = ', '.join(property_names)
+    
     def button_book(self):
         """
-        This button method is used to Change Tenancy state to book.
-        @param self: The object pointer
+        Extended button method to handle both single and multi-property bookings.
         """
-        res = super(AccountAnalyticAccount, self).button_book()
-        if self.multi_prop:
-            for property in self.prop_ids:
-                tenant_tenancy_rec = self.env['account.analytic.account'].search(
-                    [('property_id', '=', property.property_id.id), ('state', '=', 'draft')])
-                if tenant_tenancy_rec and len(tenant_tenancy_rec) > 1:
-                    raise ValidationError(_(
-                        'You cannot book a tenancy record which '
-                        'is found in "%s" state.') % (self.state))
-                if self.tenant_id:
-                    property.property_id.write(
-                        {'current_tenant_id': self.tenant_id.id,
-                         'state': 'book'})
-                self.write({'state': 'book'})
-        return res
+        # Delegate to the original method for single-property scenarios
+        if not self.multi_prop:
+            return super(AccountAnalyticAccount, self).button_book()
+
+        # Handle multi-property booking
+        for property in self.prop_ids:
+            tenant_tenancy_rec = self.env['account.analytic.account'].search(
+                [('property_id', '=', property.property_id.id), ('state', '=', 'draft')])
+            if tenant_tenancy_rec and len(tenant_tenancy_rec) > 1:
+                raise ValidationError(_(
+                    'You cannot book a tenancy multi record which '
+                    'is found in "%s" state.') % (self.state))
+            if self.tenant_id:
+                property.property_id.write(
+                    {'current_tenant_id': self.tenant_id.id,
+                    'state': 'book'})
+        self.write({'state': 'book'})
+
+        return True
+
+ 
+    # def button_book(self):
+    #     """
+    #     This button method is used to Change Tenancy state to book.
+    #     @param self: The object pointer
+    #     """
+    #     res = super(AccountAnalyticAccount, self).button_book()
+    #     if self.multi_prop:
+    #         for property in self.prop_ids:
+    #             tenant_tenancy_rec = self.env['account.analytic.account'].search(
+    #                 [('property_id', '=', property.property_id.id), ('state', '=', 'draft')])
+    #             if tenant_tenancy_rec and len(tenant_tenancy_rec) > 1:
+    #                 raise ValidationError(_(
+    #                     'You cannot book a tenancy multi record which '
+    #                     'is found in "%s" state.') % (self.state))
+    #             if self.tenant_id:
+    #                 property.property_id.write(
+    #                     {'current_tenant_id': self.tenant_id.id,
+    #                      'state': 'book'})
+    #             self.write({'state': 'book'})
+    #     return res
 
     @api.model
     def create(self, vals):
@@ -181,3 +229,16 @@ class TenancyRentSchedule(models.Model):
                     for account in data.property_id.income_acc_id:
                         inv_line_values.update({'account_id': account.id})
             return inv_lines
+
+class AccountMove(models.Model):
+    _inherit = "account.move"
+    _description = "Account Entry"
+
+    # asset_id = fields.Many2one(
+    #     comodel_name='account.asset',
+    #     help='Asset')
+    prop_ids = fields.One2many(
+        comodel_name='property.rent',
+        inverse_name='move_id',
+        copy='False',
+        string="Property Rent")

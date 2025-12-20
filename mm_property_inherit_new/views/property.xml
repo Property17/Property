@@ -94,6 +94,80 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="view_tenancy_expiration_reminder_search" model="ir.ui.view">
+        <field name="name">tenancy.expiration.reminder.search</field>
+        <field name="model">account.analytic.account</field>
+        <field name="arch" type="xml">
+            <search string="Tenancy Expiration Reminder">
+                <!-- Search Fields -->
+                <field name="name" string="Tenancy" filter_domain="[('name', 'ilike', self)]" />
+                <field name="partner_id" string="Tenant" />
+                <field name="date" string="Expiration Date" />
+
+                <!-- Filters -->
+                <filter string="Expiring Soon (Next Month)" name="expiring_soon"
+                    domain="[('date', '&gt;=', context_today()), ('date', '&lt;=', (context_today() + relativedelta(months=1)))]" />
+
+                <filter string="Already Expired (Open)" name="expired_open"
+                    domain="[('date', '&lt;', context_today()), ('state', '=', 'open')]" />
+
+                <separator />
+
+                <filter string="Open" name="state_open"
+                    domain="[('state', '=', 'open')]" />
+
+                <separator />
+
+                <!-- Group By -->
+                <group expand="0" string="Group By">
+                    <filter string="Tenant" name="group_tenant" context="{'group_by': 'partner_id'}" />
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}" />
+                    <filter string="Expiration Date" name="group_date"
+                        context="{'group_by': 'date'}" />
+                    <filter string="Property" name="group_property"
+                        context="{'group_by': 'property_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+    <record id="action_tenancy_expiration_reminder" model="ir.actions.act_window">
+        <field name="name">Tenancy Expiration Reminder</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">account.analytic.account</field>
+        <field name="view_mode">tree,form</field>
+        <!-- <field name="domain">
+            ['|',
+            '&amp;',
+            ('date', '&gt;=', context_today()),
+            ('date', '&lt;=', (context_today() + relativedelta(months=1))),
+            '&amp;',
+            ('date', '&lt;', context_today()),
+            ('state', '=', 'open')
+            ]
+        </field> -->
+        <field name="domain">
+            [('state', '=', 'open'),
+            '|',
+            '&amp;',
+            ('date', '&gt;=', context_today()),
+            ('date', '&lt;=', (context_today() + relativedelta(months=1))),
+            ('date', '&lt;', context_today())]
+        </field>
+        <field name="search_view_id" ref="view_tenancy_expiration_reminder_search" />
+        <field name="view_ids"
+            eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'tree', 'view_id': ref('property_management.property_analytic_view_tree')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('property_management.property_analytic_view_form')})]" />
+    </record>
+
+
+    <menuitem id="menu_tenancy_expiration_reminder" name="Tenancy Expiration Reminder"
+        parent="property_management.menu_tenant_details_sub"
+        action="action_tenancy_expiration_reminder" />
+
+
     <!--Activity Types-->
     <menuitem id="menu_activity_type_view_new" name="Activity Type" parent="property_management.menu_types_main" action="action_activity_type_view_new"/>
 

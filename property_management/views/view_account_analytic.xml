@@ -6,13 +6,13 @@
         <field name="model">account.analytic.account</field>
         <field name="arch" type="xml">
             <tree string="Tenancy Details">
-                <field name="ten_date"/>
-                <field name="name" string="Tenancy Name"/>
-                <field name="code" string="Code"/>
-                <field name="property_id"/>
-                <field name="tenant_id"/>
-                <field name="date_start"/>
-                <field name="date"/>
+                <field name="ten_date" />
+                <field name="name" string="Tenancy Name" />
+                <field name="code" string="Code" />
+                <field name="property_id" optional="hide"/>
+                <field name="tenant_id" />
+                <field name="date_start" />
+                <field name="date" />
                 <field name="rent_type_id"/>
                 <field name="rent"/>
                 <field name="total_rent" sum="Total Rent"/>
@@ -27,9 +27,10 @@
         <field name="model">account.analytic.account</field>
         <field name="arch" type="xml">
             <tree string="Tenancy Details" create="false">
-                <field name="ten_date"/>
-                <field name="name" string="Tenancy Name"/>
-                <field name="plan_id"/>
+                <field name="ten_date" />
+                <field name="name" string="Tenancy Name" />
+                <field name="plan_id" />
+                <field name="partner_id" />
                 <field name="code" string="Code"/>
                 <field name="property_id"/>
                 <field name="tenant_id"/>
@@ -161,9 +162,10 @@
                         <group>
                             <separator string="Property Information"/>
                             <field name="tenant_id" placeholder="Tenant Name" required="1" readonly="state != 'draft'" context="{'default_tenant':True,}"/>
-                            <field name="property_id" placeholder="Property Name" domain="[('state','=','draft'),('property_sale_rent','=','rent')] " readonly="state != 'draft' and multi_prop == True"  required="multi_prop == False" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
+                            <field name="property_id" domain="[('id', 'in', property_ids_domain)]" placeholder="Property Name"  readonly="state != 'draft' and multi_prop == True"  required="multi_prop == False" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                             <field name="plan_id"/>
                             <field name="manager_id"/>
+                            <field name="property_ids_domain" invisible="1"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                             <field name="multi_prop" invisible="1"/>
@@ -172,24 +174,34 @@
                             <field name="invoice_id" invisible="1"/>
                         </group>
                         <group  readonly="state == 'close'">
-                            <separator string="Tenancy Information"/>
-                            <field name="rent" readonly="state != 'draft'"/>
-                            <field name="ten_date" required="1"/>
-                            <field name="deposit" string="Amount Deposit" readonly="deposit_received == True"/>
-                            <field name="amount_return" readonly="1"/>
-                            <field name="deposit_received" string="Deposit Paid ?"/>
-                            <field name="deposit_return" string="Deposit Received ?"/>
+                            <separator string="Tenancy Information" />
+                            <field name="rent" force_save="1" readonly="state != 'draft'" />
+                            <field name="ten_date" required="1" />
+                            <field name="deposit" string="Amount Deposit"
+                                readonly="deposit_received == True" />
+                            <field name="deposit_received" readonly="1" />
+                            <field name="amount_return" readonly="1" />
+                            <!-- <field name="deposit_received" readonly="1" string="Deposit Paid" /> -->
+                            <field name="deposit_return"/>
+                            <!-- <field name="deposit_return" string="Deposit Received" /> -->
+
                             <!-- <field name="deposit_scheme_type" colspan="2"/> -->
                             <field name="contact_id" />
-                            <field name="main_cost" invisible="1"/>
-                            <field name="acc_pay_dep_rec_id" invisible="1"/>
-                            <field name="acc_pay_dep_ret_id" invisible="1"/>
+                            <field name="main_cost" invisible="1" />
+                            <field name="acc_pay_dep_rec_id" invisible="1" />
+                            <field name="acc_pay_dep_ret_id" invisible="1" />
+                            <field name="company_id" invisible="1"/>
+                            <field name="partner_id" invisible="1" />
+
                         </group>
                         <group >
                             <separator string="Contract Information" />
                             <field name="date_start"  required="True" readonly="state != 'draft'"/>
+                            <field name="duration" required="True" readonly="state != 'draft'"/>
                             <field name="date" placeholder="End Date"  required="True" readonly="state != 'draft'"/>
                             <field name="rent_type_id" widget="selection" required="True"/>
+                            <field name="schedule_start_from" widget="radio" />
+                            <field name="chosen_date" invisible="schedule_start_from != 'chosen_date'"/>
                             <field name="total_rent"/>
                             <field name="contract_attachment"/>
                         </group>
@@ -212,6 +224,7 @@
                                     <field name="company_id" column_invisible="1" />
                                     <field name="currency_id" column_invisible="1" />
                                     <field name="is_readonly" column_invisible="1" />
+                                    <field name="has_created" />
                                     <button name="create_invoice"
                                             column_invisible="is_invoiced == True or is_readonly == True" class="fa fa-gear" type="object" context="{'asset':1,'is_tenancy':1}">
                                     </button>
@@ -223,6 +236,36 @@
                         </page>
 
                         <page name="history" string="History">
+                            <separator string="Account History"  />
+                            <field name="account_move_line_debit_ids" readonly="1">
+                                <tree string="Journal Items (Credit)" default_order="date asc"
+                                    create="false" domain="[('parent_state', '=', 'posted')]">
+                                    <field name="parent_state" column_invisible="1" />
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="ref" string="Reference"/>
+                                    <field name="move_id" required="0"/>
+                                    <field name="journal_id" options="{&quot;no_open&quot;:True}"/>
+                                    <field name="account_id" options="{&quot;no_open&quot;:True}" domain="[('company_id', '=', company_id)]"/>
+                                    <field name="debit" sum="Total Debit" widget='monetary'/>
+                                    <field name="credit" sum="Total Credit" widget='monetary'/>
+                                    <field name="reconciled" column_invisible="1"/>
+                                    <field name="company_currency_id" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1" options="{'no_create': True}"/>
+                                    <field name="company_id" column_invisible="1" options="{'no_create': True}"/>
+                                    <field name="cumulative_balance"  />
+                                </tree>
+                            </field>
+                            <group></group>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_debit_amt" />
+                                <field name="total_credit_amt"/>
+                                <field name="total_deb_cre_amt" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+
+
+                        <!-- <page name="history" string="History">
                         <separator string="Account History"  />
                             <field name="account_move_line_ids" readonly="1">
                                 <tree string="Journal Items" create="false">
@@ -246,7 +289,7 @@
                                 <field name="total_debit_amt"/>
                                 <field name="total_deb_cre_amt" class="oe_subtotal_footer_separator"/>
                             </group>
-                        </page>
+                        </page> -->
 
                         <page string="Terms &amp; Conditions" name="contract_page">
                             <separator string="Terms and Conditions" name="description"/>

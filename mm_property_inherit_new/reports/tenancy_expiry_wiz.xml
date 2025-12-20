@@ -1,0 +1,51 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="tenancy_expiry_view_id">
+            <field name="name">Tenancy Expiry Report</field>
+            <field name="model">tenancy.expiry.wiz</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="from_date" string="From" />
+                            </group>
+                            <group>
+                                <field name="to_date" string="To" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="company_id" />
+                                <field name="property_manager_id" />
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="print_report" string="Print PDF" type="object"
+                            default_focus="1"
+                            class="oe_highlight" icon="fa-download" />
+                        <button name="get_tree_report" string="Table View" type="object"
+                            default_focus="1" class="oe_highlight" />
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="tenancy_expiry_action">
+            <field name="name">Tenancy Expiry Report</field>
+            <field name="res_model">tenancy.expiry.wiz</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+       
+
+        <menuitem name="Tenancy Expiry Report" id="menu_tenancy_expiry_report"
+            parent="property_management.menu_report_sub"
+            action="tenancy_expiry_action" sequence="-1" />
+
+
+    </data>
+</odoo>

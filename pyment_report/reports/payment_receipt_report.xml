@@ -128,8 +128,12 @@
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 رقم الوحدة
                             </th>
-                            <td colspan="3" style="text-align: right;">
-                                <span t-field="o.property_id.name"/>
+                            <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
+                                <span t-field="o.property_id.name" />
+                            </td>
+                            <td t-else="o.mm_move_id.multi_properitis" colspan="3"
+                                style="text-align: right;">
+                                <span t-field="o.mm_move_id.multi_properitis" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 الرقم الالي
@@ -196,13 +200,13 @@
                                 طريقة الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span t-field="o.journal_id.name"/>
+                                <span t-field="o.payment_method_line_id.name" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
-                                رقم شيك / البنك
+                                تفاصيل الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <span t-field="o.ref" />
                             </td>
                         </tr>
                         <tr>
@@ -279,8 +283,12 @@
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 رقم الوحدة
                             </th>
-                            <td colspan="3" style="text-align: right;">
-                                <span t-field="o.property_id.name"/>
+                            <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
+                                <span t-field="o.property_id.name" />
+                            </td>
+                            <td t-else="o.mm_move_id.multi_properitis" colspan="3"
+                                style="text-align: right;">
+                                <span t-field="o.mm_move_id.multi_properitis" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 الرقم الالي
@@ -345,13 +353,13 @@
                                 طريقة الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span t-field="o.journal_id.name"/>
+                                <span t-field="o.payment_method_line_id.name" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
-                                رقم شيك / البنك
+                                تفاصيل الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <span t-field="o.ref" />
                             </td>
                         </tr>
                         <tr>
@@ -427,8 +435,12 @@
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 رقم الوحدة
                             </th>
-                            <td colspan="3" style="text-align: right;">
-                                <span t-field="o.property_id.name"/>
+                            <td t-if="o.property_id.name" colspan="3" style="text-align: right;">
+                                <span t-field="o.property_id.name" />
+                            </td>
+                            <td t-else="o.mm_move_id.multi_properitis" colspan="3"
+                                style="text-align: right;">
+                                <span t-field="o.mm_move_id.multi_properitis" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
                                 الرقم الالي
@@ -493,13 +505,13 @@
                                 طريقة الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span t-field="o.journal_id.name"/>
+                                <span t-field="o.payment_method_line_id.name" />
                             </td>
                             <th style="background-color:#D8D8D8;text-align: right;">
-                                رقم شيك / البنك
+                                تفاصيل الدفع
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <span t-field="o.ref" />
                             </td>
                         </tr>
                         <tr>

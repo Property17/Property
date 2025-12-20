@@ -10,6 +10,62 @@ class AccountMoveLine(models.Model):
     _inherit ="account.move.line"
     
     analytic_account_id = fields.Many2one("account.analytic.account", string="Analytic Account")
+    cumulative_balance = fields.Monetary(
+        string="Balance",
+        compute="_compute_cumulative_balance",
+        store=False, 
+        currency_field='company_currency_id',
+        help="Running balance up to this line based on debit and credit."
+    )
+    
+    
+    @api.depends('debit', 'credit', 'date', 'analytic_account_id')
+    def _compute_cumulative_balance(self):
+        for rec in self:
+            rec.cumulative_balance = 0.0  # Ensure a default value is always set
+            
+            if not rec.analytic_account_id:
+                continue
+            
+            # Get all lines linked to the same analytic account
+            all_lines = rec.env['account.move.line'].search([
+                ('analytic_account_id', '=', rec.analytic_account_id.id)
+            ]).sorted(lambda l: (l.date, l.id))
+
+            # Compute cumulative balance
+            running_balance = 0.0
+            for line in all_lines:
+                running_balance += line.debit - line.credit
+                if line.id == rec.id:
+                    rec.cumulative_balance = running_balance
+                    break
+
+    
+    # @api.depends('debit', 'credit', 'date', 'analytic_account_id')
+    # def _compute_cumulative_balance(self):
+    #     for rec in self:
+    #         rec.cumulative_balance = 0.0  # Ensure default assignment
+
+    #         if not rec.analytic_account_id:
+    #             continue
+
+    #         # Get all lines linked to the same analytic account
+    #         all_lines = rec.env['account.move.line'].search([
+    #             ('analytic_account_id', '=', rec.analytic_account_id.id)
+    #         ]).sorted(lambda l: (l.date, l.id))
+
+    #         # Compute cumulative balance
+    #         running_balance = 0.0
+    #         for line in all_lines:
+    #             running_balance -= line.debit - line.credit
+    #             if line.id == rec.id:
+    #                 rec.cumulative_balance = running_balance
+    #                 break
+
+
+  
+    
+    
 class AccountAnalyticAccount(models.Model):
     _name = "account.analytic.account"
     _description = 'Tenant Tenancy'
@@ -23,7 +79,7 @@ class AccountAnalyticAccount(models.Model):
         total debit amount from total credit amount.
         """
         for tenancy in self:
-            total = tenancy.total_credit_amt - tenancy.total_debit_amt
+            total = tenancy.total_debit_amt - tenancy.total_credit_amt
             tenancy.total_deb_cre_amt = total or 0.0
 
     @api.depends('account_move_line_ids.credit')
@@ -57,20 +113,21 @@ class AccountAnalyticAccount(models.Model):
                 propety_brw.amount for propety_brw in
                 tenancy_brw.rent_schedule_ids)
 
-    @api.depends('deposit')
-    def _compute_payment_type(self):
-        """
-        This method is used to set deposit return and deposit received
-        boolean field accordingly to current Tenancy.
-        @param self: The object pointer
-        """
-        self.deposit_received = False
-        for tennancy in self:
-            for payment in self.env['account.payment'].search(
-                    [('tenancy_id', '=', tennancy.id),
-                     ('state', '=', 'posted')]):
-                if payment.payment_type == 'inbound':
-                    tennancy.deposit_received = True
+    # @api.depends('deposit')
+    # def _compute_payment_type(self):
+    #     """
+    #     This method is used to set deposit return and deposit received
+    #     boolean field accordingly to current Tenancy.
+    #     @param self: The object pointer
+    #     """
+    #     self.deposit_received = False
+    #     for tennancy in self:
+    #         for payment in self.env['account.payment'].search(
+    #                 [('tenancy_id', '=', tennancy.id),
+    #                  ('state', '=', 'posted'),
+    #                  ('is_deposit_receive', '=', True)]):
+    #             if payment.payment_type == 'inbound':
+    #                 tennancy.deposit_received = True
 
     @api.depends('prop_ids', 'multi_prop')
     def _total_prop_rent(self):
@@ -91,12 +148,19 @@ class AccountAnalyticAccount(models.Model):
             else:
                 pro_record.rent = prop_val
                 
-    @api.model
-    def default_get(self, fields):
-        res = super(AccountAnalyticAccount, self).default_get(fields)
-        if res.get('date_start'):
-            res.update({'date': res['date_start'] + relativedelta(years=1)})
-        return res
+    # @api.model
+    # def default_get(self, fields):
+    #     res = super(AccountAnalyticAccount, self).default_get(fields)
+    #     if res.get('date_start'):
+    #         res.update({'date': res['date_start'] + relativedelta(years=1)})
+    #     return res
+    
+    # @api.model
+    # def default_get(self, fields):
+    #     res = super(AccountAnalyticAccount, self).default_get(fields)
+    #     if res.get('date_start'):
+    #         res.update({'date': res['date_start'] + relativedelta(years=5, days=-1)})
+    #     return res
         
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
@@ -112,32 +176,54 @@ class AccountAnalyticAccount(models.Model):
     rent_entry_chck = fields.Boolean(
         string='Rent Entries Check',
         default=False)
+    
     deposit_received = fields.Boolean(
-        string='Deposit Received?',
+        string='Deposit Received',
         default=False,
-        compute='_compute_payment_type',
+        readonly=False,
         copy=False,
+        tracking=True,
         help="True if deposit amount received for current Tenancy.")
+    
+    # deposit_received = fields.Boolean(
+    #     string='Deposit Received?',
+    #     default=False,
+    #     readonly=False,
+    #     compute='_compute_payment_type',
+    #     copy=False,
+    #     help="True if deposit amount received for current Tenancy.")
     deposit_return = fields.Boolean(
-        string='Deposit Returned?',
+        string='Deposit Returned',
         default=False,
         type='boolean',
         compute='compute_amount_return',
         copy=False,
+         tracking=True,
         help="True if deposit amount returned for current Tenancy.")
     code = fields.Char(
         string='Reference',
-        default="/")
+        default="/",  tracking=True,)
     doc_name = fields.Char(
         string='Filename')
     date = fields.Date(
         string='Expiration Date',
         index=True,
+        compute="_compute_date",
+        store=True,
         help="Tenancy contract end date.")
+   
     date_start = fields.Date(
         string='Start Date',
+         tracking=True,
         default=fields.Date.context_today,
         help="Tenancy contract start date .")
+
+    duration = fields.Integer(
+        string="Duration",
+         tracking=True,
+        help="Duration in days.",
+    )
+                
     ten_date = fields.Date(
         string='Date',
         default=fields.Date.context_today,
@@ -149,14 +235,15 @@ class AccountAnalyticAccount(models.Model):
         comodel_name='res.users',
         string='Account Manager',
         help="Manager of Tenancy.")
-    property_id = fields.Many2one(
-        comodel_name='account.asset',
-        string='Property',
-        domain="[('is_property','=', True)]",
-        copy=False,
-        help="Name of Property.")
+    # property_id = fields.Many2one(
+    #     comodel_name='account.asset',
+    #     string='Property',
+    #     domain="[('is_property','=', True),('property_manager_id','=', self.property_manager_id)]",
+    #     copy=False,
+    #     help="Name of Property.")
     tenant_id = fields.Many2one(
         comodel_name='tenant.partner',
+         tracking=True,
         string='Tenant',
         domain="[('tenant', '=', True)]",
         help="Tenant Name of Tenancy.")
@@ -176,9 +263,10 @@ class AccountAnalyticAccount(models.Model):
         # states={'draft': [('readonly', False)]})
     rent = fields.Monetary(
         string='Tenancy Rent',
-        default=0.0,
+         tracking=True,
         currency_field='currency_id',
         help="Tenancy rent for selected property per Month.")
+    
     deposit = fields.Monetary(
         string='Deposit',
         default=0.0,
@@ -193,7 +281,7 @@ class AccountAnalyticAccount(models.Model):
         compute='_compute_total_rent',
         help='Total rent of this Tenancy.')
     amount_return = fields.Monetary(
-        string='Deposit Returned',
+        string='Amount Deposit Returned',
         default=0.0,
         currency_field='currency_id',
         copy=False,
@@ -247,6 +335,7 @@ class AccountAnalyticAccount(models.Model):
         string='Status',
         required=True,
         copy=False,
+        tracking=True,
         default='draft')
     invoice_id = fields.Many2one(
         comodel_name='account.move',
@@ -255,6 +344,9 @@ class AccountAnalyticAccount(models.Model):
     multi_prop = fields.Boolean(
         string='Multiple Property',
         help="Check this box Multiple property.")
+    
+   
+    
     penalty_a = fields.Boolean(
         'Penalty')
     recurring = fields.Boolean(
@@ -266,6 +358,77 @@ class AccountAnalyticAccount(models.Model):
     tenancy_cancelled = fields.Boolean(
         string='Tanency Cancelled',
         default=False)
+    property_id = fields.Many2one(
+        comodel_name='account.asset',
+        string='Property',
+        copy=False,
+        help="Name of Property."
+    )
+
+    
+    property_ids_domain = fields.Many2many(
+        'account.asset',
+        compute='_compute_property_ids_domain',
+        store=False,
+        help="Dynamically filtered properties based on the selected Property Manager."
+    )
+    property_manager_id = fields.Many2one(comodel_name='res.partner', string='Property Manager')
+    
+    account_move_line_debit_ids = fields.One2many(
+    comodel_name='account.move.line',
+    inverse_name='analytic_account_id',
+    string='Entries',
+    )
+    # compute='_compute_account_move_line_debit_ids',
+    
+    schedule_start_from = fields.Selection(
+        [('start_date', 'Start Date'),
+         ('chosen_date', 'Chosen Date')],
+        string='Schedule Start From',
+        default='start_date',  tracking=True)
+    chosen_date = fields.Date(
+        string='Chosen Date',
+        tracking=True,
+        help="Tenancy contract start date .")
+    partner_id = fields.Many2one('res.partner' , string='Customer')
+    multi_properitis = fields.Text(
+        string='Properties',
+        help="Multiple property.",
+        store=True)
+    
+    @api.onchange('tenant_id')
+    def _onchange_tenant_id(self):
+        if self.tenant_id:
+            self.partner_id = self.tenant_id.parent_id
+        else:
+            self.partner_id = False 
+
+    
+    @api.depends('date_start', 'duration')
+    def _compute_date(self):
+        for record in self:
+            if record.date_start and record.duration:
+                record.date = record.date_start + relativedelta(years=record.duration, days=-1)
+            else:
+                record.date = False
+
+
+    # @api.depends('account_move_line_ids.debit')
+    # def _compute_account_move_line_debit_ids(self):
+    #     for record in self:
+    #         record.account_move_line_debit_ids = record.account_move_line_ids.filtered(lambda line: line.debit > 0)
+
+    @api.depends('property_manager_id')
+    def _compute_property_ids_domain(self):
+        for record in self:
+            if record.property_manager_id:
+                draft_properties = record.property_manager_id.properties.filtered(
+                    lambda p: p.state == 'draft'
+                )
+                record.property_ids_domain = draft_properties
+            else:
+                record.property_ids_domain = self.env['account.asset']
+                
 
     @api.constrains('date_start', 'date')
     def check_date_overlap(self):
@@ -373,19 +536,28 @@ class AccountAnalyticAccount(models.Model):
             tenancy_rec.property_id.write(
                 {'state': 'draft', 'current_tenant_id': False})
         return super(AccountAnalyticAccount, self).unlink()
-
-    # @api.depends('amount_return')
-    @api.depends('invoice_id', 'invoice_id.payment_state')
+    
+    @api.depends('invoice_id.payment_state')
     def compute_amount_return(self):
         """
-        When you change Deposit field value, this method will change
-        amount_fee_paid field value accordingly.
-        @param self: The object pointer
+        Compute deposit_return as True if invoice is in_payment or paid
         """
-        self.deposit_return = False
-        for data in self:
-            if data.invoice_id.payment_state == ['in_payment', 'paid']:
-                data.deposit_return = True
+        for record in self:
+            record.deposit_return = record.invoice_id.payment_state in ('in_payment', 'paid')
+
+
+    # @api.depends('amount_return')
+    # @api.depends('invoice_id', 'invoice_id.payment_state')
+    # def compute_amount_return(self):
+    #     """
+    #     When you change Deposit field value, this method will change
+    #     amount_fee_paid field value accordingly.
+    #     @param self: The object pointer
+    #     """
+    #     self.deposit_return = False
+    #     for data in self:
+    #         if data.invoice_id.payment_state == ['in_payment', 'paid']:
+    #             data.deposit_return = True
 
     @api.onchange('date_start', 'property_id')
     def onchange_date_start(self):
@@ -396,7 +568,7 @@ class AccountAnalyticAccount(models.Model):
         """
         if self.property_id:
             self.rent_type_id = self.property_id.rent_type_id.id
-            self.rent = self.property_id.ground_rent or False
+            # self.rent = self.property_id.ground_rent or False
 
     def button_receive(self):
         """
@@ -405,30 +577,48 @@ class AccountAnalyticAccount(models.Model):
         @param self: The object pointer
         @return: Dictionary of values.
         """
+        
+        self.ensure_one()  # Ensure the method is called on a single record.
+        if self.acc_pay_dep_rec_id:  # Check if an invoice already exists.
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'account.payment',
+                'res_id': self.acc_pay_dep_rec_id.id,
+                'target': 'current',
+                'context': self.env.context,
+            }
+        
         context = dict(self._context) or {}
-        print("contextcontextbutton_receivebutton_receive", context)
+        # print("contextcontextbutton_receivebutton_receive", context)
         payment_id = False
         acc_pay_form = self.env.ref(
             'account.view_account_payment_form')
+
         account_jrnl_obj = self.env['account.journal'].search(
             [('type', '=', 'bank')], limit=1)
+
         payment_obj = self.env['account.payment']
         payment_method_id = self.env.ref(
             'account.account_payment_method_manual_in')
+
         context.update({'close_after_process': True})
         for tenancy_rec in self:
-            if tenancy_rec.acc_pay_dep_rec_id and \
-                    tenancy_rec.acc_pay_dep_rec_id.id:
-                return {
-                    'view_type': 'form',
-                    'view_id': acc_pay_form.id,
-                    'view_mode': 'form',
-                    'res_model': 'account.payment',
-                    'res_id': tenancy_rec.acc_pay_dep_rec_id.id,
-                    'type': 'ir.actions.act_window',
-                    'target': 'current',
-                    'context': context,
-                }
+            
+            # if tenancy_rec.acc_pay_dep_rec_id and \
+            #         tenancy_rec.acc_pay_dep_rec_id.id:
+            #     return {
+            #         'view_type': 'form',
+            #         'view_id': acc_pay_form.id,
+            #         'view_mode': 'form',
+            #         'res_model': 'account.payment',
+            #         'res_id': tenancy_rec.acc_pay_dep_rec_id.id,
+            #         'type': 'ir.actions.act_window',
+            #         'target': 'current',
+            #         'context': context,
+            #     }
+                
             if tenancy_rec.deposit == 0.00:
                 raise ValidationError(_('Please Enter Deposit amount.'))
             if tenancy_rec.deposit < 0.00:
@@ -443,9 +633,13 @@ class AccountAnalyticAccount(models.Model):
                 'tenancy_id': tenancy_rec.id,
                 'amount': tenancy_rec.deposit,
                 'property_id': tenancy_rec.property_id.id,
-                'payment_method_id': payment_method_id.id
+                'payment_method_id': payment_method_id.id,
+                'is_deposit_receive': True,
+                'company_id': tenancy_rec.company_id.id,
             }
             payment_id = payment_obj.with_context(context).create(vals)
+            tenancy_rec.acc_pay_dep_rec_id = payment_id.id
+            # tenancy_rec.deposit_received = True
         return {
             'view_mode': 'form',
             'view_id': acc_pay_form.id,
@@ -457,51 +651,62 @@ class AccountAnalyticAccount(models.Model):
             'domain': '[]',
             'context': context,
         }
-
+    
     def button_return(self):
         """
-        This method create supplier invoice for returning deposite
-        amount.
+        This method creates a supplier invoice for returning deposit amount,
+        but prevents the creation of multiple invoices for the same record.
         -----------------------------------------------------------
         @param self: The object pointer
         """
+        self.ensure_one()  # Ensure the method is called on a single record.
+        if self.invoice_id:  # Check if an invoice already exists.
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'account.move',
+                'res_id': self.invoice_id.id,
+                'target': 'current',
+                'context': self.env.context,
+            }
+
         account_jrnl_obj = self.env['account.journal'].search(
             [('type', '=', 'purchase')], limit=1)
         invoice_obj = self.env['account.move']
         wiz_form_id = self.env.ref('account.view_move_form').id
-        for rec in self:
-            inv_line_values = {
-                'name': _('Deposit Return') or "",
-                # 'origin': 'account.analytic.account' or "",
-                'quantity': 1,
-                'account_id': rec.property_id.expense_account_id.id or False,
-                'price_unit': rec.deposit or 0.00,
-                # 'analytic_distribution': rec.id or False,
-                'analytic_distribution': {rec.id : 100} if rec.id else {},
-            }
-            if rec.multi_prop:
-                for data in rec.prop_ids:
-                    if data.property_id and data.property_id.income_acc_id:
-                        for account in data.property_id.income_acc_id:
-                            account_id = account.id
-                        inv_line_values.update({'account_id': account_id})
-            inv_values = {
-                # 'origin': _('Deposit Return For ') + rec.name or "",
-                'move_type': 'in_invoice',
-                'property_id': rec.property_id.id,
-                'partner_id': rec.tenant_id.parent_id.id or False,
-                # 'account_id':
-                #     rec.tenant_id.parent_id.property_account_payable_id.id
-                #         or False,
-                'invoice_line_ids': [(0, 0, inv_line_values)],
-                'invoice_date': fields.Date.context_today(self) or False,
-                'new_tenancy_id': rec.id,
-                # 'ref': rec.code,
-                'journal_id':
-                account_jrnl_obj and account_jrnl_obj.id or False,
-            }
-            acc_id = invoice_obj.create(inv_values)
-            rec.write({'invoice_id': acc_id.id})
+
+        inv_line_values = {
+            'name': _('Deposit Return') or "",
+            'quantity': 1,
+            'account_id': self.tenant_id.tenancy_insurance_id.id,
+            # 'account_id': self.property_id.expense_account_id.id or False,
+            'price_unit': self.deposit or 0.00,
+            # 'analytic_distribution': {self.id: 100} if self.id else {},
+        }
+
+        if self.multi_prop:
+            for data in self.prop_ids:
+                if data.property_id and data.property_id.income_acc_id:
+                    for account in data.property_id.income_acc_id:
+                        account_id = account.id
+                    inv_line_values.update({'account_id': account_id})
+
+        inv_values = {
+            'move_type': 'in_invoice',
+            'property_id': self.property_id.id,
+            'partner_id': self.tenant_id.parent_id.id or False,
+            'invoice_line_ids': [(0, 0, inv_line_values)],
+            'invoice_date': fields.Date.context_today(self) or False,
+            'new_tenancy_id': self.id,
+            'journal_id': account_jrnl_obj.id if account_jrnl_obj else False,
+            'company_id': self.company_id.id,
+
+        }
+
+        acc_id = invoice_obj.create(inv_values)
+        self.write({'invoice_id': acc_id.id})
+
         return {
             'view_type': 'form',
             'view_id': wiz_form_id,
@@ -510,8 +715,9 @@ class AccountAnalyticAccount(models.Model):
             'res_id': self.invoice_id.id,
             'type': 'ir.actions.act_window',
             'target': 'current',
-            'context': rec._context,
+            'context': self.env.context,
         }
+        
 
     def button_open_recived(self):
         wiz_form_id = self.env.ref('account.view_move_form').id
@@ -562,6 +768,8 @@ class AccountAnalyticAccount(models.Model):
                         new_ids.write(
                             {'tenant_ids': [(4, current_rec.tenant_id.id)]})
         return self.write({'state': 'open', 'rent_entry_chck': False})
+    
+
 
     def button_close(self):
         """
@@ -647,85 +855,180 @@ class AccountAnalyticAccount(models.Model):
     #                 tenancy.id, force_send=True, raise_exception=False)
     #     return True
 
+    # def create_rent_schedule(self):
+    #     """
+    #     This button method is used to create rent schedule Lines.
+    #     @param self: The object pointer
+    #     """
+    #     rent_obj = self.env['tenancy.rent.schedule']
+    #     for tenancy_rec in self:
+    #         if tenancy_rec.rent_type_id.renttype == 'Weekly':
+    #             d1 = tenancy_rec.date_start
+    #             d2 = tenancy_rec.date
+    #             interval = int(tenancy_rec.rent_type_id.name)
+    #             if d2 < d1:
+    #                 raise ValidationError(
+    #                     _('End date must be greater than start date.'))
+    #             wek_diff = (d2 - d1)
+    #             wek_tot1 = (wek_diff.days) / (interval * 7)
+    #             wek_tot = (wek_diff.days) % (interval * 7)
+    #             if wek_diff.days == 0:
+    #                 wek_tot = 1
+    #             if wek_tot1 > 0:
+    #                 for wek_rec in range(int(wek_tot1)):
+    #                     rent_obj.create(
+    #                         {'start_date': d1,
+    #                          'amount': tenancy_rec.rent * interval or 0.0,
+    #                         #  'property_id': tenancy_rec.property_id
+    #                         #     and tenancy_rec.property_id.id or False,
+    #                         #  'tenancy_id': tenancy_rec.id,
+    #                         #  'currency_id': tenancy_rec.currency_id.id
+    #                         #     or False,
+    #                         #  'rel_tenant_id': tenancy_rec.tenant_id.id
+    #                         'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+    #                          'tenancy_id': tenancy_rec.id,
+    #                          'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+    #                          'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+    #                          })
+    #                     d1 = d1 + relativedelta(days=(7 * interval))
+    #             if wek_tot > 0:
+    #                 one_day_rent = 0.0
+    #                 if tenancy_rec.rent:
+    #                     one_day_rent = (tenancy_rec.rent) / (7 * interval)
+    #                 rent_obj.create(
+    #                     {'start_date': d1.strftime(
+    #                         DEFAULT_SERVER_DATE_FORMAT),
+    #                      'amount': (one_day_rent * (wek_tot)) or 0.0,
+    #                     #  'property_id': tenancy_rec.property_id
+    #                     #     and tenancy_rec.property_id.id or False,
+    #                     #  'tenancy_id': tenancy_rec.id,
+    #                     #  'currency_id': tenancy_rec.currency_id.id or False,
+    #                     #  'rel_tenant_id': tenancy_rec.tenant_id.id
+    #                     'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+    #                     'tenancy_id': tenancy_rec.id,
+    #                     'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+    #                     'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+    #                      })
+    #         elif tenancy_rec.rent_type_id.renttype != 'Weekly':
+    #             if tenancy_rec.rent_type_id.renttype == 'Monthly':
+    #                 interval = int(tenancy_rec.rent_type_id.name)
+    #             if tenancy_rec.rent_type_id.renttype == 'Yearly':
+    #                 interval = int(tenancy_rec.rent_type_id.name) * 12
+    #             d1 = tenancy_rec.date_start
+    #             d2 = tenancy_rec.date
+    #             diff = abs((d1.year - d2.year) * 12 + (d1.month - d2.month))
+    #             tot_rec = diff / interval
+    #             tot_rec2 = diff % interval
+    #             if abs(d1.month - d2.month) >= 0 and d1.day < d2.day:
+    #                 tot_rec2 += 1
+    #             if diff == 0:
+    #                 tot_rec2 = 1
+    #             if tot_rec > 0:
+    #                 for rec in range(int(tot_rec)):
+    #                     rent_obj.create(
+    #                         {'start_date': d1,
+    #                          'amount': tenancy_rec.rent * interval or 0.0,
+    #                          'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+    #                          'tenancy_id': tenancy_rec.id,
+    #                          'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+    #                          'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+    #                          })
+    #                     d1 = d1 + relativedelta(months=interval, day=tenancy_rec.date_start.day)
+    #             if tot_rec2 > 0:
+    #                 rent_obj.create({
+    #                     'start_date': d1,
+    #                     'amount': tenancy_rec.rent * interval or 0.0,
+    #                     'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+    #                     'tenancy_id': tenancy_rec.id,
+    #                     'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+    #                     'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+    #                 })
+    #                 # rent_obj.create({
+    #                 #     'start_date': d1,
+    #                 #     'amount': tenancy_rec.rent * tot_rec2 or 0.0,
+    #                 #     'property_id': tenancy_rec.property_id
+    #                 #     and tenancy_rec.property_id.id or False,
+    #                 #     'tenancy_id': tenancy_rec.id,
+    #                 #     'currency_id': tenancy_rec.currency_id.id or False,
+    #                 #     'rel_tenant_id': tenancy_rec.tenant_id.id
+    #                 # })
+    #         return tenancy_rec.write({'rent_entry_chck': True})
+    
+
+    
     def create_rent_schedule(self):
         """
         This button method is used to create rent schedule Lines.
-        @param self: The object pointer
         """
         rent_obj = self.env['tenancy.rent.schedule']
         for tenancy_rec in self:
+            # Determine the starting date based on 'schedule_start_from'
+            d1 = tenancy_rec.chosen_date if tenancy_rec.schedule_start_from == 'chosen_date' else tenancy_rec.date_start
+            d2 = tenancy_rec.date
+
+            if d2 < d1:
+                raise ValidationError(_('End date must be greater than start date.'))
+
             if tenancy_rec.rent_type_id.renttype == 'Weekly':
-                d1 = tenancy_rec.date_start
-                d2 = tenancy_rec.date
                 interval = int(tenancy_rec.rent_type_id.name)
-                if d2 < d1:
-                    raise ValidationError(
-                        _('End date must be greater than start date.'))
                 wek_diff = (d2 - d1)
                 wek_tot1 = (wek_diff.days) / (interval * 7)
                 wek_tot = (wek_diff.days) % (interval * 7)
+
                 if wek_diff.days == 0:
                     wek_tot = 1
                 if wek_tot1 > 0:
                     for wek_rec in range(int(wek_tot1)):
-                        rent_obj.create(
-                            {'start_date': d1,
-                             'amount': tenancy_rec.rent * interval or 0.0,
-                            #  'property_id': tenancy_rec.property_id
-                            #     and tenancy_rec.property_id.id or False,
-                            #  'tenancy_id': tenancy_rec.id,
-                            #  'currency_id': tenancy_rec.currency_id.id
-                            #     or False,
-                            #  'rel_tenant_id': tenancy_rec.tenant_id.id
+                        rent_obj.create({
+                            'start_date': d1,
+                            'amount': tenancy_rec.rent * interval or 0.0,
                             'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
-                             'tenancy_id': tenancy_rec.id,
-                             'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
-                             'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
-                             })
+                            'tenancy_id': tenancy_rec.id,
+                            'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                            'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+                        })
+                        # Move to the next schedule date based on the current start
                         d1 = d1 + relativedelta(days=(7 * interval))
                 if wek_tot > 0:
                     one_day_rent = 0.0
                     if tenancy_rec.rent:
-                        one_day_rent = (tenancy_rec.rent) / (7 * interval)
-                    rent_obj.create(
-                        {'start_date': d1.strftime(
-                            DEFAULT_SERVER_DATE_FORMAT),
-                         'amount': (one_day_rent * (wek_tot)) or 0.0,
-                        #  'property_id': tenancy_rec.property_id
-                        #     and tenancy_rec.property_id.id or False,
-                        #  'tenancy_id': tenancy_rec.id,
-                        #  'currency_id': tenancy_rec.currency_id.id or False,
-                        #  'rel_tenant_id': tenancy_rec.tenant_id.id
+                        one_day_rent = tenancy_rec.rent / (7 * interval)
+                    rent_obj.create({
+                        'start_date': d1.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                        'amount': (one_day_rent * wek_tot) or 0.0,
                         'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
                         'tenancy_id': tenancy_rec.id,
                         'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
                         'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
-                         })
+                    })
+
             elif tenancy_rec.rent_type_id.renttype != 'Weekly':
                 if tenancy_rec.rent_type_id.renttype == 'Monthly':
                     interval = int(tenancy_rec.rent_type_id.name)
-                if tenancy_rec.rent_type_id.renttype == 'Yearly':
+                elif tenancy_rec.rent_type_id.renttype == 'Yearly':
                     interval = int(tenancy_rec.rent_type_id.name) * 12
-                d1 = tenancy_rec.date_start
-                d2 = tenancy_rec.date
+
                 diff = abs((d1.year - d2.year) * 12 + (d1.month - d2.month))
                 tot_rec = diff / interval
                 tot_rec2 = diff % interval
+
                 if abs(d1.month - d2.month) >= 0 and d1.day < d2.day:
                     tot_rec2 += 1
                 if diff == 0:
                     tot_rec2 = 1
+
                 if tot_rec > 0:
                     for rec in range(int(tot_rec)):
-                        rent_obj.create(
-                            {'start_date': d1,
-                             'amount': tenancy_rec.rent * interval or 0.0,
-                             'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
-                             'tenancy_id': tenancy_rec.id,
-                             'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
-                             'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
-                             })
-                        d1 = d1 + relativedelta(months=interval, day=tenancy_rec.date_start.day)
+                        rent_obj.create({
+                            'start_date': d1,
+                            'amount': tenancy_rec.rent * interval or 0.0,
+                            'property_id': tenancy_rec.property_id.id if tenancy_rec.property_id else False,
+                            'tenancy_id': tenancy_rec.id,
+                            'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
+                            'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
+                        })
+                        # Move to the next schedule date based on the current start
+                        d1 = d1 + relativedelta(months=interval, day=d1.day)
                 if tot_rec2 > 0:
                     rent_obj.create({
                         'start_date': d1,
@@ -735,16 +1038,10 @@ class AccountAnalyticAccount(models.Model):
                         'currency_id': tenancy_rec.currency_id.id if tenancy_rec.currency_id else False,
                         'rel_tenant_id': tenancy_rec.tenant_id.id if tenancy_rec.tenant_id else False,
                     })
-                    # rent_obj.create({
-                    #     'start_date': d1,
-                    #     'amount': tenancy_rec.rent * tot_rec2 or 0.0,
-                    #     'property_id': tenancy_rec.property_id
-                    #     and tenancy_rec.property_id.id or False,
-                    #     'tenancy_id': tenancy_rec.id,
-                    #     'currency_id': tenancy_rec.currency_id.id or False,
-                    #     'rel_tenant_id': tenancy_rec.tenant_id.id
-                    # })
-            return tenancy_rec.write({'rent_entry_chck': True})
+
+            tenancy_rec.write({'rent_entry_chck': True})
+
+
 
     def button_cancel_tenancy(self):
         """

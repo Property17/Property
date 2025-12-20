@@ -1,0 +1,72 @@
+<odoo>
+    <data>
+
+        <!-- Action -->
+        <record id="action_request_type" model="ir.actions.act_window">
+            <field name="name">Request Type</field>
+            <field name="res_model">request.type</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_case_type" model="ir.actions.act_window">
+            <field name="name">Case Type</field>
+            <field name="res_model">case.type</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <!-- Action -->
+        <record id="action_lawyer_office" model="ir.actions.act_window">
+            <field name="name">Lawyer Office</field>
+            <field name="res_model">lawyer.office</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_legal_case_request" model="ir.actions.act_window">
+            <field name="name">Legal Case Requests</field>
+            <field name="res_model">legal.case.request</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_legal_case" model="ir.actions.act_window">
+            <field name="name">Legal Case</field>
+            <field name="res_model">legal.case</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <!-- Menu -->
+        <menuitem id="menu_legal_case_root" name="Legal Case"
+            sequence="1" web_icon="legal_case,static/img/legal.png" />
+
+        <!-- Menu -->
+        <menuitem id="menu_configurations_legal_case" parent="menu_legal_case_root"
+            name="Configurations"
+            sequence="10" />
+
+        <menuitem id="menu_legal_case_requests" parent="menu_legal_case_root"
+            name="Legal Case Requests"
+            sequence="1" action="action_legal_case_request" />
+
+        <menuitem id="menu_legal_case" parent="menu_legal_case_root"
+            name="Legal Case"
+            sequence="2" action="action_legal_case" />
+
+        <menuitem id="menu_request_type" name="Request Type" parent="menu_configurations_legal_case"
+            action="action_request_type" sequence="1" />
+
+        <menuitem id="menu_case_type" name="Case Type" parent="menu_configurations_legal_case"
+            action="action_case_type" sequence="2" />
+
+        <menuitem id="menu_lawyer_office" name="Lawyer Office"
+            parent="menu_configurations_legal_case"
+            action="action_lawyer_office" sequence="3" />
+
+
+
+
+    </data>
+</odoo>

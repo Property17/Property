@@ -5,14 +5,23 @@
         <field name="name">account.move.form</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
-        <field name="arch" type="xml">
+        <field name="arch" type="xml"> 
             <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='analytic_distribution']" position="attributes">
                 <attribute name="string">Tenancy Name</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='analytic_distribution']" position="after">
+                <field name="analytic_account_id" column_invisible="0" />
+                <!-- <field name="tenancy_id" column_invisible="0" />
+                <field name="property_id" column_invisible="0" /> -->
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/tree/field[@name='analytic_distribution']" position="after">
+                <field name="analytic_account_id" column_invisible="0" />
             </xpath>
             <field name="date" position="after">
                 <field name="schedule_date" readonly="1"/>
                 <field name="source" readonly="1"/>
             </field>
+            
         </field>
     </record>
 
@@ -38,6 +47,7 @@
                 <field name="tenancy_id" domain="[('tenant_id.parent_id', '=', partner_id)]" context="{'form_view_ref': 'property_management.property_analytic_view_form'}"/>
                 <field name="property_id" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                 <field name="amount_due" string="Amount Due"/>
+                <field name="properitis" invisible="1" />
             </field>
         </field>
     </record>
@@ -49,9 +59,14 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <field name="ref" position="after">
-                <field name="property_id" invisible="1" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
-                <field name="new_tenancy_id" invisible="1"/>
-            </field>
+                <field name="property_id" invisible="1"
+                    context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}" />
+                <field
+                    name="new_tenancy_id" invisible="1" />
+                <field name="payment_journal_id"
+                    invisible='1' />
+                <field name="payment_method_line_id" invisible='1' />
+             </field>
         </field>
     </record>
 
@@ -64,7 +79,12 @@
             <field name="group_payment" position="after">
                 <field name='property_id' invisible='1' context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                 <field name='tenancy_id' domain="[('resident_type','=','tenant_tenancy')]" invisible='1' />
+                <field name="invoice_id" invisible="1" />
             </field>
+            <xpath expr="//field[@name='communication']" position="replace">
+                <field name="communication"/>
+                <!-- <attribute name="string">Tenancy Name</attribute> -->
+            </xpath>
         </field>
     </record>
 

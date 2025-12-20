@@ -5,14 +5,14 @@
         <field name="model">account.analytic.account</field>
         <field name="arch" type="xml">
             <tree string="Tenancy Details">
-                <field name="ten_date"/>
-                <field name="name" string="Tenancy Name "/>
-                <field name="plan_id"/>
-                <field name="code" string="Code"/>
-                <field name="property_id"/>
-                <field name="property_owner_id"/>
-                <field name="date_start"/>
-                <field name="date"/>
+                <field name="ten_date" />
+                <field name="name" string="Tenancy Name " />
+                <field name="plan_id" />
+                <field name="code" string="Code" />
+                <field name="property_id" />
+                <field name="property_owner_id" />
+                <field name="date_start" />
+                <field name="date" />
                 <field name="rent_type_id"/>
                 <field name="landlord_rent"/>
                 <field name="total_rent" sum="Total Rent"/>

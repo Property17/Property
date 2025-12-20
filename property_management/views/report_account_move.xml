@@ -61,6 +61,7 @@
 							<thead>
 								<tr>
 									<th>Account</th>
+									<th>Partner</th>
 									<th>Label</th>
 									<th>Analytic Account</th>
 									<th>Debit</th>
@@ -68,11 +69,19 @@
 								</tr>
 							</thead>
 							<tbody>
-								<t t-foreach="o.invoice_line_ids" t-as="move">
+								<t t-foreach="o.line_ids" t-as="move">
 									<tr>
 										<td>
 											<t t-if="move.account_id">
 												<span t-field="move.account_id.name"/>
+											</t>
+											<t t-else="">
+												--
+											</t>
+										</td>
+										<td>
+											<t t-if="move.partner_id">
+												<span t-field="move.partner_id.name" />
 											</t>
 											<t t-else="">
 												--
@@ -112,7 +121,7 @@
 
 	<!--Report for account move -->
 	<record id="report_account_move_property" model="ir.actions.report">
-		<field name="name">Account Move</field>
+		<field name="name">Account Move44</field>
 		<field name="model">account.move</field>
 		<field name="binding_model_id" ref="model_account_move"/>
 		<field name="report_type">qweb-pdf</field>

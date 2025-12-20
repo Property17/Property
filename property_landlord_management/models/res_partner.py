@@ -45,18 +45,20 @@ class LandlordPartner(models.Model):
                 'name': vals.get('name'),
                 'password': password,
                 'partner_id': res.parent_id.id,
+                'groups_id': [(6, 0, [self.env.ref('base.group_portal').id])]
+
             })
-            if res.customer_rank > 0:
-                property_user = \
-                    self.env.ref('property_management.group_property_user')
-            if res.agent:
-                property_user = \
-                    self.env.ref('property_management.group_property_agent')
-            if res.is_owner:
-                property_user = \
-                    self.env.ref('property_management.group_property_owner')
-            if property_user:
-                property_user.write({'users': [(4, create_user.id)]})
+            # if res.customer_rank > 0:
+            #     property_user = \
+            #         self.env.ref('property_management.group_property_user')
+            # if res.agent:
+            #     property_user = \
+            #         self.env.ref('property_management.group_property_agent')
+            # if res.is_owner:
+            #     property_user = \
+            #         self.env.ref('property_management.group_property_owner')
+            # if property_user:
+            #     property_user.write({'users': [(4, create_user.id)]})
         return res
 
     def unlink(self):

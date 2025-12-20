@@ -3,15 +3,15 @@
     <data>
         <record model="report.paperformat" id="mm_contract_report_paperformat_report_new">
             <field name="name">paperformat.report</field>
-            <field name="default" eval="True"/>
+            <field name="default" eval="True" />
             <field name="format">A4</field>
             <field name="orientation">Portrait</field>
-            <field name="margin_top">3</field>
-            <field name="margin_bottom">5</field>
+            <field name="margin_top">40</field>
+            <field name="margin_bottom">20</field>
             <field name="margin_left">5</field>
             <field name="margin_right">5</field>
-            <field name="header_line" eval="False"/>
-            <field name="header_spacing">3</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">30</field>
             <field name="dpi">90</field>
         </record>
 
@@ -20,11 +20,91 @@
             <field name="model">property.contract.template</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">mm_property_inherit_new.mm_contract_report_new</field>
-            <field name="binding_model_id" ref="mm_property_inherit_new.model_property_contract_template"/>
-            <field name="paperformat_id" ref="mm_contract_report_paperformat_report_new"/>
+            <field name="report_file">mm_property_inherit_new.mm_contract_report_new</field>
+            <field name="binding_model_id"
+                ref="mm_property_inherit_new.model_property_contract_template" />
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="mm_contract_report_paperformat_report_new" />
         </record>
 
         <template id="mm_contract_report_new">
+            <t t-call="web.html_container">
+                <t t-call="web.internal_layout">
+                    <div class="page" style="font-size: 5px;">
+                        <div>
+                            <div>
+                                <style>
+                                    @font-face {
+                                    font-family: 'Tajawal';
+                                    src: url('/path_to_your_fonts/tajawal-regular.ttf')
+                                    format('truetype');
+                                    font-weight: normal;
+                                    font-style: normal;
+                                    }
+
+                                    .font_tajawal {
+                                    font-family: 'Tajawal', sans-serif;
+                                    }
+                                </style>
+                                <br />
+                                <br />
+                                <br />
+                                <br />
+                                <br />
+                                <span t-esc="temp" class="font_tajawal" />
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+        <template id="internal_layout_report_header_inh" inherit_id="web.internal_layout">
+            <!-- <xpath expr="//div/div[1]" position="replace">
+                <div class="col-2 offset-2 text-center">
+                    <span t-esc="company.name" />
+                </div>
+            </xpath> -->
+            <xpath expr="//div[2]" position="replace">
+                <div class="col-2 offset-2 text-center">
+                </div>
+            </xpath>
+            <xpath expr="//div[3]" position="replace">
+                <div class="col-2 offset-2 text-center">
+                    <!-- <span t-esc="company.name" /> -->
+                </div>
+            </xpath>
+            
+
+            <xpath expr="//div"
+                position="after">
+                <div class="footer">
+                    <div class="row">
+                        <div class="col-3">
+                            <span
+                                t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')" />
+                        </div>
+                        <div class="col-2 offset-2 text-center">
+                            <!-- <span t-esc="company.name" /> -->
+                        </div>
+                        <div class="col-2 offset-3 text-end">
+                            <ul class="list-inline">
+                                <li class="list-inline-item">
+                                    <span class="page" />
+                                </li>
+                                <li class="list-inline-item">/</li>
+                                <li class="list-inline-item">
+                                    <span class="topage" />
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </template>
+
+
+        <!-- <template id="mm_contract_report_new">
             <t t-call="web.html_container">
                 <t t-call="web.basic_layout">
                     <div class="page">
@@ -36,7 +116,9 @@
                                     font-family: 'Arial-Regular';
                                     font-style: normal;
                                     font-weight: normal;
-                                    src: local('Arial-Regular'), url(/mm_property_inherit_new/static/src/fonts/arial-cufonfonts-webfont/alfont_com_arial-1.ttf) format('opentype');
+                                    src: local('Arial-Regular'),
+        url(/mm_property_inherit_new/static/src/fonts/arial-cufonfonts-webfont/alfont_com_arial-1.ttf)
+        format('opentype');
                                     }
 
                                     .font_arial{
@@ -56,6 +138,6 @@
                     </div>
                 </t>
             </t>
-        </template>
+        </template> -->
     </data>
 </odoo>

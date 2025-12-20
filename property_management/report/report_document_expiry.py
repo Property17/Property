@@ -16,14 +16,17 @@ class document_expiry(models.AbstractModel):
             [('code', '=', user_lang)])
         if date:
             final_from_date = date.strftime(lang.date_format)
+            print("**********************************", final_from_date)
         return final_from_date
 
     def get_details(self, start_date, end_date):
         data_1 = []
         certificate_obj = self.env["property.attachment"]
+        
         certificate_ids = certificate_obj.search(
             [('expiry_date', '>=', start_date),
              ('expiry_date', '<=', end_date)])
+        print("***************************************", certificate_ids)
         for data in certificate_ids:
             data_1.append({
                 'name': data.name,

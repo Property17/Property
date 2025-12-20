@@ -1,0 +1,56 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="net_balance_tenants_wiz_view_id">
+            <field name="name">Net Balance Tenants Report</field>
+            <field name="model">net.balance.tenants.wiz</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="from_date" string="From" />
+                            </group>
+                            <group>
+                                <field name="to_date" string="To" />
+                            </group>
+
+                        </group>
+                        <group>
+                            <group>
+                                <field name="include_initial_balance" force_save="1" readonly="1" />
+                                <field name="company_id" />
+                                <field name="property_manager_id" />
+                                <field name="parent_property_id" />
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="print_report" string="Print PDF" type="object"
+                            default_focus="1"
+                            class="oe_highlight" icon="fa-download" />
+                        <button name="action_generate_report" string="Export Excel"
+                            type="object"
+                            class="oe_highlight" icon="fa-download" />
+                              
+                             <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="net_balance_tenants_action">
+            <field name="name">Net Balance Tenants Report</field>
+            <field name="res_model">net.balance.tenants.wiz</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+
+        <menuitem name="Net Balance Tenants Report" id="menu_net_balance_tenants_report"
+            parent="property_management.menu_report_sub"
+            action="net_balance_tenants_action" sequence="-1" />
+
+
+    </data>
+</odoo>

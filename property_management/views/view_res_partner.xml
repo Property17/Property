@@ -12,6 +12,14 @@
             </xpath>
             <xpath expr="//page[@name='sales_purchases']/group/group[@name='sale']/field[@name='user_id']" position="before">
                 <field name="tenant" string='Is a Tenant' />
+                <field name="is_manager" />
+                <field name="properties" widget="many2many_tags" readonly="1" />
+            </xpath>
+            <xpath
+                expr="//page[@name='accounting']/group/group[@name='accounting_entries']/field[@name='property_account_payable_id']"
+                position="after">
+                <field name="tenancy_insurance_id"
+                    domain="[('account_type', '=', 'liability_current')]" readonly="1" />
             </xpath>
         </field>
     </record>

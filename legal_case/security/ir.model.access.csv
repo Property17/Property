@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_request_type,request.type,model_request_type,,1,1,1,1
+access_case_type,case.type,model_case_type,,1,1,1,1
+access_lawyer_office,lawyer.office,model_lawyer_office,,1,1,1,1
+access_legal_case_request,legal.case.request,model_legal_case_request,,1,1,1,1
+access_legal_case,legal.case,model_legal_case,,1,1,1,1

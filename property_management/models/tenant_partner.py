@@ -21,7 +21,6 @@ class TenantPartner(models.Model):
     parent_id = fields.Many2one(
         comodel_name='res.partner',
         string='Partner',
-        required=True,
         index=True,
         ondelete='cascade')
     tenant_ids = fields.Many2many(
@@ -30,7 +29,26 @@ class TenantPartner(models.Model):
         column1='agent_id',
         column2='tenant_id',
         string='Tenant Details',)
-
+    tenancy_insurance_id = fields.Many2one(
+        comodel_name='account.account',
+        string='Insurance Account',
+        help='Insurance Account of Property.')
+    
+    # @api.model
+    # def create(self, vals):
+    #     record = super(TenantPartner, self).create(vals)        
+    #     if record.tenancy_insurance_id:
+    #         record.parent_id.tenancy_insurance_id = record.tenancy_insurance_id
+    #     return record
+    
+    # @api.model
+    # def write(self, vals):
+    #     result = super(TenantPartner, self).write(vals)        
+    #     if 'tenancy_insurance_id' in vals:
+    #         for record in self:
+    #             if record.tenancy_insurance_id:
+    #                 record.parent_id.tenancy_insurance_id = record.tenancy_insurance_id
+    #     return result
 
 
     # TODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
@@ -55,15 +73,16 @@ class TenantPartner(models.Model):
             'password': password,
             'tenant_id': res.id,
             'partner_id': res.parent_id.id,
+            'groups_id': [(6, 0, [self.env.ref('base.group_portal').id])]
         })
-        if res.customer_rank > 0:
-            property_user = \
-                self.env.ref('property_management.group_property_user')
-        if res.agent:
-            property_user = \
-                self.env.ref('property_management.group_property_agent')
-        if property_user:
-            property_user.write({'users': [(4, create_user.id)]})
+        # if res.customer_rank > 0:
+        #     property_user = \
+        #         self.env.ref('property_management.group_property_user')
+        # if res.agent:
+        #     property_user = \
+        #         self.env.ref('property_management.group_property_agent')
+        # if property_user:
+        #     property_user.write({'users': [(4, create_user.id)]})
         return res
 
     @api.model

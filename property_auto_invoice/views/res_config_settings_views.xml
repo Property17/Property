@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="account_analytic_form_inherit_view_1" model="ir.ui.view">
+        <field name="name">account.analytic.account.form.inherit.1</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="property_management.property_analytic_view_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//page/field[@name='rent_schedule_ids']/tree//field[@name='has_created']"
+                position="after">
+                <field name="failed_to_create" readonly="1" />
+            </xpath>
+        </field>
+    </record>
+
     <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit</field>
         <field name="model">res.config.settings</field>
