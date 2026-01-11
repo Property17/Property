@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="tem_property_contracts_report_id">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t class="page">
+                    <div class="container">
+                        <!-- Header Section -->
+                        <div class="row mb-3">
+                            <div class="col-12 text-center">
+                                <h2><strong>Property with Contracts Report</strong></h2>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-12 text-left">
+                                <p><strong>Print Date:</strong> <t t-esc="time.strftime('%m/%d/%Y')" /></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-12 text-left">
+                                <t t-if="form.get('from_date') or form.get('to_date')">
+                                    <strong>Date:</strong>
+                                    <t t-if="form.get('from_date')">
+                                        <t t-esc="form['from_date']" />
+                                    </t>
+                                    <strong> TO </strong>
+                                    <t t-if="form.get('to_date')">
+                                        <t t-esc="form['to_date']" />
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Group by Parent Property -->
+                        <t t-foreach="parent_dict2" t-as="parent_id">
+                            <t t-set="parent_data" t-value="False" />
+                            <t t-foreach="docs" t-as="doc">
+                                <t t-if="doc['parent_id'] == parent_id and not parent_data">
+                                    <t t-set="parent_data" t-value="doc" />
+                                </t>
+                            </t>
+                            
+                            <t t-if="parent_data">
+                                <!-- Company Information Section -->
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <p><strong>Company:</strong> <t t-esc="parent_data['company_name']" /></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <p><strong>Property Manager:</strong> <t t-esc="parent_data['property_manager']" /></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <p><strong>Parent Property:</strong> <t t-esc="parent_id" /></p>
+                                    </div>
+                                </div>
+                            </t>
+                            
+                            <!-- Note -->
+                            <div class="row mb-2" style="background-color: #FFFF00; padding: 10px;">
+                                <div class="col-12">
+                                    <p><strong>Show special units in each building in a separate and ordered table</strong></p>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <table class="table table-bordered" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                <thead>
+                                    <tr style="background-color: #D3D3D3;">
+                                        <th style="width: 5%; text-align: center; border: 1px solid black; padding: 8px;"><strong>NO</strong></th>
+                                        <th style="width: 20%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Properties</strong></th>
+                                        <th style="width: 10%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Property Type</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Auto - Address No</strong></th>
+                                        <th style="width: 15%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Tenancy Name</strong></th>
+                                        <th style="width: 15%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Tenant</strong></th>
+                                        <th style="width: 10%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Phone</strong></th>
+                                        <th style="width: 10%; text-align: right; border: 1px solid black; padding: 8px;"><strong>Tenancy Rent</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Tenancy States</strong></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="count" t-value="0" />
+                                    <t t-foreach="docs" t-as="doc">
+                                        <t t-if="doc['parent_id'] == parent_id">
+                                            <t t-set="count" t-value="count + 1" />
+                                            <tr>
+                                                <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                    <t t-esc="count" />
+                                                </td>
+                                                <td style="text-align: left; border: 1px solid black; padding: 8px;">
+                                                    <span t-esc="doc['properties']" />
+                                                </td>
+                                                <td style="text-align: left; border: 1px solid black; padding: 8px;">
+                                                    <span t-esc="doc['property_type']" />
+                                                </td>
+                                                <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                    <span t-esc="doc['auto_address_no']" />
+                                                </td>
+                                                <t t-if="doc['has_active_contract']">
+                                                    <td style="text-align: left; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc['tenancy_name']" />
+                                                    </td>
+                                                    <td style="text-align: left; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc['tenant']" />
+                                                    </td>
+                                                    <td style="text-align: left; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc['phone']" />
+                                                    </td>
+                                                    <td style="text-align: right; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc['tenancy_rent']" />
+                                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc['tenancy_states']" />
+                                                    </td>
+                                                </t>
+                                                <t t-else="">
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                </t>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Conditional Note -->
+                            <div class="row mb-4" style="background-color: #FFFF00; padding: 10px;">
+                                <div class="col-12">
+                                    <p><strong>In case there is no active contract during the period required by the report for the unit, the unit will appear with empty contract data</strong></p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="property_contracts_report_id" model="ir.actions.report">
+        <field name="name">Property with Contracts Report</field>
+        <field name="model">property.contracts.report.wiz</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mm_property_inherit_new.tem_property_contracts_report_id</field>
+        <field name="report_file">mm_property_inherit_new.tem_property_contracts_report_id</field>
+        <field name="print_report_name">'Property with Contracts'</field>
+        <field name="binding_model_id" eval="False" />
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

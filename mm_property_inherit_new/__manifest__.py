@@ -21,6 +21,8 @@
         # 'reports/invoice_report.xml',
         'reports/net_balance_tenants_wiz.xml',
         'reports/net_balance_tenants_report_tem.xml',
+        'reports/property_with_contracts_report_wiz.xml',
+        'reports/property_with_contracts_report_tem.xml',
         'views/discount.xml',
         'views/services_type.xml',        
     ],

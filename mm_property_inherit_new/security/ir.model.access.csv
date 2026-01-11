@@ -12,6 +12,7 @@ access_services_type,services_type,model_services_type,,1,1,1,1
 access_service_rent,service_rent,model_service_rent,,1,1,1,1
 access_service_schedule,service_schedule,model_service_schedule,,1,1,1,1
 access_tenancy_close_wizard,tenancy_close_wizard,model_tenancy_close_wizard,,1,1,1,1
+access_property_contracts_report_wiz,property_contracts_report_wiz,model_property_contracts_report_wiz,,1,1,1,1
 
 
 
