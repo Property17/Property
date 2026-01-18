@@ -15,23 +15,23 @@
                         <div class="row mb-2">
                             <div class="col-12 text-left">
                                 <p><strong>Print Date:</strong> <t t-esc="time.strftime('%m/%d/%Y')" /></p>
-                            </div>
-                        </div>
-                        
+                                            </div>
+                                        </div>
+
                         <div class="row mb-2">
                             <div class="col-12 text-left">
                                 <t t-if="form.get('from_date') or form.get('to_date')">
                                     <strong>Date:</strong>
-                                    <t t-if="form.get('from_date')">
-                                        <t t-esc="form['from_date']" />
-                                    </t>
+                                                    <t t-if="form.get('from_date')">
+                                                        <t t-esc="form['from_date']" />
+                                                    </t>
                                     <strong> TO </strong>
-                                    <t t-if="form.get('to_date')">
-                                        <t t-esc="form['to_date']" />
-                                    </t>
+                                                    <t t-if="form.get('to_date')">
+                                                        <t t-esc="form['to_date']" />
+                                                    </t>
                                 </t>
                             </div>
-                        </div>
+                                            </div>
 
                         <!-- Group by Parent Property -->
                         <t t-foreach="parent_dict2" t-as="parent_id">
@@ -41,28 +41,28 @@
                                     <t t-set="parent_data" t-value="doc" />
                                 </t>
                             </t>
-                            
+
                             <t t-if="parent_data">
                                 <!-- Company Information Section -->
                                 <div class="row mb-2">
                                     <div class="col-12">
                                         <p><strong>Company:</strong> <t t-esc="parent_data['company_name']" /></p>
                                     </div>
-                                </div>
-                                
+                                        </div>
+
                                 <div class="row mb-2">
                                     <div class="col-12">
                                         <p><strong>Property Manager:</strong> <t t-esc="parent_data['property_manager']" /></p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row mb-3">
                                     <div class="col-12">
                                         <p><strong>Parent Property:</strong> <t t-esc="parent_id" /></p>
                                     </div>
-                                </div>
+                                        </div>
                             </t>
-                            
+
                             <!-- Note -->
                             <div class="row mb-2" style="background-color: #FFFF00; padding: 10px;">
                                 <div class="col-12">
@@ -72,7 +72,7 @@
 
                             <!-- Table -->
                             <table class="table table-bordered" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                                <thead>
+                        <thead>
                                     <tr style="background-color: #D3D3D3;">
                                         <th style="width: 5%; text-align: center; border: 1px solid black; padding: 8px;"><strong>NO</strong></th>
                                         <th style="width: 20%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Properties</strong></th>
@@ -83,44 +83,69 @@
                                         <th style="width: 10%; text-align: left; border: 1px solid black; padding: 8px;"><strong>Phone</strong></th>
                                         <th style="width: 10%; text-align: right; border: 1px solid black; padding: 8px;"><strong>Tenancy Rent</strong></th>
                                         <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Tenancy States</strong></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <t t-set="count" t-value="0" />
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Legal Case</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Tenancy Date</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Start Date</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Expiration Date</strong></th>
+                                        <th style="width: 10%; text-align: center; border: 1px solid black; padding: 8px;"><strong>Close Date</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <t t-set="count" t-value="0" />
                                     <t t-foreach="docs" t-as="doc">
                                         <t t-if="doc['parent_id'] == parent_id">
                                             <t t-set="count" t-value="count + 1" />
-                                            <tr>
+                                <tr>
                                                 <td style="text-align: center; border: 1px solid black; padding: 8px;">
                                                     <t t-esc="count" />
-                                                </td>
+                                    </td>
                                                 <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                     <span t-esc="doc['properties']" />
-                                                </td>
+                                    </td>
                                                 <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                     <span t-esc="doc['property_type']" />
-                                                </td>
+                                    </td>
                                                 <td style="text-align: center; border: 1px solid black; padding: 8px;">
                                                     <span t-esc="doc['auto_address_no']" />
-                                                </td>
+                                    </td>
                                                 <t t-if="doc['has_active_contract']">
                                                     <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                         <span t-esc="doc['tenancy_name']" />
-                                                    </td>
+                                    </td>
                                                     <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                         <span t-esc="doc['tenant']" />
-                                                    </td>
+                                    </td>
                                                     <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                         <span t-esc="doc['phone']" />
-                                                    </td>
+                                    </td>
                                                     <td style="text-align: right; border: 1px solid black; padding: 8px;">
                                                         <span t-esc="doc['tenancy_rent']" />
-                                                    </td>
+                                    </td>
                                                     <td style="text-align: center; border: 1px solid black; padding: 8px;">
                                                         <span t-esc="doc['tenancy_states']" />
-                                                    </td>
+                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-if="doc.get('legal_case')">Legal Case</span>
+                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc.get('tenancy_date', '')" />
+                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc.get('start_date', '')" />
+                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc.get('expiration_date', '')" />
+                                    </td>
+                                                    <td style="text-align: center; border: 1px solid black; padding: 8px;">
+                                                        <span t-esc="doc.get('close_date', '')" />
+                                    </td>
                                                 </t>
                                                 <t t-else="">
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
+                                                    <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
                                                     <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
                                                     <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
                                                     <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
@@ -129,9 +154,9 @@
                                                 </t>
                                             </tr>
                                         </t>
-                                    </t>
-                                </tbody>
-                            </table>
+                            </t>
+                        </tbody>
+                    </table>
                             
                             <!-- Conditional Note -->
                             <div class="row mb-4" style="background-color: #FFFF00; padding: 10px;">
@@ -145,7 +170,7 @@
             </t>
         </t>
     </template>
-
+   
     <record id="property_contracts_report_id" model="ir.actions.report">
         <field name="name">Property with Contracts Report</field>
         <field name="model">property.contracts.report.wiz</field>

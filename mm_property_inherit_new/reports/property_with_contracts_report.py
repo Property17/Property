@@ -92,7 +92,7 @@ class PropertyContractsReportWiz(models.TransientModel):
         })
 
         # Column widths
-        column_widths = [6, 40, 15, 20, 25, 25, 15, 15, 20]
+        column_widths = [6, 40, 15, 20, 25, 25, 15, 15, 20, 15, 15, 15, 15, 15]
         for i, width in enumerate(column_widths):
             sheet.set_column(i, i, width)
 
@@ -147,19 +147,19 @@ class PropertyContractsReportWiz(models.TransientModel):
             sheet.write(row, 1, 'Parent Property', label_format)
             sheet.write(row, 3, parent_prop_name, normal_format)
             row += 1
-            
+
             row += 1  # Spacing
-            
+
             # Note in yellow
-            sheet.merge_range(row, 1, row, 8, 'Show special units in each building in a separate and ordered table', note_format)
+            sheet.merge_range(row, 1, row, 13, 'Show special units in each building in a separate and ordered table', note_format)
             row += 1
-            
+
             # Table Headers
-            headers = ['NO', 'Properties', 'Property Type', 'Auto - Address No', 'Tenancy Name', 'Tenant', 'Phone', 'Tenancy Rent', 'Tenancy States']
+            headers = ['NO', 'Properties', 'Property Type', 'Auto - Address No', 'Tenancy Name', 'Tenant', 'Phone', 'Tenancy Rent', 'Tenancy States', 'Legal Case', 'Tenancy Date', 'Start Date', 'Expiration Date', 'Close Date']
             for col, header in enumerate(headers):
                 sheet.write(row, col, header, header_format)
             row += 1
-            
+
             # Write properties
             count = 1
             for prop in properties:
@@ -175,16 +175,52 @@ class PropertyContractsReportWiz(models.TransientModel):
                     sheet.write(row, 6, prop.get('phone', ''), normal_format)
                     sheet.write(row, 7, prop.get('tenancy_rent', 0.0), money_cell_format)
                     sheet.write(row, 8, prop.get('tenancy_states', ''), center_border)
+                    # New fields after tenancy_states
+                    legal_case = 'Legal Case' if prop.get('legal_case') else ''
+                    sheet.write(row, 9, legal_case, center_border)
+                    # Handle dates - convert to string if they're date objects
+                    tenancy_date = prop.get('tenancy_date', '')
+                    if tenancy_date:
+                        if isinstance(tenancy_date, str):
+                            sheet.write(row, 10, tenancy_date, normal_format)
+                        else:
+                            sheet.write(row, 10, tenancy_date, date_format)
+                    else:
+                        sheet.write(row, 10, '', normal_format)
+                    start_date = prop.get('start_date', '')
+                    if start_date:
+                        if isinstance(start_date, str):
+                            sheet.write(row, 11, start_date, normal_format)
+                        else:
+                            sheet.write(row, 11, start_date, date_format)
+                    else:
+                        sheet.write(row, 11, '', normal_format)
+                    expiration_date = prop.get('expiration_date', '')
+                    if expiration_date:
+                        if isinstance(expiration_date, str):
+                            sheet.write(row, 12, expiration_date, normal_format)
+                        else:
+                            sheet.write(row, 12, expiration_date, date_format)
+                    else:
+                        sheet.write(row, 12, '', normal_format)
+                    close_date = prop.get('close_date', '')
+                    if close_date:
+                        if isinstance(close_date, str):
+                            sheet.write(row, 13, close_date, normal_format)
+                        else:
+                            sheet.write(row, 13, close_date, date_format)
+                    else:
+                        sheet.write(row, 13, '', normal_format)
                 else:
                     # Empty contract data cells with yellow background
-                    for col in range(4, 9):
+                    for col in range(4, 14):
                         sheet.write(row, col, '', workbook.add_format({'bg_color': '#FFFF00', 'border': 1}))
-                
+
                 row += 1
                 count += 1
-            
+           
             # Conditional note in yellow
-            sheet.merge_range(row, 1, row, 8, 'In case there is no active contract during the period required by the report for the unit, the unit will appear with empty contract data', note_format)
+            sheet.merge_range(row, 1, row, 13, 'In case there is no active contract during the period required by the report for the unit, the unit will appear with empty contract data', note_format)
             row += 2  # Spacing after group
 
         workbook.close()
@@ -252,7 +288,8 @@ class PropertyContractsReport(models.AbstractModel):
         
         # Get all properties (not just those with contracts)
         properties = self.env['account.asset'].search(domains)
-        
+        properties = sorted(properties, key=lambda r: (r.id or 0))
+
         # Group properties by parent property
         grouped_data = {}
         
@@ -276,7 +313,7 @@ class PropertyContractsReport(models.AbstractModel):
                 
                 # Get all tenancies sorted by date (most recent first)
                 all_tenancies = prop.tenancy_property_ids.sorted('date', reverse=True)
-                
+
                 # Filter by date range if provided
                 if from_date and to_date:
                     for tenancy in all_tenancies:
@@ -324,6 +361,11 @@ class PropertyContractsReport(models.AbstractModel):
                         'phone': active_tenancy.tenant_id.phone if active_tenancy.tenant_id and active_tenancy.tenant_id.phone else '',
                         'tenancy_rent': active_tenancy.rent if active_tenancy.rent else 0.0,
                         'tenancy_states': active_tenancy.state if active_tenancy.state else '',
+                        'legal_case': active_tenancy.legal_case if hasattr(active_tenancy, 'legal_case') and active_tenancy.legal_case else False,
+                        'tenancy_date': active_tenancy.date if active_tenancy.date else '',
+                        'start_date': active_tenancy.date_start if hasattr(active_tenancy, 'date_start') and active_tenancy.date_start else (active_tenancy.date if active_tenancy.date else ''),
+                        'expiration_date': active_tenancy.date if active_tenancy.date else '',
+                        'close_date': active_tenancy.close_date if active_tenancy.close_date else '',
                     })
                 else:
                     prop_data.update({
@@ -332,11 +374,16 @@ class PropertyContractsReport(models.AbstractModel):
                         'phone': '',
                         'tenancy_rent': 0.0,
                         'tenancy_states': '',
+                        'legal_case': False,
+                        'tenancy_date': '',
+                        'start_date': '',
+                        'expiration_date': '',
+                        'close_date': '',
                     })
                 
                 grouped_data[parent_name]['properties'].append(prop_data)
-        
-        # Sort properties within each group by name
+            
+            # Sort properties within each group by name
         for parent_name in grouped_data:
             grouped_data[parent_name]['properties'].sort(key=lambda x: x.get('property_name', ''))
         
@@ -344,23 +391,31 @@ class PropertyContractsReport(models.AbstractModel):
         docs = []
         for parent_name, group_info in grouped_data.items():
             for prop in group_info['properties']:
+                
                 docs.append({
-                    'doc_ids': data.get('ids', []),
-                    'doc_model': data.get('model', ''),
-                    'parent_id': parent_name,
-                    'company_name': group_info['company_name'],
-                    'property_manager': group_info['property_manager'],
-                    'properties': prop['property_name'],
-                    'property_type': prop['property_type'],
-                    'auto_address_no': prop['auto_address_no'],
-                    'tenancy_name': prop['tenancy_name'],
-                    'tenant': prop['tenant'],
-                    'phone': prop['phone'],
-                    'tenancy_rent': prop['tenancy_rent'],
-                    'tenancy_states': prop['tenancy_states'],
-                    'has_active_contract': prop['has_active_contract'],
-                })
-        
+                        'doc_ids': data.get('ids', []),
+                        'doc_model': data.get('model', ''),
+                        'parent_id': parent_name,
+                        'company_name': group_info['company_name'],
+                        'property_manager': group_info['property_manager'],
+                        'properties': prop['property_name'],
+                        'property_type': prop['property_type'],
+                        'auto_address_no': prop['auto_address_no'],
+                        'tenancy_name': prop['tenancy_name'],
+                        'tenant': prop['tenant'],
+                        'phone': prop['phone'],
+                        'tenancy_rent': prop['tenancy_rent'],
+                        'tenancy_states': prop['tenancy_states'],
+                        'has_active_contract': prop['has_active_contract'],
+                        'legal_case': prop.get('legal_case', False),
+                        'tenancy_date': prop.get('tenancy_date', ''),
+                        'start_date': prop.get('start_date', ''),
+                        'expiration_date': prop.get('expiration_date', ''),
+                        'close_date': prop.get('close_date', ''),
+
+
+                    })
+            
         # Get unique parent names for iteration
         parent_dict2 = list(grouped_data.keys())
         
@@ -376,7 +431,7 @@ class PropertyContractsReport(models.AbstractModel):
         if not wizard_record:
             # Use the first company's recordset as a fallback for company context
             wizard_record = self.env['property.contracts.report.wiz'].new({})
-        
+
         return {
             'o': wizard_record,  # Required by web.external_layout - must be a record, not dict
             'docs': docs,
