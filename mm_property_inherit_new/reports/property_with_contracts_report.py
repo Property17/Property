@@ -285,10 +285,12 @@ class PropertyContractsReport(models.AbstractModel):
             domains.append(('property_manager.name', '=', data['form']['property_manager_id']))
         if data['form'].get('parent_property_id'):
             domains.append(('parent_id.name', '=', data['form']['parent_property_id']))
+        # if data['form']['from_date']:
+        #     domains2.append(('move_id.date', '<', data['form']['from_date']))
         
         # Get all properties (not just those with contracts)
         properties = self.env['account.asset'].search(domains)
-        properties = sorted(properties, key=lambda r: (r.id or 0))
+        properties = sorted(properties, key=lambda r: (r.serial_number or 0))
 
         # Group properties by parent property
         grouped_data = {}
