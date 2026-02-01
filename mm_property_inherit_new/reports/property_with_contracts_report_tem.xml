@@ -97,7 +97,7 @@
                                             <t t-set="count" t-value="count + 1" />
                                 <tr>
                                                 <td style="text-align: center; border: 1px solid black; padding: 8px;">
-                                                    <t t-esc="count" />
+                                        <t t-esc="count" />
                                     </td>
                                                 <td style="text-align: left; border: 1px solid black; padding: 8px;">
                                                     <span t-esc="doc['properties']" />
@@ -152,8 +152,8 @@
                                                     <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
                                                     <td style="background-color: #FFFF00; border: 1px solid black; padding: 8px;"></td>
                                                 </t>
-                                            </tr>
-                                        </t>
+                                </tr>
+                                </t>
                             </t>
                         </tbody>
                     </table>

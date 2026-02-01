@@ -151,7 +151,7 @@ class PropertyContractsReportWiz(models.TransientModel):
             row += 1  # Spacing
 
             # Note in yellow
-            sheet.merge_range(row, 1, row, 13, 'Show special units in each building in a separate and ordered table', note_format)
+            # sheet.merge_range(row, 1, row, 13, 'Show special units in each building in a separate and ordered table', note_format)
             row += 1
 
             # Table Headers
@@ -220,7 +220,7 @@ class PropertyContractsReportWiz(models.TransientModel):
                 count += 1
            
             # Conditional note in yellow
-            sheet.merge_range(row, 1, row, 13, 'In case there is no active contract during the period required by the report for the unit, the unit will appear with empty contract data', note_format)
+            # sheet.merge_range(row, 1, row, 13, 'In case there is no active contract during the period required by the report for the unit, the unit will appear with empty contract data', note_format)
             row += 2  # Spacing after group
 
         workbook.close()
@@ -326,14 +326,22 @@ class PropertyContractsReport(models.AbstractModel):
                         if not tenancy_start:
                             continue  # Skip tenancies without start date
                         
-                        # Check if tenancy was active during the specified date range
-                        # Tenancy is active if it overlaps with the date range:
-                        # - Started before or during the range (tenancy_start <= to_date)
-                        # - Hasn't ended before the range starts (tenancy_end is None OR tenancy_end >= from_date)
-                        started_in_range = tenancy_start <= to_date
-                        not_ended_before_range = tenancy_end is None or tenancy_end >= from_date
+                        # Filter logic:
+                        # 1. Tenancy start date (tenancy.date) should be >= from_date
+                        # 2. If close_date exists, it should be <= to_date
+                        # 3. If no close_date but has start_date within range, include it
                         
-                        if started_in_range and not_ended_before_range:
+                        # Check if start date is within or after from_date
+                        start_in_range = tenancy_start >= from_date
+                        
+                        # Check if close_date is within or before to_date (or no close_date)
+                        if tenancy_end:
+                            end_in_range = tenancy_end <= to_date
+                        else:
+                            # No close_date but has start_date - include if start is in range
+                            end_in_range = True
+                        
+                        if start_in_range and end_in_range:
                             active_tenancy = tenancy
                             break
                 elif all_tenancies:
