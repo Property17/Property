@@ -1,0 +1,214 @@
+<odoo>
+    <!-- Tenant Payment Link Form View -->
+    <record id="tenant_payment_link_view_form" model="ir.ui.view">
+        <field name="name">tenant.payment.link.view.form</field>
+        <field name="model">property.payment.link</field>
+        <field name="arch" type="xml">
+            <form string="Payment Link Details">
+                <header>
+                    <button type="object" class="oe_highlight" string="Create Message" name="create_payment_link_message"/>
+                    <button type="object" class="oe_highlight" string="Send"
+                        name="send_payment_link" />
+                    <button type="action" name="%(property_payment_link.action_create_whatsapp_template)d"
+                        string="Create WhatsApp Template" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_tenancy" type="object" 
+                                class="oe_stat_button" icon="fa-building">
+                            <field name="tenancy_id" widget="statinfo" string="Tenancy"/>
+                        </button>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="name" invisible="1"/>
+                            <field name="tenancy_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="tenant_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="tenant_phone" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="property_manager_id" readonly="1"/>
+                            <field name="property_id" readonly="1"/>
+                            <field name="property_parent_id" readonly="1"/>
+                            <field name="tenancy_status" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="total_amount_due" widget="monetary" readonly="1"/>
+                            <field name="flexible_payment" readonly="1"/>
+                            <field name="block_payment" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="tenant_url" widget="url" readonly="1"/>
+                            <field name="access_url" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Additional Information">
+                            <group>
+                                <group>
+                                    <field name="multi_properitis" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tenant Payment Link Tree View -->
+    <record id="tenant_payment_link_view_tree" model="ir.ui.view">
+        <field name="name">tenant.payment.link.view.tree</field>
+        <field name="model">property.payment.link</field>
+        <field name="arch" type="xml">
+            <tree string="Tenant Details"> 
+                 <field name="company_id" />
+                 <field name="property_manager_id" />
+                <field name="tenancy_id"/>
+                <field name="property_parent_id"/>
+                <field name="multi_properitis"/>
+                <field name="tenant_id" />
+                <field name="tenant_phone" />
+                <field name="total_amount_due"/>
+                <field name="tenancy_status"/>
+                <field name="flexible_payment"/>
+                <field name="block_payment"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Tenant Payment Link Sent Form View -->
+    <record id="tenant_payment_link_sent_view_form" model="ir.ui.view">
+        <field name="name">tenant.payment.link.sent.view.form</field>
+        <field name="model">property.payment.link</field>
+        <field name="arch" type="xml">
+            <form string="Payment Link Details">
+                <header>
+                    <button type="object" class="oe_highlight" string="Resend" name="send_payment_link"/>
+                    <button type="action" name="%(property_payment_link.action_create_whatsapp_template)d"
+                        string="Create WhatsApp Template" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_tenancy" type="object" 
+                                class="oe_stat_button" icon="fa-building">
+                            <field name="tenancy_id" widget="statinfo" string="Tenancy"/>
+                        </button>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="name" invisible="1"/>
+                            <field name="tenancy_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="tenant_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="tenant_phone" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="property_manager_id" readonly="1"/>
+                            <field name="property_id" readonly="1"/>
+                            <field name="property_parent_id" readonly="1"/>
+                            <field name="tenancy_status" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="total_amount_due" widget="monetary" readonly="1"/>
+                            <field name="flexible_payment" readonly="1"/>
+                            <field name="block_payment" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="last_sent_date"/>
+                            <field name="last_login_date"/>
+                            <field name="tenant_url" widget="url" readonly="1"/>
+                            <field name="access_url" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Additional Information">
+                            <group>
+                                <group>
+                                    <field name="multi_properitis" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tenant Payment Link Tree View -->
+    <record id="tenant_payment_link_sent_view_tree" model="ir.ui.view">
+        <field name="name">tenant.payment.link.sent.view.tree</field>
+        <field name="model">property.payment.link</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Links Sent">
+                <field name="company_id" />
+                <field name="property_manager_id" />
+                <field name="tenancy_id" />
+                <field name="property_parent_id" />
+                <field name="multi_properitis" />
+                <field name="tenant_id" />
+                <field name="tenant_phone" />
+                <field name="last_sent_date" />
+                <field name="last_login_date" />
+                <field name="tenancy_status" />
+                <field name="flexible_payment" />
+                <field name="block_payment" />
+            </tree>
+        </field>
+    </record>
+
+    <!--Action For Tenant Payment Link Views -->
+    <record id="action_tenant_payment_link_view" model="ir.actions.act_window">
+        <field name="name">Tenant Payment Link</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">property.payment.link</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                       (0, 0, {'view_mode': 'tree', 'view_id': ref('tenant_payment_link_view_tree')}),
+                                       (0, 0, {'view_mode': 'form', 'view_id': ref('tenant_payment_link_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Tenant Payment Links
+            </p>
+        </field>
+    </record>
+
+    <!--Action For Tenant Payment Link Sent Views -->
+    <record id="action_tenant_payment_link_sent_view" model="ir.actions.act_window">
+        <field name="name">Tenant Payment Link Sent</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">property.payment.link</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                       (0, 0, {'view_mode': 'tree', 'view_id': ref('tenant_payment_link_sent_view_tree')}),
+                                       (0, 0, {'view_mode': 'form', 'view_id': ref('tenant_payment_link_sent_view_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Tenant Payment Links sent
+            </p>
+        </field>
+    </record>
+
+    <menuitem name="Property Links" id="property_payment_link_root_menu"/>
+    <menuitem name="Tenant Payment Link" action="action_tenant_payment_link_view"
+        id="action_tenant_payment_link_menu"
+        parent="property_payment_link_root_menu" sequence="1" />
+
+    <menuitem name="Payment Link Sent" action="action_tenant_payment_link_sent_view"
+        id="action_tenant_payment_link_sent_menu"
+        parent="property_payment_link_root_menu" sequence="2" />
+
+</odoo>

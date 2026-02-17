@@ -1,0 +1,138 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="property_payment_link.tenancy_payment_invoice_receipt">
+        <div class="table-responsive border-0 ">
+                                                            <h4><strong>Payment Receipt</strong></h4>
+
+            <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <td class="text-center"><span><strong>Date</strong></span></td>
+                                            <td class="text-center"><span><strong>Invoice No</strong></span></td>
+                                            <td class="text-center"><span><strong>Payment Date</strong></span></td>
+                                            <td class="text-center"><span><strong>View</strong></span></td>
+                                            <td class="text-center"><span><strong>Download</strong></span></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-if="props.tenancy_lines and Object.keys(props.tenancy_lines).length > 0">
+                                            <tr t-foreach="props.tenancy_lines" t-as="rentScheduleId" t-key="rentScheduleId">
+                                                <t t-set="lineData" t-value="props.tenancy_lines[rentScheduleId][0]"/>
+                                                <td class="text-center"><span t-esc="lineData.date"/></td>
+                                                <td class="text-center"><span t-esc="lineData.invoice_name"/></td>
+                                                <td class="text-center"><span t-esc="lineData.payment_date"/></td>
+                                                <td class="text-center">
+                                                    <a href="#" title="View" t-att-data-schedule-id="rentScheduleId"
+                                                       t-on-click="() => this.onViewPaymentClick(rentScheduleId)"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#view_payment"
+                                                    ><i class="fa fa-filter"/></a>
+                                                </td>
+                                                <td class="text-center">
+                                                    <a class="btn btn-sm btn-primary" role="button" target="_blank" t-att-href="lineData.payment_link_report_url"
+                                                       title="Download"><i class="fa fa-download"/></a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-else="">
+                                            <tr>
+                                                <td colspan="5" class="text-center">No payments available</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="modal fade" id="view_payment" role="dialog">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title">Payment Receipt </h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                <div class="modal-body">
+
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col-3">
+                                            </div>
+                                            <div class="col-4">
+                                                        <img class="d-flex align-items-center" t-att-src="props.company_image_url"/>
+                                            </div>
+                                            <div class="col-5">
+
+                                            </div>
+                                        </div>
+                                        <h4 class="text-center">Payment Receipt: ايصال الدفع</h4>
+                                        <div class="o_portal_pager d-flex justify-content-center my-3"></div>
+                                        <div class="row">
+                                            <div class="col-12">
+                                            <div class="table-table border-1 ">
+                                                <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                                                    <tbody dir="rtl">
+                                                        <tr>
+                                                            <td class="text-center" t-ref="model_tenancy_name"></td>
+                                                            <td class="text-right"><span><strong>رقم العقد</strong></span></td>
+                                                            <td class="text-center" t-ref="model_invoice_name"></td>
+                                                            <td class="text-right"><span><strong>رقم الفاتورة</strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-center" t-ref="model_invoice_amount"></td>
+                                                            <td class="text-right"><span><strong> قيمة الفاتورة</strong></span></td>
+                                                            <td class="text-center" t-ref="model_invoice_due_date"></td>
+                                                            <td class="text-right"><span><strong>تاريخ الاستحقاق </strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td class="text-center" t-ref="model_customer_name"></td>
+                                                            <td></td>
+                                                            <td class="text-right"><span><strong> اسم العميل</strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td class="text-center" t-ref="model_unit"></td>
+                                                            <td></td>
+                                                            <td class="text-right"><span><strong> الوحدة</strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-center" t-ref="model_tenant_date"></td>
+                                                            <td class="text-right"><span><strong> عن الفترة</strong></span></td>
+                                                            <td class="text-center" t-ref="model_unit_serial_number"></td>
+                                                            <td class="text-right"><span><strong> الرقم الالي للوحدة</strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td class="text-center" t-ref="model_paid_amount_words"></td>
+                                                            <td class="text-center" t-ref="model_paid_amount"></td>
+                                                            <td class="text-right"><span><strong>القيمة المدفوعة </strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-center" t-ref="model_payment_date"></td>
+                                                            <td class="text-right"><span><strong> تاريخ الدفع </strong></span></td>
+                                                            <td class="text-center" t-ref="model_residual_amount"></td>
+                                                            <td class="text-right"><span><strong>القيمة المتبقية</strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td class="text-center">xxxxxxxxxx</td>
+                                                            <td class="text-right"><span><strong>رقم عملية الدفع </strong></span></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-center" t-ref="model_reference_number"></td>
+                                                            <td class="text-right"><span><strong>رقم المرجع</strong></span></td>
+                                                            <td class="text-center" t-ref="model_payment_method"></td>
+                                                            <td class="text-right"><span><strong>طريقة الدفع</strong></span></td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                        <div class="o_portal_pager d-flex justify-content-center my-3"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </t>
+</templates>

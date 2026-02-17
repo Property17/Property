@@ -1,0 +1,45 @@
+<odoo>
+
+    <!-- Inherited form view of crm lead -->
+    <record id="property_analytic_view_form_inherit" model="ir.ui.view">
+        <field name="name">property.analytic.view.form.inherit</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="property_management.property_analytic_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="after">
+                    <group>
+                        <div class="oe_right">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px; gap: 8px;">
+                                <label for="is_blocked" string="Block Payments" style="margin: 0;"/>
+                                <field name="is_blocked" widget="boolean_toggle"/>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label for="flexible_payment" string="Flexible Payments" style="margin: 0;"/>
+                                <field name="flexible_payment" widget="boolean_toggle"/>
+                            </div>
+                        </div>
+                    </group>
+            </xpath>
+            <!--            <xpath expr="//page[@name='lead']" position="after">-->
+            <!--                <page string="Demand Info" invisible="demand == False">-->
+            <!--                    <group>-->
+            <!--                        <group>-->
+            <!--                            <field name="min_bedroom"/>-->
+            <!--                            <field name="min_bathroom"/>-->
+            <!--                            <field name="min_price"/>-->
+            <!--                            <field name="facing"/>-->
+            <!--                            <field name="type_id"/>-->
+            <!--                        </group>-->
+            <!--                        <group>-->
+            <!--                            <field name="max_bedroom"/>-->
+            <!--                            <field name="max_bathroom"/>-->
+            <!--                            <field name="max_price"/>-->
+            <!--                            <field name="furnished"/>-->
+            <!--                        </group>-->
+            <!--                    </group>-->
+            <!--                </page>-->
+
+            <!--            </xpath>-->
+        </field>
+    </record>
+</odoo>

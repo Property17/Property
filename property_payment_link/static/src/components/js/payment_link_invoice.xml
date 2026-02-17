@@ -1,0 +1,43 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="property_payment_link.tenancy_payment_invoice_line">
+        <div class="table-responsive border-1 ">
+            <h4>Invoices</h4>
+            <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                <thead>
+                    <tr>
+                        <td class="text-center"><span><strong>CheckBox</strong></span></td>
+                        <td class="text-center"><span><strong>Date</strong></span></td>
+                        <td class="text-center"><span><strong>Invoice No</strong></span></td>
+                        <td class="text-center"><span><strong>Due Date</strong></span></td>
+                        <td class="text-center"><span><strong>Due Amount</strong></span></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-if="props.tenancy_lines and Object.keys(props.tenancy_lines).length > 0">
+                        <tr t-foreach="props.tenancy_lines" t-as="rentScheduleId" t-key="rentScheduleId">
+                            <t t-set="lineData" t-value="props.tenancy_lines[rentScheduleId][0]"/>
+                            <td class="text-center">
+                                <input class="form-check-input me-2" 
+                                       type="checkbox" 
+                                       t-att-data-rent-schedule-id="lineData.rent_schedule_id"
+                                       t-att-data-schedule-id="rentScheduleId"
+                                       t-att-disabled="this.isCheckboxDisabled(lineData.rent_schedule_id)"
+                                       t-att-checked="!props.flexible_payment ? true : this.isSelected(lineData.rent_schedule_id)"
+                                       t-on-click="ev => this.onCheckboxClick(ev)"/>
+                            </td>
+                            <td class="text-center"><span t-esc="lineData.date"/></td>
+                            <td class="text-center"><span t-esc="lineData.invoice_name"/></td>
+                            <td class="text-center"><span t-esc="lineData.invoice_date_due"/></td>
+                            <td class="text-center"><span class="oe_currency_value" t-esc="lineData.invoice_amount_residual"/></td>
+                        </tr>
+                    </t>
+                    <t t-else="">
+                        <tr>
+                            <td colspan="5" class="text-center">No invoices available</td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+    </div>
+    </t>
+</templates>

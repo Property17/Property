@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_create_whatsapp_template" model="ir.actions.server">
+        <field name="name">Create WhatsApp Template for Payment Link</field>
+        <field name="model_id" ref="property_payment_link.model_property_payment_link"/>
+        <field name="binding_model_id" ref="property_payment_link.model_property_payment_link"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">action = record.action_create_whatsapp_template()</field>
+    </record>
+
+    <record id="action_send_payment_link_bulk" model="ir.actions.server">
+        <field name="name">Send Payment Link via WhatsApp (Bulk)</field>
+        <field name="model_id" ref="property_payment_link.model_property_payment_link"/>
+        <field name="binding_model_id" ref="property_payment_link.model_property_payment_link"/>
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_send_payment_link_bulk()</field>
+    </record>
+</odoo>
