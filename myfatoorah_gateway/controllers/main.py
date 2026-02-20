@@ -258,77 +258,69 @@ class MyfatoorahController(http.Controller):
             amount = None
             currency_iso = None
 
-            # 1. Check if there is invoice id sent from frontend (single invoice payment)
+            # 1. Check invoice_id (single invoice payment link)
             if params.get('invoice_id'):
-                invoice_id = params['invoice_id']
                 invoice = request.env['account.move'].sudo().search([
-                    ('id', '=', invoice_id)
+                    ('id', '=', int(params['invoice_id']))
                 ], limit=1)
                 if invoice:
                     amount = invoice.amount_total
                     currency_iso = invoice.currency_id.name
                 else:
-                    return {
-                        "success": False,
-                        "message": "Invalid Invoice id"
-                    }
-            # 2. Check if tenancy payment (tenancy payment link with multiple invoices)
+                    return {"success": False, "message": "Invalid Invoice id"}
+
+            # 2. Check tenancy_id (tenancy payment link - property_payment_link)
             elif params.get('tenancy_id'):
-                tenancy_id = params['tenancy_id']
-                selected_rent_schedule_ids = params.get('selected_rent_schedule_ids')
-                if isinstance(selected_rent_schedule_ids, str):
-                    try:
-                        selected_rent_schedule_ids = json.loads(selected_rent_schedule_ids)
-                    except (json.JSONDecodeError, TypeError):
-                        selected_rent_schedule_ids = []
-
-                tenancy = request.env['account.analytic.account'].sudo().browse(tenancy_id)
-                if not tenancy.exists():
-                    return {
-                        "success": False,
-                        "message": "Invalid tenancy"
-                    }
-
-                all_rent_schedules = tenancy.rent_schedule_ids.filtered(
-                    lambda rs: rs.move_check and not rs.paid
-                )
-                if not tenancy.flexible_payment:
-                    rent_schedules = all_rent_schedules
-                elif selected_rent_schedule_ids:
-                    rent_schedules = all_rent_schedules.filtered(
-                        lambda rs: rs.id in selected_rent_schedule_ids
+                tenancy = request.env['account.analytic.account'].sudo().search([
+                    ('id', '=', int(params['tenancy_id']))
+                ], limit=1)
+                if tenancy:
+                    unpaid_schedules = tenancy.rent_schedule_ids.filtered(
+                        lambda rs: rs.move_check and not rs.paid and rs.invoice_id
                     )
+                    # Use selected schedules if provided (flexible payment)
+                    selected_ids = params.get('selected_rent_schedule_ids')
+                    if selected_ids:
+                        try:
+                            ids = selected_ids if isinstance(selected_ids, list) else json.loads(selected_ids)
+                            if ids:
+                                unpaid_schedules = unpaid_schedules.filtered(lambda rs: rs.id in ids)
+                        except (TypeError, ValueError):
+                            pass
+                    invoices = unpaid_schedules.mapped('invoice_id')
+                    if invoices:
+                        amount = sum(inv.amount_residual for inv in invoices)
+                        currency_iso = invoices[0].currency_id.name
+                    else:
+                        return {"success": False, "message": "No unpaid invoices found for this tenancy"}
                 else:
-                    rent_schedules = all_rent_schedules
+                    return {"success": False, "message": "Invalid tenancy"}
 
-                invoices = rent_schedules.mapped('invoice_id')
-                if not invoices:
-                    return {
-                        "success": False,
-                        "message": "No invoices found for the selected items"
-                    }
-                amount = sum(inv.amount_residual for inv in invoices)
-                currency_iso = invoices[0].currency_id.name
-            # 3. Check if there is sale order in session (e.g. e-commerce checkout)
-            else:
+            # 3. Check transaction in session (created when payment form loads)
+            elif request.session.get('__payment_monitored_tx_id__'):
+                tx_id = request.session['__payment_monitored_tx_id__']
+                transaction = request.env['payment.transaction'].sudo().search([
+                    ('id', '=', tx_id), ('state', '=', 'draft')
+                ], limit=1)
+                if transaction:
+                    amount = transaction.amount
+                    currency_iso = transaction.currency_id.name
+
+            # 4. Check sale order in session
+            if amount is None and currency_iso is None:
                 order_id = request.session.get('sale_order_id')
-                order = request.env['sale.order'].sudo().search([
-                    ('id', '=', order_id)
-                ], limit=1) if order_id else request.env['sale.order']
-
-                if order and order.exists():
-                    amount = order.amount_total
-                    currency_iso = order.currency_id.name
-                else:
-                    return {
-                        "success": False,
-                        "message": "Invalid order details, please try again"
-                    }
+                if order_id:
+                    order = request.env['sale.order'].sudo().search([
+                        ('id', '=', order_id)
+                    ], limit=1)
+                    if order:
+                        amount = order.amount_total
+                        currency_iso = order.currency_id.name
 
             if amount is None or currency_iso is None:
                 return {
                     "success": False,
-                    "message": "Could not determine payment amount. Please ensure you have selected invoices to pay."
+                    "message": "Invalid order details, please try again"
                 }
 
             provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
@@ -351,6 +343,11 @@ class MyfatoorahController(http.Controller):
             mf_response = requests.post(url, data=json.dumps(payload), headers=headers)
             gateways = json.loads(mf_response.text)
 
+            mf_data = gateways.get('Data') or {}
+            if not mf_data.get('PaymentMethods'):
+                err_msg = gateways.get('Message') or gateways.get('ErrorMessage') or 'MyFatoorah API error'
+                _logger.warning("MyFatoorah InitiatePayment failed: %s", gateways)
+                return {"success": False, "message": err_msg}
 
             #Get Currency Rates
             currency_rates = self.get_currency_exchange_rates()
@@ -358,7 +355,7 @@ class MyfatoorahController(http.Controller):
             currency_rate = self.get_one_currency_rate(currency_iso, rates)
 
             #Add total amount to loop
-            mf_gateways = gateways['Data']['PaymentMethods']
+            mf_gateways = mf_data['PaymentMethods']
             checkoutGateways = {'all': [], 'cards': [], 'form': [], 'ap': [], 'gp': []}
             for gateway in mf_gateways:
                 gateway['GatewayTotalAmount'] = self.get_payment_total_amount(gateway, rates, currency_rate)
@@ -387,7 +384,13 @@ class MyfatoorahController(http.Controller):
 
             return response
         except AccessError:
-            return "Access denied"
+            return {"success": False, "message": "Access denied"}
+        except json.JSONDecodeError as e:
+            _logger.exception("MyFatoorah initiate-payment JSON decode error: %s", e)
+            return {"success": False, "message": "Invalid request data"}
+        except Exception as e:
+            _logger.exception("MyFatoorah initiate-payment failed: %s", e)
+            return {"success": False, "message": str(e) or "Payment initiation failed, please contact admin"}
 
     @http.route("/payment/myfatoorah/execute-payment", type='json', auth='public', methods=['POST'], website=False)
     def myfatoorah_execute_payment(self, **kw):

@@ -18,10 +18,31 @@ paymentExpressCheckoutForm.include({
         var is_apple_pay_enabled = false;
         var is_card_view_enabled = false;
         var invoice_id = null;
+        var tenancy_id = null;
+        var currentURL = window.location.href;
+        if (currentURL.includes("invoices")) {
+            var match = currentURL.match(/invoices\/(\d+)/);
+            if (match) invoice_id = match[1];
+        } else if (currentURL.includes("tenancy_payment_link")) {
+            var tenancyMatch = currentURL.match(/tenancy_payment_link\/tenant_partner\/(\d+)/);
+            if (tenancyMatch) tenancy_id = parseInt(tenancyMatch[1], 10);
+        }
 
-        jsonrpc('/payment/myfatoorah/initiate-payment', {
-            "invoice_id" : invoice_id
-        }).then((initiatePaymentResult) => 
+        var initiateParams = {};
+        if (invoice_id) initiateParams.invoice_id = invoice_id;
+        if (tenancy_id) {
+            initiateParams.tenancy_id = tenancy_id;
+            var hiddenInput = document.getElementById('selected_rent_schedule_ids');
+            if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
+                try {
+                    initiateParams.selected_rent_schedule_ids = JSON.parse(hiddenInput.value);
+                } catch (e) {
+                    initiateParams.selected_rent_schedule_ids = hiddenInput.value;
+                }
+            }
+        }
+
+        jsonrpc('/payment/myfatoorah/initiate-payment', initiateParams).then((initiatePaymentResult) => 
         {
             if (!initiatePaymentResult.success){
                 this._displayErrorDialog(_t("Validation Error"), initiatePaymentResult.message);
