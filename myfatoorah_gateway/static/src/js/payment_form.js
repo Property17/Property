@@ -55,15 +55,33 @@ paymentForm.include({
                 var is_apple_pay_enabled = false;
                 var is_card_view_enabled = false;
                 var invoice_id = null;
+                var tenancy_id = null;
+                var selected_rent_schedule_ids = null;
                 var currentURL = window.location.href;
-                if(currentURL.includes("invoices")){
+
+                if (currentURL.includes("invoices")) {
                     var match = currentURL.match(/invoices\/(\d+)/);
-                    invoice_id = match[1];
+                    if (match) invoice_id = match[1];
+                } else if (currentURL.includes("tenancy_payment_link")) {
+                    var tenancyMatch = currentURL.match(/tenancy_payment_link\/tenant_partner\/(\d+)/);
+                    if (tenancyMatch) tenancy_id = parseInt(tenancyMatch[1]);
+                    var hiddenInput = document.getElementById('selected_rent_schedule_ids');
+                    if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
+                        try {
+                            selected_rent_schedule_ids = JSON.parse(hiddenInput.value);
+                        } catch (e) {
+                            selected_rent_schedule_ids = [];
+                        }
+                    }
                 }
 
-                const initiatePaymentResult = await jsonrpc('/payment/myfatoorah/initiate-payment', {
-                    "invoice_id": invoice_id
-                });
+                const initiateParams = { "invoice_id": invoice_id };
+                if (tenancy_id) {
+                    initiateParams.tenancy_id = tenancy_id;
+                    initiateParams.selected_rent_schedule_ids = selected_rent_schedule_ids || [];
+                }
+
+                const initiatePaymentResult = await jsonrpc('/payment/myfatoorah/initiate-payment', initiateParams);
 
                 if (!initiatePaymentResult.success){
                     this._displayErrorDialog(_t("Validation Error"), initiatePaymentResult.message);
