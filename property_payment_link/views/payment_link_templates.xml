@@ -43,22 +43,6 @@
                     </div>
                     <div class="row">
                         <div class="col-6">
-                            <t t-set="unpaid_rent_schedules" t-value="tenancy.rent_schedule_ids.filtered(lambda rs: rs.move_check and not rs.paid)"/>
-                            <t t-set="tenancy_lines_dict" t-value="{
-                                        rs.id: [{
-                                                    'rent_schedule_id': rs.id,
-                                                    'date': str(rs.start_date),
-                                                    'invoice_name': rs.invoice_id.name if rs.invoice_id else '',
-                                                    'invoice_date_due': str(rs.invoice_id.invoice_date_due) if rs.invoice_id and rs.invoice_id.invoice_date_due else '',
-                                                    'invoice_amount_residual': rs.amount,
-                                                    }] for rs in unpaid_rent_schedules
-                                    }"/>
-                            <t t-set="flexible_payment_value" t-value="tenancy.flexible_payment if tenancy.flexible_payment is not None else False"/>
-                            <t t-set="tenancy_invoices_props" t-value="{
-                                        'tenancy_lines': tenancy_lines_dict,
-                                        'flexible_payment': flexible_payment_value,
-                                    }"/>
-
                             <div t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
                                 <owl-component name="property_payment_link.tenancy_payment_invoice_line" t-att-props="json.dumps(tenancy_invoices_props)"/>
                             </div>
@@ -68,35 +52,6 @@
                         </div>
                         <div class="col-1"></div>
                         <div class="col-5">
-                            <t t-set="paid_rent_schedules" t-value="tenancy.rent_schedule_ids.filtered(lambda rs: rs.move_check and rs.paid and rs.invoice_id and rs.invoice_id.invoice_payments_widget and rs.invoice_id.invoice_payments_widget.get('content') and len(rs.invoice_id.invoice_payments_widget['content']) > 0)"/>
-                            <t t-set="tenancy_payments_props" t-value="{
-                                        'tenancy_lines': {
-                                            rs.id: [{
-                                                    'payment_id': str(rs.invoice_id.invoice_payments_widget['content']),
-                                                    'date': str(rs.start_date),
-                                                    'invoice_id': rs.invoice_id.id,
-                                                    'invoice_token': rs.invoice_id.access_token,
-                                                    'invoice_name': rs.invoice_id.name,
-                                                    'payment_link_report_url': '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s' % (rs.invoice_id.id, rs.invoice_id.access_token),
-                                                    'payment_date': str(rs.invoice_id.invoice_payments_widget['content'][0]['date']),
-                                                    'tenancy_id': tenancy.id,
-                                                    'tenancy_name': tenancy.name,
-                                                    'invoice_due_date': str(rs.invoice_id.invoice_date_due),
-                                                    'invoice_amount': rs.amount,
-                                                    'customer_name': tenancy.tenant_id.name,
-                                                    'unit': tenancy.property_id.name,
-                                                    'unit_serial_number': tenancy.property_id.auto_add_no or '',
-                                                    'paid_amount': str(rs.invoice_id.invoice_payments_widget['content'][0]['amount']),
-                                                    'paid_amount_words': tenancy.change_amount_to_word(rs.invoice_id.invoice_payments_widget['content'][0]['amount'], 'ar_001'),
-                                                    'residual_amount': rs.invoice_id.amount_residual,
-                                                    'payment_transaction_id': str(rs.invoice_id.invoice_payments_widget['content'][0]['date']),
-                                                    'payment_method': str(rs.invoice_id.invoice_payments_widget['content'][0]['payment_method_name']),
-                                                    'reference_number': str(rs.invoice_id.invoice_payments_widget['content'][0]['ref']),
-
-                                                    }] for rs in paid_rent_schedules
-                                            },
-                                        'company_image_url': company_image_url
-                                    }"/>
                             <div t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
                                 <owl-component name="property_payment_link.tenancy_payment_invoice_receipt" t-att-props="json.dumps(tenancy_payments_props)"/>
                             </div>

@@ -7,6 +7,89 @@ from odoo.addons.payment.controllers.portal import PaymentPortal
 from odoo.exceptions import AccessError, MissingError, ValidationError
 from odoo.fields import Command
 
+
+def _compute_unpaid_rent_schedules(tenancy):
+    """Compute unpaid rent schedules for tenancy."""
+    return tenancy.rent_schedule_ids.filtered(
+        lambda rs: rs.move_check and not rs.paid
+    )
+
+
+def _compute_paid_rent_schedules(tenancy):
+    """Compute paid rent schedules with valid payment widget content."""
+    return tenancy.rent_schedule_ids.filtered(
+        lambda rs: (
+            rs.move_check and rs.paid and rs.invoice_id
+            and rs.invoice_id.invoice_payments_widget
+            and rs.invoice_id.invoice_payments_widget.get('content')
+            and len(rs.invoice_id.invoice_payments_widget['content']) > 0
+        )
+    )
+
+
+def _compute_tenancy_invoices_props(tenancy):
+    """Build tenancy_invoices_props dict for unpaid invoices (safe for template)."""
+    unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
+    tenancy_lines_dict = {}
+    for rs in unpaid_rent_schedules:
+        tenancy_lines_dict[rs.id] = [{
+            'rent_schedule_id': rs.id,
+            'date': str(rs.start_date),
+            'invoice_name': rs.invoice_id.name if rs.invoice_id else '',
+            'invoice_date_due': (
+                str(rs.invoice_id.invoice_date_due)
+                if rs.invoice_id and rs.invoice_id.invoice_date_due
+                else ''
+            ),
+            'invoice_amount_residual': rs.amount,
+        }]
+    return {
+        'tenancy_lines': tenancy_lines_dict,
+        'flexible_payment': tenancy.flexible_payment if tenancy.flexible_payment is not None else False,
+    }
+
+
+def _compute_tenancy_payments_props(tenancy, company_image_url):
+    """Build tenancy_payments_props dict for paid invoices (safe for template)."""
+    paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
+    tenancy_lines = {}
+    for rs in paid_rent_schedules:
+        inv = rs.invoice_id
+        widget = inv.invoice_payments_widget or {}
+        content = widget.get('content', [])
+        first_payment = content[0] if content else {}
+        paid_amount = first_payment.get('amount', 0)
+        tenancy_lines[rs.id] = [{
+            'payment_id': str(content),
+            'date': str(rs.start_date),
+            'invoice_id': inv.id,
+            'invoice_token': inv.access_token,
+            'invoice_name': inv.name,
+            'payment_link_report_url': (
+                '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s'
+                % (inv.id, inv.access_token)
+            ),
+            'payment_date': str(first_payment.get('date', '')),
+            'tenancy_id': tenancy.id,
+            'tenancy_name': tenancy.name,
+            'invoice_due_date': str(inv.invoice_date_due),
+            'invoice_amount': rs.amount,
+            'customer_name': tenancy.tenant_id.name,
+            'unit': tenancy.property_id.name,
+            'unit_serial_number': tenancy.property_id.auto_add_no or '',
+            'paid_amount': str(paid_amount),
+            'paid_amount_words': tenancy.change_amount_to_word(paid_amount, 'ar_001'),
+            'residual_amount': inv.amount_residual,
+            'payment_transaction_id': str(first_payment.get('date', '')),
+            'payment_method': str(first_payment.get('payment_method_name', '')),
+            'reference_number': str(first_payment.get('ref', '')),
+        }]
+    return {
+        'tenancy_lines': tenancy_lines,
+        'company_image_url': company_image_url,
+    }
+
+
 class PropertyPaymentLink(PaymentPortal):
 
     @http.route('/tenancy_payment_link/tenant_partner/<int:tenancy>',
@@ -47,12 +130,24 @@ class PropertyPaymentLink(PaymentPortal):
         else:
             values = {}
         
+        # Pre-compute template data in Python (QWeb forbids complex expressions)
+        unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy_record)
+        paid_rent_schedules = _compute_paid_rent_schedules(tenancy_record)
+        tenancy_invoices_props = _compute_tenancy_invoices_props(tenancy_record)
+        tenancy_payments_props = _compute_tenancy_payments_props(
+            tenancy_record, company_image_url
+        )
+
         values.update({
             'tenancy': tenancy_record,
             'company_image_url': company_image_url,
             'tenancy_invoices': tenancy_account_move,  # Pass all invoices to template
             'tenancy_access_token': access_token,  # Pass access token to template
             'flexible_payment': tenancy_record.flexible_payment,  # Pass flexible_payment flag
+            'unpaid_rent_schedules': unpaid_rent_schedules,
+            'paid_rent_schedules': paid_rent_schedules,
+            'tenancy_invoices_props': tenancy_invoices_props,
+            'tenancy_payments_props': tenancy_payments_props,
         })
 
         print(request.env.context,"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",values)
