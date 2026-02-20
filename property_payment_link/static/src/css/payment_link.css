@@ -1,0 +1,17 @@
+/* Payment link page - company logo sizing */
+.payment-link-company-logo {
+    max-width: 100%;
+    max-height: 120px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.payment-link-company-logo img {
+    max-width: 100%;
+    max-height: 120px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}

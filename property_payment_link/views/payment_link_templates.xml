@@ -36,7 +36,9 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <span t-esc="tenancy.company_id.logo" t-options="{'widget': 'image','class': 'mx-auto d-block img-thumbnail'}"/>
+                            <div class="payment-link-company-logo">
+                                <span t-esc="tenancy.company_id.logo" t-options="{'widget': 'image','class': 'mx-auto d-block img-thumbnail'}"/>
+                            </div>
                         </div>
                     </div>
                     <div class="o_portal_pager d-flex justify-content-center my-3">
