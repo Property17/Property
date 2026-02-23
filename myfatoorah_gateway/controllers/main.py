@@ -250,6 +250,12 @@ class MyfatoorahController(http.Controller):
         }
         return dd
 
+    def _get_tenancy_id_from_request(self):
+        """Extract tenancy_id from referer URL (tenancy_payment_link/tenant_partner/ID)."""
+        referer = http.request.httprequest.referrer or ''
+        match = re.search(r'tenancy_payment_link/tenant_partner/(\d+)', referer)
+        return int(match.group(1)) if match else None
+
     @http.route("/payment/myfatoorah/initiate-payment",  type='json', auth='public', methods=['GET', 'POST'], website=True)
     def myfatoorah_initiate_payment(self, **data):
         try:
@@ -258,7 +264,7 @@ class MyfatoorahController(http.Controller):
             amount = None
             currency_iso = None
 
-            # 1. Check invoice_id (single invoice payment link)
+            # 1. Invoice id (single invoice payment link)
             if params.get('invoice_id'):
                 invoice = request.env['account.move'].sudo().search([
                     ('id', '=', int(params['invoice_id']))
@@ -269,16 +275,16 @@ class MyfatoorahController(http.Controller):
                 else:
                     return {"success": False, "message": "Invalid Invoice id"}
 
-            # 2. Check tenancy_id (tenancy payment link - property_payment_link)
-            elif params.get('tenancy_id'):
+            # 2. Tenancy id (property_payment_link - tenancy payment)
+            elif params.get('tenancy_id') or self._get_tenancy_id_from_request():
+                tenancy_id = params.get('tenancy_id') or self._get_tenancy_id_from_request()
                 tenancy = request.env['account.analytic.account'].sudo().search([
-                    ('id', '=', int(params['tenancy_id']))
+                    ('id', '=', int(tenancy_id))
                 ], limit=1)
                 if tenancy:
                     unpaid_schedules = tenancy.rent_schedule_ids.filtered(
                         lambda rs: rs.move_check and not rs.paid and rs.invoice_id
                     )
-                    # Use selected schedules if provided (flexible payment)
                     selected_ids = params.get('selected_rent_schedule_ids')
                     if selected_ids:
                         try:
@@ -296,7 +302,7 @@ class MyfatoorahController(http.Controller):
                 else:
                     return {"success": False, "message": "Invalid tenancy"}
 
-            # 3. Check transaction in session (created when payment form loads)
+            # 3. Transaction in session
             elif request.session.get('__payment_monitored_tx_id__'):
                 tx_id = request.session['__payment_monitored_tx_id__']
                 transaction = request.env['payment.transaction'].sudo().search([
@@ -306,7 +312,7 @@ class MyfatoorahController(http.Controller):
                     amount = transaction.amount
                     currency_iso = transaction.currency_id.name
 
-            # 4. Check sale order in session
+            # 4. Sale order in session
             if amount is None and currency_iso is None:
                 order_id = request.session.get('sale_order_id')
                 if order_id:
@@ -343,11 +349,6 @@ class MyfatoorahController(http.Controller):
             mf_response = requests.post(url, data=json.dumps(payload), headers=headers)
             gateways = json.loads(mf_response.text)
 
-            mf_data = gateways.get('Data') or {}
-            if not mf_data.get('PaymentMethods'):
-                err_msg = gateways.get('Message') or gateways.get('ErrorMessage') or 'MyFatoorah API error'
-                _logger.warning("MyFatoorah InitiatePayment failed: %s", gateways)
-                return {"success": False, "message": err_msg}
 
             #Get Currency Rates
             currency_rates = self.get_currency_exchange_rates()
@@ -355,7 +356,7 @@ class MyfatoorahController(http.Controller):
             currency_rate = self.get_one_currency_rate(currency_iso, rates)
 
             #Add total amount to loop
-            mf_gateways = mf_data['PaymentMethods']
+            mf_gateways = gateways['Data']['PaymentMethods']
             checkoutGateways = {'all': [], 'cards': [], 'form': [], 'ap': [], 'gp': []}
             for gateway in mf_gateways:
                 gateway['GatewayTotalAmount'] = self.get_payment_total_amount(gateway, rates, currency_rate)
@@ -384,13 +385,7 @@ class MyfatoorahController(http.Controller):
 
             return response
         except AccessError:
-            return {"success": False, "message": "Access denied"}
-        except json.JSONDecodeError as e:
-            _logger.exception("MyFatoorah initiate-payment JSON decode error: %s", e)
-            return {"success": False, "message": "Invalid request data"}
-        except Exception as e:
-            _logger.exception("MyFatoorah initiate-payment failed: %s", e)
-            return {"success": False, "message": str(e) or "Payment initiation failed, please contact admin"}
+            return "Access denied"
 
     @http.route("/payment/myfatoorah/execute-payment", type='json', auth='public', methods=['POST'], website=False)
     def myfatoorah_execute_payment(self, **kw):

@@ -9,30 +9,34 @@ export class PaymentLinkInvoice extends Component {
 
     setup(){
         super.setup();
-        
-        // Debug: Log props to console
-        console.log("PaymentLinkInvoice - Props received:", this.props);
-        console.log("PaymentLinkInvoice - tenancy_lines:", this.props.tenancy_lines);
-        console.log("PaymentLinkInvoice - flexible_payment:", this.props.flexible_payment);
-        console.log("PaymentLinkInvoice - tenancy_lines keys:", this.props.tenancy_lines ? Object.keys(this.props.tenancy_lines) : 'null');
-        
-        // Ensure props are properly parsed (in case they come as JSON string)
-        if (typeof this.props.tenancy_lines === 'string') {
+
+        // Parse props if passed as JSON string (from t-att-props="json.dumps(...)")
+        let props = this.props;
+        if (typeof props === 'string') {
             try {
-                this.props.tenancy_lines = JSON.parse(this.props.tenancy_lines);
+                props = JSON.parse(props);
             } catch (e) {
-                console.error("Failed to parse tenancy_lines:", e);
+                console.error("PaymentLinkInvoice: Failed to parse props:", e);
+                props = { tenancy_lines: {}, flexible_payment: false };
+            }
+        }
+        if (typeof props.tenancy_lines === 'string') {
+            try {
+                props.tenancy_lines = JSON.parse(props.tenancy_lines);
+            } catch (e) {
+                props.tenancy_lines = {};
             }
         }
         
         // Get payment flags from props
-        this.flexiblePayment = this.props.flexible_payment || false;
-        
+        this.flexiblePayment = props.flexible_payment || false;
+        this.parsedProps = props;
+
         // Sort invoices by date (oldest first) for chronological selection
         this.sortedInvoiceIds = [];
-        if (this.props.tenancy_lines) {
+        if (props.tenancy_lines) {
             // Create array of [rentScheduleId, date] pairs and sort by date
-            const invoiceDates = Object.entries(this.props.tenancy_lines).map(([rentScheduleId, lines]) => {
+            const invoiceDates = Object.entries(props.tenancy_lines).map(([rentScheduleId, lines]) => {
                 const dateStr = lines && lines.length > 0 ? lines[0].date : '';
                 // Parse date string (format: YYYY-MM-DD)
                 const date = dateStr ? new Date(dateStr) : new Date(0);
@@ -48,9 +52,9 @@ export class PaymentLinkInvoice extends Component {
         let initialSelectedIds = [];
         let initialTotal = 0.00;
         
-        if (!this.flexiblePayment && this.props.tenancy_lines) {
-            initialSelectedIds = Object.keys(this.props.tenancy_lines || {}).map(id => parseInt(id));
-            Object.entries(this.props.tenancy_lines || {}).forEach(([rentScheduleId, lines]) => {
+        if (!this.flexiblePayment && props.tenancy_lines) {
+            initialSelectedIds = Object.keys(props.tenancy_lines || {}).map(id => parseInt(id));
+            Object.entries(props.tenancy_lines || {}).forEach(([rentScheduleId, lines]) => {
                 if (lines && lines.length > 0) {
                     const line = lines[0];
                     initialTotal += line.invoice_amount_residual || 0;
@@ -151,7 +155,7 @@ export class PaymentLinkInvoice extends Component {
 
     onCheckboxClick(ev){
         const rentScheduleId = parseInt(ev.target.getAttribute('data-schedule-id'));
-        const lineData = this.props.tenancy_lines[rentScheduleId][0];
+        const lineData = this.parsedProps.tenancy_lines[rentScheduleId][0];
         this.addToTotal(ev, lineData);
     }
 

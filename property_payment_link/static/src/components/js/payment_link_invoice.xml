@@ -13,16 +13,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-if="props.tenancy_lines and Object.keys(props.tenancy_lines).length > 0">
-                        <tr t-foreach="props.tenancy_lines" t-as="rentScheduleId" t-key="rentScheduleId">
-                            <t t-set="lineData" t-value="props.tenancy_lines[rentScheduleId][0]"/>
+                    <t t-if="parsedProps.tenancy_lines and Object.keys(parsedProps.tenancy_lines).length > 0">
+                        <tr t-foreach="parsedProps.tenancy_lines" t-as="rentScheduleId" t-key="rentScheduleId">
+                            <t t-set="lineData" t-value="parsedProps.tenancy_lines[rentScheduleId][0]"/>
                             <td class="text-center">
                                 <input class="form-check-input me-2" 
                                        type="checkbox" 
                                        t-att-data-rent-schedule-id="lineData.rent_schedule_id"
                                        t-att-data-schedule-id="rentScheduleId"
                                        t-att-disabled="this.isCheckboxDisabled(lineData.rent_schedule_id)"
-                                       t-att-checked="!props.flexible_payment ? true : this.isSelected(lineData.rent_schedule_id)"
+                                       t-att-checked="!parsedProps.flexible_payment ? true : this.isSelected(lineData.rent_schedule_id)"
                                        t-on-click="ev => this.onCheckboxClick(ev)"/>
                             </td>
                             <td class="text-center"><span t-esc="lineData.date"/></td>

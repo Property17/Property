@@ -35,7 +35,6 @@ Long description of module's purpose
     # ],
     'assets': {
         'web.assets_frontend': [
-            'property_payment_link/static/src/css/payment_link.css',
             'property_payment_link/static/src/components/**/*',
             'property_payment_link/static/src/js/payment_form_extend.js',
         ]

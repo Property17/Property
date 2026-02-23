@@ -65,7 +65,7 @@ paymentForm.include({
                     if (tenancyMatch) tenancy_id = parseInt(tenancyMatch[1], 10);
                 }
 
-                const initiateParams = {};
+                var initiateParams = {};
                 if (invoice_id) initiateParams.invoice_id = invoice_id;
                 if (tenancy_id) {
                     initiateParams.tenancy_id = tenancy_id;

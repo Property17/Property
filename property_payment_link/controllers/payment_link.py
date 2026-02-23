@@ -9,14 +9,12 @@ from odoo.fields import Command
 
 
 def _compute_unpaid_rent_schedules(tenancy):
-    """Compute unpaid rent schedules for tenancy."""
     return tenancy.rent_schedule_ids.filtered(
         lambda rs: rs.move_check and not rs.paid
     )
 
 
 def _compute_paid_rent_schedules(tenancy):
-    """Compute paid rent schedules with valid payment widget content."""
     return tenancy.rent_schedule_ids.filtered(
         lambda rs: (
             rs.move_check and rs.paid and rs.invoice_id
@@ -28,7 +26,6 @@ def _compute_paid_rent_schedules(tenancy):
 
 
 def _compute_tenancy_invoices_props(tenancy):
-    """Build tenancy_invoices_props dict for unpaid invoices (safe for template)."""
     unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
     tenancy_lines_dict = {}
     for rs in unpaid_rent_schedules:
@@ -50,7 +47,6 @@ def _compute_tenancy_invoices_props(tenancy):
 
 
 def _compute_tenancy_payments_props(tenancy, company_image_url):
-    """Build tenancy_payments_props dict for paid invoices (safe for template)."""
     paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
     tenancy_lines = {}
     for rs in paid_rent_schedules:
@@ -141,9 +137,9 @@ class PropertyPaymentLink(PaymentPortal):
         values.update({
             'tenancy': tenancy_record,
             'company_image_url': company_image_url,
-            'tenancy_invoices': tenancy_account_move,  # Pass all invoices to template
-            'tenancy_access_token': access_token,  # Pass access token to template
-            'flexible_payment': tenancy_record.flexible_payment,  # Pass flexible_payment flag
+            'tenancy_invoices': tenancy_account_move,
+            'tenancy_access_token': access_token,
+            'flexible_payment': tenancy_record.flexible_payment,
             'unpaid_rent_schedules': unpaid_rent_schedules,
             'paid_rent_schedules': paid_rent_schedules,
             'tenancy_invoices_props': tenancy_invoices_props,
