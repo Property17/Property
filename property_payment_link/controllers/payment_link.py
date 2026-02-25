@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import http, _
+from odoo import http, _, fields
 from odoo.http import request
 from odoo.addons.payment.controllers.portal import PaymentPortal
 
@@ -94,6 +94,12 @@ class PropertyPaymentLink(PaymentPortal):
                 auth='public', type='http', website=True)
     def payment_link(self, tenancy, access_token, **kw):
         tenancy_record = request.env['account.analytic.account'].sudo().browse(tenancy)
+        # Track when tenant opens the payment link
+        payment_link = request.env['property.payment.link'].sudo().search([
+            ('tenancy_id', '=', tenancy_record.id)
+        ], limit=1)
+        if payment_link:
+            payment_link.write({'last_login_date': fields.Datetime.now()})
         company_image_url = '/web/image?model=res.company&id=%s&field=logo' % tenancy_record.company_id.id
         # Get all unpaid invoices from rent schedules
         tenancy_account_move = tenancy_record.rent_schedule_ids.filtered(lambda rs: rs.move_check and not rs.paid).mapped('invoice_id')
