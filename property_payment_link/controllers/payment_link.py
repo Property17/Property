@@ -38,7 +38,9 @@ def _compute_tenancy_invoices_props(tenancy):
                 if rs.invoice_id and rs.invoice_id.invoice_date_due
                 else ''
             ),
-            'invoice_amount_residual': rs.amount,
+            # 'invoice_amount_residual': rs.amount,
+            'invoice_amount_residual': rs.rent_residual,
+
         }]
     return {
         'tenancy_lines': tenancy_lines_dict,
