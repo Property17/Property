@@ -27,20 +27,6 @@
                     </div>
                 </div>
             </xpath>
-
-
-            <!-- <group>
-                <div class="oe_right">
-                    <div style="display: flex; align-items: center; margin-bottom: 8px; gap: 8px;">
-                        <label for="is_blocked" string="Block Payments" style="margin: 0;" />
-                        <field name="is_blocked" widget="boolean_toggle" />
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label for="flexible_payment" string="Flexible Payments" style="margin: 0;" />
-                        <field name="flexible_payment" widget="boolean_toggle" />
-                    </div>
-                </div>
-            </group> -->
            
         </field>
     </record>

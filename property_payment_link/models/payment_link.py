@@ -23,7 +23,7 @@ class PropertyPaymentLink(models.Model):
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, tracking=True)
     
     # Related fields from tenancy_id - no need for @api.depends, Odoo handles related fields automatically
-    property_manager_id = fields.Many2one(related='tenancy_id.manager_id', string="Property Manager", store=False)
+    property_manager_id = fields.Many2one(related='tenancy_id.property_manager_id', string="Property Manager", store=False)
     property_id = fields.Many2one(related='tenancy_id.property_id', string="Property", store=False)
     property_parent_id = fields.Many2one(related='property_id.parent_id', string="Property Parent", store=False)
     tenant_id = fields.Many2one(related='tenancy_id.tenant_id', string="Tenant", store=False)
@@ -272,13 +272,57 @@ class AccountMove(models.Model):
 
     is_blocked = fields.Boolean('Block')
     flexible_payment = fields.Boolean('Flexible Payment')
+    payment_link_count = fields.Integer(
+        string='Payment Link Count',
+        compute='_compute_payment_link_count')
+    
+    def _compute_payment_link_count(self):
+        for tenancy in self:
+            tenancy.payment_link_count = self.env['property.payment.link'].search_count([
+                ('tenancy_id', '=', tenancy.id)
+            ])
+    
+    def action_view_payment_links(self):
+        """Open payment links for this tenancy. Create one if none exists."""
+        self.ensure_one()
+        payment_link = self.env['property.payment.link'].search([
+            ('tenancy_id', '=', self.id)
+        ], limit=1)
+        if not payment_link:
+            payment_link = self.create_payment_link()
+        if payment_link:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Link Payment'),
+                'res_model': 'property.payment.link',
+                'res_id': payment_link.id,
+                'view_mode': 'form',
+                'target': 'current',
+                'context': {
+                    'default_tenancy_id': self.id,
+                    'default_company_id': self.company_id.id if self.company_id else self.env.company.id,
+                },
+            }
+        action = self.env.ref(
+            'property_payment_link.action_tenant_payment_link_view',
+            raise_if_not_found=False
+        )
+        if not action:
+            return {'type': 'ir.actions.act_window_close'}
+        return {
+            **action.read()[0],
+            'domain': [('tenancy_id', '=', self.id)],
+            'context': {
+                'default_tenancy_id': self.id,
+                'default_company_id': self.company_id.id if self.company_id else self.env.company.id,
+            },
+        }
 
     def button_start(self):
         """Override: create payment link when contract starts."""
         res = super().button_start()
         for tenancy in self:
-            if tenancy.resident_type == 'tenant_tenancy':
-                tenancy.create_payment_link()
+            tenancy.create_payment_link()
         return res
 
     def create_payment_link(self):
