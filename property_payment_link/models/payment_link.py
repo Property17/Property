@@ -47,8 +47,8 @@ class PropertyPaymentLink(models.Model):
     # Direct fields
     last_sent_date = fields.Datetime(string="Last Sent Date", tracking=True)
     last_login_date = fields.Datetime(string="Last Login Date", tracking=True)
-    tenant_url = fields.Char()
-    access_url = fields.Char()
+    tenant_url = fields.Char(tracking=True)
+    access_url = fields.Char(compute='_compute_access_url', tracking=True)
 
     @api.depends('tenancy_id', 'tenant_id')
     def _compute_name(self):
@@ -105,7 +105,9 @@ class PropertyPaymentLink(models.Model):
     def _compute_access_url(self):
         super()._compute_access_url()
         for link in self:
-            link.access_url = '/tenancy_payment_link/tenant_partner/%s' % (link.tenancy_id.id)
+            path = '/tenancy_payment_link/tenant_partner/%s' % (link.tenancy_id.id)
+            base_url = link.get_base_url().rstrip('/') if link.tenancy_id else ''
+            link.access_url = base_url + path if base_url else path
 
     def _whatsapp_get_portal_url(self):
         """Return portal URL for WhatsApp template (tenant payment link)"""
