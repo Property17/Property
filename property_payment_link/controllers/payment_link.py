@@ -207,10 +207,14 @@ class PropertyPaymentLink(PaymentPortal):
             providers_sudo.ids, partner_sudo.id
         )  # In sudo mode to read the partner's tokens (if logged out) and provider fields.
 
-        # Make sure that the partner's company matches the invoice's company.
-        company_mismatch = not PaymentPortal._can_partner_pay_in_company(
-            partner_sudo, invoice_company
-        )
+        # For tenancy payment links: allow payment regardless of logged-in user's company.
+        # The tenant accesses via token; payment providers are selected by invoice/tenancy company.
+        if tenancy:
+            company_mismatch = False
+        else:
+            company_mismatch = not PaymentPortal._can_partner_pay_in_company(
+                partner_sudo, invoice_company
+            )
 
         portal_page_values = {
             'company_mismatch': company_mismatch,
