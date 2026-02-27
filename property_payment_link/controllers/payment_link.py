@@ -189,14 +189,37 @@ class PropertyPaymentLink(PaymentPortal):
         # Otherwise use single invoice amount
         amount_for_providers = tenancy_total_amount if (tenancy and tenancy_total_amount is not None) else invoice.amount_total
         
-        # Select all the payment methods and tokens that match the payment context.
-        providers_sudo = request.env['payment.provider'].sudo()._get_compatible_providers(
-            invoice_company.id,
-            partner_sudo.id,
-            amount_for_providers,
-            currency_id=invoice.currency_id.id,
-            **kwargs,
-        )  # In sudo mode to read the fields of providers and partner (if logged out).
+        # Select payment providers. For tenancy + logged in: use provider from company user is in
+        # (multi-company support). Fallback to invoice company if none found.
+        provider_company_id = invoice_company.id
+        if tenancy and logged_in:
+            # Try current user's company first
+            providers_sudo = request.env['payment.provider'].sudo()._get_compatible_providers(
+                request.env.company.id,
+                partner_sudo.id,
+                amount_for_providers,
+                currency_id=invoice.currency_id.id,
+                **kwargs,
+            )
+            if providers_sudo:
+                provider_company_id = request.env.company.id
+            else:
+                # Fallback to invoice company
+                providers_sudo = request.env['payment.provider'].sudo()._get_compatible_providers(
+                    invoice_company.id,
+                    partner_sudo.id,
+                    amount_for_providers,
+                    currency_id=invoice.currency_id.id,
+                    **kwargs,
+                )
+        else:
+            providers_sudo = request.env['payment.provider'].sudo()._get_compatible_providers(
+                provider_company_id,
+                partner_sudo.id,
+                amount_for_providers,
+                currency_id=invoice.currency_id.id,
+                **kwargs,
+            )
 
         payment_methods_sudo = request.env['payment.method'].sudo()._get_compatible_payment_methods(
             providers_sudo.ids,
