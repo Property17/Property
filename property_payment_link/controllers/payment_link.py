@@ -91,15 +91,22 @@ def _compute_tenancy_payments_props(tenancy, company_image_url):
 class PropertyPaymentLink(PaymentPortal):
 
     @http.route('/tenancy_payment_link/tenant_partner/<int:tenancy>',
-                auth='public', type='http', website=True)
-    def payment_link(self, tenancy, access_token, **kw):
-        tenancy_record = request.env['account.analytic.account'].sudo().browse(tenancy)
-        # Track when tenant opens the payment link
+                auth='public', type='http', website=True, methods=['GET', 'POST'], csrf=False)
+    def payment_link(self, tenancy, access_token=None, **kw):
+        # access_token is optional in signature so route matches even when param is missing
+        if not access_token:
+            raise request.not_found()
+        # Validate access and get payment link for tracking
         payment_link = request.env['property.payment.link'].sudo().search([
-            ('tenancy_id', '=', tenancy_record.id)
+            ('tenancy_id', '=', tenancy),
+            ('access_token', '=', access_token),
         ], limit=1)
-        if payment_link:
-            payment_link.write({'last_login_date': fields.Datetime.now()})
+        if not payment_link:
+            raise request.not_found()
+        tenancy_record = request.env['account.analytic.account'].sudo().browse(tenancy)
+        if not tenancy_record.exists():
+            raise request.not_found()
+        payment_link.write({'last_login_date': fields.Datetime.now()})
         company_image_url = '/web/image?model=res.company&id=%s&field=logo' % tenancy_record.company_id.id
         # Get all unpaid invoices from rent schedules
         tenancy_account_move = tenancy_record.rent_schedule_ids.filtered(lambda rs: rs.move_check and not rs.paid).mapped('invoice_id')

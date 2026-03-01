@@ -130,6 +130,7 @@
                             <field name="last_login_date"/>
                             <field name="tenant_url" widget="url" readonly="1"/>
                             <field name="access_url" widget="url" readonly="1"/>
+                            <field name="has_sent_payment_link" invisible="0"/>
                         </group>
                     </group>
                     
@@ -153,7 +154,7 @@
         <field name="name">tenant.payment.link.sent.view.tree</field>
         <field name="model">property.payment.link</field>
         <field name="arch" type="xml">
-            <tree string="Payment Links Sent">
+            <tree string="Payment Links Sent" create="false">
                 <field name="company_id" />
                 <field name="property_manager_id" />
                 <field name="tenancy_id" />
@@ -192,6 +193,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">property.payment.link</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">[('has_sent_payment_link', '=', True)]</field>
         <field name="view_ids" eval="[(5, 0, 0),
                                        (0, 0, {'view_mode': 'tree', 'view_id': ref('tenant_payment_link_sent_view_tree')}),
                                        (0, 0, {'view_mode': 'form', 'view_id': ref('tenant_payment_link_sent_view_form')})]"/>

@@ -49,6 +49,7 @@ class PropertyPaymentLink(models.Model):
     last_login_date = fields.Datetime(string="Last Login Date", tracking=True)
     tenant_url = fields.Char(tracking=True)
     access_url = fields.Char(compute='_compute_access_url', tracking=True)
+    has_sent_payment_link = fields.Boolean(string="Has Sent Payment Link", default=False)
 
     @api.depends('tenancy_id', 'tenant_id')
     def _compute_name(self):
@@ -109,6 +110,24 @@ class PropertyPaymentLink(models.Model):
             base_url = link.get_base_url().rstrip('/') if link.tenancy_id else ''
             link.access_url = base_url + path if base_url else path
 
+    def get_portal_url(self, suffix=None, report_type=None, download=None, query_string=None, anchor=None):
+        """Override to add db param for multi-db support when opened logged out."""
+        url = super().get_portal_url(
+            suffix=suffix,
+            report_type=report_type,
+            download=download,
+            query_string=query_string,
+            anchor=anchor,
+        )
+        try:
+            from odoo.http import request
+            if hasattr(request, 'db') and request.db:
+                sep = '&' if '?' in url else '?'
+                url = '%s%sdb=%s' % (url, sep, request.db)
+        except RuntimeError:
+            pass
+        return url
+
     def _whatsapp_get_portal_url(self):
         """Return portal URL for WhatsApp template (tenant payment link)"""
         self.ensure_one()
@@ -127,6 +146,7 @@ class PropertyPaymentLink(models.Model):
         self.ensure_one()
         self.tenant_url = self.get_portal_url()
         self.last_sent_date = fields.Datetime.now()
+        self.write({'has_sent_payment_link': True})
 
         if not self.tenant_phone and not (self.tenant_id and self.tenant_id.phone):
             raise UserError(_('Please set a phone number on the tenant (%s) before sending the payment link via WhatsApp.') % (self.tenant_id.name or ''))
@@ -185,7 +205,7 @@ class PropertyPaymentLink(models.Model):
         for link in self:
             link.tenant_url = link.get_portal_url()
         self.write({'last_sent_date': fields.Datetime.now()})
-
+        self.write({'has_sent_payment_link': True})
         wa_template = self.env['whatsapp.template']._find_default_for_model('property.payment.link')
         if not wa_template:
             wa_template = self.env['whatsapp.template'].search([
@@ -272,8 +292,8 @@ class PropertyPaymentLink(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.analytic.account'
 
-    is_blocked = fields.Boolean('Block')
-    flexible_payment = fields.Boolean('Flexible Payment')
+    is_blocked = fields.Boolean('Block', tracking=True)
+    flexible_payment = fields.Boolean('Flexible Payment', tracking=True)
     payment_link_count = fields.Integer(
         string='Payment Link Count',
         compute='_compute_payment_link_count')
