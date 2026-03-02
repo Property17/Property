@@ -111,7 +111,7 @@ class PropertyPaymentLink(models.Model):
             link.access_url = base_url + path if base_url else path
 
     def get_portal_url(self, suffix=None, report_type=None, download=None, query_string=None, anchor=None):
-        """Override to add db param for multi-db support when opened logged out."""
+        """Override to add db param so link works when opened logged out (no session)."""
         url = super().get_portal_url(
             suffix=suffix,
             report_type=report_type,
@@ -119,13 +119,18 @@ class PropertyPaymentLink(models.Model):
             query_string=query_string,
             anchor=anchor,
         )
+        dbname = None
         try:
             from odoo.http import request
             if hasattr(request, 'db') and request.db:
-                sep = '&' if '?' in url else '?'
-                url = '%s%sdb=%s' % (url, sep, request.db)
+                dbname = request.db
         except RuntimeError:
             pass
+        if not dbname and self.env.cr:
+            dbname = self.env.cr.dbname
+        if dbname:
+            sep = '&' if '?' in url else '?'
+            url = '%s%sdb=%s' % (url, sep, dbname)
         return url
 
     def _whatsapp_get_portal_url(self):

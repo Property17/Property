@@ -258,7 +258,8 @@ class PropertyPaymentLink(PaymentPortal):
         
         # Use tenancy payment link as landing route if tenancy is provided
         if tenancy and tenancy_access_token:
-            landing_route = f'/tenancy_payment_link/tenant_partner/{tenancy.id}?access_token={tenancy_access_token}'
+            db_part = f'&db={request.db}' if request.db else ''
+            landing_route = f'/tenancy_payment_link/tenant_partner/{tenancy.id}?access_token={tenancy_access_token}{db_part}'
             # Use custom tenancy transaction route instead of single invoice route
             transaction_route = f'/tenancy/transaction/{tenancy.id}/'
         else:
@@ -276,7 +277,6 @@ class PropertyPaymentLink(PaymentPortal):
             'landing_route': landing_route,
             'access_token': access_token,
         }
-        print(request.env.context,"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",payment_context)
         values.update(
             **portal_page_values,
             **payment_form_values,

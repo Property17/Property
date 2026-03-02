@@ -28,13 +28,12 @@
         <!-- <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field> -->
     </record>
 
+    <!-- PMS rule for account.analytic.account (tenancies). Odoo's analytic.analytic_comp_rule also applies. -->
     <record model="ir.rule" id="property_tenancy_comp_rule">
         <field name="name">PMS Property Tenancy multi-company</field>
         <field name="model_id" ref="model_account_analytic_account" />
         <field name="global" eval="True" />
         <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
-
-        <!-- <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field> -->
     </record>
 
     <!--Tenancy Rent Schedul-->
