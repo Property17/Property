@@ -1,5 +1,10 @@
 <odoo>
 
+    <!-- Override analytic rule: restrict to multi-company users only (allows Administrator to bypass via system rule) -->
+    <record id="analytic.analytic_comp_rule" model="ir.rule">
+        <field name="groups" eval="[(4, ref('base.group_multi_company'))]"/>
+    </record>
+
     <record id="rule_account_entry_line" model="ir.rule">
         <field name="name">Account Entry Item</field>
         <field name="model_id" ref="account.model_account_move_line" />
@@ -28,12 +33,19 @@
         <!-- <field name="domain_force">['|',('company_id','=',False),('company_id','child_of',[user.company_id.id])]</field> -->
     </record>
 
-    <!-- PMS rule for account.analytic.account (tenancies). Odoo's analytic.analytic_comp_rule also applies. -->
     <record model="ir.rule" id="property_tenancy_comp_rule">
         <field name="name">PMS Property Tenancy multi-company</field>
         <field name="model_id" ref="model_account_analytic_account" />
-        <field name="global" eval="True" />
         <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_multi_company'))]"/>
+    </record>
+
+    <!-- Administrator/System full access: bypass company restriction for Settings users -->
+    <record model="ir.rule" id="property_tenancy_system_rule">
+        <field name="name">PMS Property Tenancy: Administrator full access</field>
+        <field name="model_id" ref="model_account_analytic_account"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
     </record>
 
     <!--Tenancy Rent Schedul-->

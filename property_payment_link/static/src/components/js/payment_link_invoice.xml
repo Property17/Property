@@ -1,6 +1,6 @@
 <templates id="template" xml:space="preserve">
     <t t-name="property_payment_link.tenancy_payment_invoice_line">
-        <div class="table-responsive border-1 ">
+        <div class="table-responsive border-1 payment-link-invoice-table">
             <h4>Invoices</h4>
             <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                 <thead>

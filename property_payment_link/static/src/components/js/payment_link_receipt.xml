@@ -1,6 +1,6 @@
 <templates id="template" xml:space="preserve">
     <t t-name="property_payment_link.tenancy_payment_invoice_receipt">
-        <div class="table-responsive border-0 ">
+        <div class="table-responsive border-0 payment-link-receipt-table">
                                                             <h4><strong>Payment Receipt</strong></h4>
 
             <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
@@ -43,7 +43,7 @@
                             </div>
 
                             <div class="modal fade" id="view_payment" role="dialog">
-                                <div class="modal-dialog modal-lg">
+                                <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
                                     <div class="modal-content">
                                     <div class="modal-header">
                                         <h3 class="modal-title">Payment Receipt </h3>
@@ -53,13 +53,8 @@
 
                                     <div class="container">
                                         <div class="row">
-                                            <div class="col-3">
-                                            </div>
-                                            <div class="col-4">
-                                                        <img class="d-flex align-items-center" t-att-src="props.company_image_url"/>
-                                            </div>
-                                            <div class="col-5">
-
+                                            <div class="col-12 col-md-4 text-center mb-2 mb-md-0">
+                                                <img class="d-inline-block" t-att-src="props.company_image_url" alt="Company logo" style="max-width: 150px; height: auto;"/>
                                             </div>
                                         </div>
                                         <h4 class="text-center">Payment Receipt: ايصال الدفع</h4>

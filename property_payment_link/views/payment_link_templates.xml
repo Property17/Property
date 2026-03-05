@@ -2,32 +2,32 @@
     <data>
         <template id="property_payment_link.tenancy_payment_link_detail" name="Tenancy Payment Link Detail">
             <t t-call="website.layout">
-                <div class="container">
+                <div class="container payment-link-detail-container">
                     <div class="row">
-                        <p class="breadcrumb-item active" >Payment Link Details
-                        </p>
-                        <div class="col-8">
-                            <h4 t-esc="tenancy.company_id.name"/>
-                            <div class="table-responsive border-0 ">
+                        <p class="breadcrumb-item active col-12">Payment Link Details</p>
+                        <div class="col-12 col-md-8 order-2 order-md-1">
+                            <h4 class="payment-link-title" t-esc="tenancy.company_id.name"/>
+                            <div class="table-responsive border-0 payment-link-info-table">
                                 <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                     <tbody>
                                         <tr>
                                             <td class="text-center"><span><strong>Property Manager</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.manager_id.name"/></td>
-                                            <td></td>
+                                            <td class="d-none d-md-table-cell"></td>
                                             <td class="text-center"><span><strong>Tenant</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.tenant_id.name"/></td>
-                                        </tr>                                            <tr>
-                                        <td class="text-center"><span><strong>Tenancy</strong></span></td>
-                                        <td class="text-center"><span t-esc="tenancy.name"/></td>
-                                        <td></td>
-                                        <td class="text-center"><span><strong>Phone</strong></span></td>
-                                        <td class="text-center"><span t-esc="tenancy.tenant_id.phone"/></td>
-                                    </tr>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center"><span><strong>Tenancy</strong></span></td>
+                                            <td class="text-center"><span t-esc="tenancy.name"/></td>
+                                            <td class="d-none d-md-table-cell"></td>
+                                            <td class="text-center"><span><strong>Phone</strong></span></td>
+                                            <td class="text-center"><span t-esc="tenancy.tenant_id.phone"/></td>
+                                        </tr>
                                         <tr>
                                             <td class="text-center"><span><strong>Property</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.property_id.name"/></td>
-                                            <td></td>
+                                            <td class="d-none d-md-table-cell"></td>
                                             <td class="text-center"><span><strong>Email</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.tenant_id.email"/></td>
                                         </tr>
@@ -35,16 +35,15 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-12 col-md-4 order-1 order-md-2 mb-3 mb-md-0">
                             <div class="payment-link-company-logo">
                                 <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo" class="mx-auto d-block img-thumbnail"/>
                             </div>
                         </div>
                     </div>
-                    <div class="o_portal_pager d-flex justify-content-center my-3">
-                    </div>
+                    <div class="o_portal_pager d-flex justify-content-center my-3"></div>
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-12 col-lg-6 mb-4 mb-lg-0">
                             <div t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
                                 <owl-component name="property_payment_link.tenancy_payment_invoice_line" t-att-props="json.dumps(tenancy_invoices_props)"/>
                             </div>
@@ -52,8 +51,7 @@
                                 <p>No unpaid invoices found.<t t-if="unpaid_rent_schedules"> (Count: <t t-esc="len(unpaid_rent_schedules)"/>)</t></p>
                             </div>
                         </div>
-                        <div class="col-1"></div>
-                        <div class="col-5">
+                        <div class="col-12 col-lg-6">
                             <div t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
                                 <owl-component name="property_payment_link.tenancy_payment_invoice_receipt" t-att-props="json.dumps(tenancy_payments_props)"/>
                             </div>
@@ -63,27 +61,24 @@
                         </div>
                     </div>
 
-                    <div class="o_portal_pager d-flex justify-content-center my-3">
-                    </div>
+                    <div class="o_portal_pager d-flex justify-content-center my-3"></div>
                     <div class="row">
-                        <div class="col-6">
-                            <div class="row">
-                                <div class="col-6">
-                                    <a  href="#"
-                                        class="btn btn-primary d-block mb-2"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#payment_method">
+                        <div class="col-12 col-md-8">
+                            <div class="row payment-link-actions">
+                                <div class="col-12 col-sm-6 mb-2 mb-sm-0">
+                                    <a href="#"
+                                       class="btn btn-primary w-100"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#payment_method">
                                         <i class="fa fa-fw fa-arrow-circle-right"/> Pay
                                     </a>
                                 </div>
-                                <div class="col-6">
-                                    <div class="table-responsive border-0 ">
+                                <div class="col-12 col-sm-6">
+                                    <div class="table-responsive border-0">
                                         <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                             <thead>
                                                 <tr>
-                                                    <td class="text-center">
-                                                        <span><strong>Total</strong></span>
-                                                    </td>
+                                                    <td class="text-center"><span><strong>Total</strong></span></td>
                                                     <td id="InvoiceTotal"></td>
                                                 </tr>
                                             </thead>
@@ -91,9 +86,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-4">
-
                         </div>
                     </div>
                     <div class="o_portal_pager d-flex justify-content-center my-3">
@@ -104,7 +96,7 @@
                     <input type="hidden" id="selected_rent_schedule_ids" name="selected_rent_schedule_ids" value="[]"/>
 
                     <div class="modal fade" id="payment_method" role="dialog">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h3 class="modal-title">Pay with</h3>

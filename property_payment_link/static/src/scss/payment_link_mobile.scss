@@ -1,0 +1,95 @@
+// Payment Link Details - Mobile responsive styles
+.payment-link-detail-container {
+    @media (max-width: 767.98px) {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+
+        .payment-link-title {
+            font-size: 1.1rem;
+            word-break: break-word;
+        }
+
+        .payment-link-info-table {
+            font-size: 0.85rem;
+
+            table {
+                min-width: 400px; // Allow horizontal scroll on very small screens
+            }
+
+            td {
+                padding: 0.35rem 0.25rem;
+            }
+        }
+
+        .payment-link-company-logo img {
+            max-width: 120px;
+            max-height: 120px;
+        }
+
+        .payment-link-actions {
+            .btn-primary {
+                padding: 0.6rem 1rem;
+            }
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .payment-link-info-table table {
+            min-width: 320px;
+        }
+    }
+}
+
+// Invoice table - mobile friendly (scoped to payment link container)
+.payment-link-detail-container .table-responsive {
+    -webkit-overflow-scrolling: touch;
+
+    @media (max-width: 767.98px) {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+
+        table {
+            font-size: 0.8rem;
+            min-width: 500px; // Horizontal scroll for invoice columns
+        }
+
+        th, td {
+            padding: 0.4rem 0.3rem;
+            white-space: nowrap;
+        }
+
+        .oe_currency_value {
+            white-space: nowrap;
+        }
+    }
+}
+
+// Modal - ensure padding on mobile
+#payment_method .modal-dialog {
+    @media (max-width: 575.98px) {
+        margin: 0;
+        max-width: 100%;
+    }
+}
+
+// Payment receipt modal - responsive
+#view_payment .modal-dialog {
+    @media (max-width: 767.98px) {
+        .col-3, .col-4, .col-5 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .table-table {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+}
