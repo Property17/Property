@@ -4,9 +4,9 @@
             <t t-call="website.layout">
                 <div class="container payment-link-detail-container">
                     <div class="row">
-                        <p class="breadcrumb-item active col-12">Payment Link Details</p>
+                        <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
                         <div class="col-12 col-md-8 order-2 order-md-1">
-                            <h4 class="payment-link-title" t-esc="tenancy.company_id.name"/>
+                            <h4 class="payment-link-title text-center" t-esc="tenancy.company_id.name"/>
                             <!-- Mobile: stacked layout (no horizontal scroll) -->
                             <div class="payment-link-info-mobile d-md-none">
                                 <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/></div>
