@@ -5,10 +5,10 @@
                 <div class="container payment-link-detail-container">
                     <div class="row">
                         <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
-                        <div class="col-12 col-md-8 order-2 order-md-1">
+                        <div class="col-12 col-md-8 order-1 order-md-1 payment-link-info-column">
                             <h4 class="payment-link-title text-center" t-esc="tenancy.company_id.name"/>
                             <!-- Mobile: stacked layout (no horizontal scroll) -->
-                            <div class="payment-link-info-mobile d-md-none">
+                            <div class="payment-link-info-mobile d-block d-md-none">
                                 <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/></div>
                                 <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/></div>
                                 <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/></div>
@@ -45,7 +45,7 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4 order-1 order-md-2 mb-3 mb-md-0">
+                        <div class="col-12 col-md-4 order-2 order-md-2 mb-3 mb-md-0">
                             <div class="payment-link-company-logo">
                                 <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo" class="mx-auto d-block img-thumbnail"/>
                             </div>

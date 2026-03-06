@@ -22,9 +22,22 @@
             display: none !important;
         }
 
-        // Force show stacked mobile layout
+        // Ensure info column is visible and not collapsed
+        .payment-link-info-column {
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        // Force show stacked mobile layout (Property Manager, Tenant, etc.)
         .payment-link-info-mobile {
             display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
 
             .info-row {
                 display: flex;
