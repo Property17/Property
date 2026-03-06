@@ -9,18 +9,12 @@
                             <h4 class="payment-link-title" t-esc="tenancy.company_id.name"/>
                             <!-- Mobile: stacked layout (no horizontal scroll) -->
                             <div class="payment-link-info-mobile d-md-none">
-                                <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/>
-                                </div>
-                                <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/>
-                                </div>
-                                <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/>
-                                </div>
-                                <div class="info-row"><span class="info-label">Phone</span><span class="info-value" t-esc="tenancy.tenant_id.phone"/>
-                                </div>
-                                <div class="info-row"><span class="info-label">Property</span><span class="info-value" t-esc="tenancy.property_id.name"/>
-                                </div>
-                                <div class="info-row"><span class="info-label">Email</span><span class="info-value" t-esc="tenancy.tenant_id.email"/>
-                                </div>
+                                <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/></div>
+                                <div class="info-row"><span class="info-label">Phone</span><span class="info-value" t-esc="tenancy.tenant_id.phone"/></div>
+                                <div class="info-row"><span class="info-label">Property</span><span class="info-value" t-esc="tenancy.property_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Email</span><span class="info-value" t-esc="tenancy.tenant_id.email"/></div>
                             </div>
                             <!-- Desktop: table layout -->
                             <div class="table-responsive border-0 payment-link-info-table d-none d-md-block">

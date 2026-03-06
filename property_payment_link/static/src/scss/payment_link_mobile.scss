@@ -9,15 +9,15 @@
             word-break: break-word;
         }
 
+        // Force hide table layout on mobile (override any Bootstrap/theme conflicts)
         .payment-link-info-table {
-            font-size: 0.85rem;
-
-            td {
-                padding: 0.35rem 0.25rem;
-            }
+            display: none !important;
         }
 
+        // Force show stacked mobile layout
         .payment-link-info-mobile {
+            display: block !important;
+
             .info-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -31,13 +31,16 @@
 
                 .info-label {
                     font-weight: 600;
-                    flex: 0 0 120px;
+                    flex: 0 0 110px;
+                    min-width: 0;
                     font-size: 0.85rem;
                 }
 
                 .info-value {
-                    flex: 1 1 auto;
+                    flex: 1 1 calc(100% - 110px);
+                    min-width: 0;
                     word-break: break-word;
+                    overflow-wrap: break-word;
                     font-size: 0.9rem;
                 }
             }
