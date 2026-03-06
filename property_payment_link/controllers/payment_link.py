@@ -354,8 +354,8 @@ class PropertyPaymentLink(PaymentPortal):
                 all_ids = set(all_rent_schedules.ids)
                 
                 # Check if all invoices are selected
-                if selected_ids != all_ids:
-                    raise ValidationError(_("When flexible payment is disabled, you must pay all invoices. Please select all invoices."))
+                # if selected_ids != all_ids:
+                #     raise ValidationError(_("When flexible payment is disabled, you must pay all invoices. Please select all invoices."))
         else:
             # If flexible_payment or normal mode, allow selection
             if selected_rent_schedule_ids:
