@@ -2,13 +2,63 @@
     <data>
         <template id="property_payment_link.tenancy_payment_link_detail" name="Tenancy Payment Link Detail">
             <t t-call="website.layout">
+                <style>
+                    /* Critical mobile styles - loaded with page, no asset dependency */
+                    @media (max-width: 991px) {
+                        .payment-link-detail-container .payment-link-info-mobile-top { display: block !important; }
+                        .payment-link-detail-container .payment-link-info-mobile-fallback {
+                            display: block !important;
+                            margin: 0.75rem 0;
+                            padding: 0.75rem;
+                            background: #f8f9fa;
+                            border-radius: 0.25rem;
+                        }
+                        .payment-link-detail-container .payment-link-info-mobile-fallback .info-row {
+                            display: flex;
+                            flex-wrap: wrap;
+                            padding: 0.5rem 0;
+                            border-bottom: 1px solid #dee2e6;
+                        }
+                        .payment-link-detail-container .payment-link-info-mobile-fallback .info-row:last-child { border-bottom: none; }
+                        .payment-link-detail-container .payment-link-info-mobile-fallback .info-label {
+                            font-weight: 600;
+                            flex: 0 0 110px;
+                            font-size: 0.85rem;
+                        }
+                        .payment-link-detail-container .payment-link-info-mobile-fallback .info-value {
+                            flex: 1 1 calc(100% - 110px);
+                            word-break: break-word;
+                            font-size: 0.9rem;
+                        }
+                        .payment-link-detail-container .payment-link-info-column .payment-link-info-mobile { display: none !important; }
+                        .payment-link-detail-container .payment-link-info-table { display: none !important; }
+                    }
+                    @media (min-width: 992px) {
+                        .payment-link-detail-container .payment-link-info-mobile-top { display: none !important; }
+                        .payment-link-detail-container .payment-link-info-column .payment-link-info-mobile { display: none !important; }
+                        .payment-link-detail-container .payment-link-info-table { display: block !important; }
+                    }
+                </style>
                 <div class="container payment-link-detail-container">
+                    <!-- Mobile-only info block - shown first, above everything -->
+                    <div class="row payment-link-info-mobile-top">
+                        <div class="col-12">
+                            <div class="payment-link-info-mobile payment-link-info-mobile-fallback">
+                                <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/></div>
+                                <div class="info-row"><span class="info-label">Phone</span><span class="info-value" t-esc="tenancy.tenant_id.phone"/></div>
+                                <div class="info-row"><span class="info-label">Property</span><span class="info-value" t-esc="tenancy.property_id.name"/></div>
+                                <div class="info-row"><span class="info-label">Email</span><span class="info-value" t-esc="tenancy.tenant_id.email"/></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
                         <div class="col-12 col-md-8 order-1 order-md-1 payment-link-info-column">
                             <h4 class="payment-link-title text-center" t-esc="tenancy.company_id.name"/>
                             <!-- Mobile: stacked layout (no horizontal scroll) -->
-                            <div class="payment-link-info-mobile d-block d-md-none">
+                            <div class="payment-link-info-mobile">
                                 <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/></div>
                                 <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/></div>
                                 <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/></div>
@@ -17,7 +67,7 @@
                                 <div class="info-row"><span class="info-label">Email</span><span class="info-value" t-esc="tenancy.tenant_id.email"/></div>
                             </div>
                             <!-- Desktop: table layout -->
-                            <div class="table-responsive border-0 payment-link-info-table d-none d-md-block">
+                            <div class="table-responsive border-0 payment-link-info-table">
                                 <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                     <tbody>
                                         <tr>
