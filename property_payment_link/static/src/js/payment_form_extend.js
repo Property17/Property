@@ -3,6 +3,49 @@
 import publicWidget from '@web/legacy/js/public/public_widget';
 import { patch } from "@web/core/utils/patch";
 
+// Payment Receipt View modal - populate when View link clicked (server-rendered, no OWL duplication)
+publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
+    selector: '#payment-receipt-section',
+    events: {
+        'click .payment-receipt-view-btn': '_onViewClick',
+    },
+
+    start: function () {
+        const section = this.el;
+        this.receiptData = [];
+        if (section) {
+            const raw = section.getAttribute('data-receipt-list');
+            if (raw) {
+                try {
+                    this.receiptData = JSON.parse(raw);
+                } catch (e) {
+                    console.warn('Payment receipt data parse error:', e);
+                }
+            }
+        }
+        return this._super.apply(this, arguments);
+    },
+
+    _onViewClick: function (ev) {
+        ev.preventDefault();
+        const scheduleId = parseInt(ev.currentTarget.getAttribute('data-schedule-id'), 10);
+        const line = this.receiptData.find(function (l) { return l.rent_schedule_id === scheduleId; });
+        if (!line) return;
+        const ids = ['modal_tenancy_name', 'modal_invoice_name', 'modal_invoice_due_date', 'modal_invoice_amount',
+            'modal_customer_name', 'modal_unit', 'modal_tenant_date', 'modal_unit_serial_number',
+            'modal_paid_amount', 'modal_paid_amount_words', 'modal_residual_amount', 'modal_payment_date',
+            'modal_reference_number', 'modal_payment_method'];
+        const keys = ['tenancy_name', 'invoice_name', 'invoice_due_date', 'invoice_amount',
+            'customer_name', 'unit', 'date', 'unit_serial_number',
+            'paid_amount', 'paid_amount_words', 'residual_amount', 'payment_date',
+            'reference_number', 'payment_method'];
+        for (let i = 0; i < ids.length; i++) {
+            const el = document.getElementById(ids[i]);
+            if (el) el.textContent = line[keys[i]] || '';
+        }
+    },
+});
+
 // Get the PaymentForm widget from the registry
 const PaymentFormWidget = publicWidget.registry.PaymentForm;
 

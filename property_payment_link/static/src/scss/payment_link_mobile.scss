@@ -12,12 +12,34 @@
         .payment-link-info-table {
             font-size: 0.85rem;
 
-            table {
-                min-width: 400px; // Allow horizontal scroll on very small screens
-            }
-
             td {
                 padding: 0.35rem 0.25rem;
+            }
+        }
+
+        .payment-link-info-mobile {
+            .info-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: baseline;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #dee2e6;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                .info-label {
+                    font-weight: 600;
+                    flex: 0 0 120px;
+                    font-size: 0.85rem;
+                }
+
+                .info-value {
+                    flex: 1 1 auto;
+                    word-break: break-word;
+                    font-size: 0.9rem;
+                }
             }
         }
 
@@ -33,11 +55,6 @@
         }
     }
 
-    @media (max-width: 575.98px) {
-        .payment-link-info-table table {
-            min-width: 320px;
-        }
-    }
 }
 
 // Invoice table - mobile friendly (scoped to payment link container)

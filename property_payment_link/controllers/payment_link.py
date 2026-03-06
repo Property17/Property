@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 from odoo import http, _, fields
 from odoo.http import request
 from odoo.addons.payment.controllers.portal import PaymentPortal
@@ -49,15 +50,18 @@ def _compute_tenancy_invoices_props(tenancy):
 
 
 def _compute_tenancy_payments_props(tenancy, company_image_url):
+    """Build payment receipt data for OWL component (kept for modal View) and server-side rendering."""
     paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
     tenancy_lines = {}
+    tenancy_payments_list = []  # Flat list for server-side QWeb (avoids OWL duplication)
     for rs in paid_rent_schedules:
         inv = rs.invoice_id
         widget = inv.invoice_payments_widget or {}
         content = widget.get('content', [])
         first_payment = content[0] if content else {}
         paid_amount = first_payment.get('amount', 0)
-        tenancy_lines[rs.id] = [{
+        line_data = {
+            'rent_schedule_id': rs.id,
             'payment_id': str(content),
             'date': str(rs.start_date),
             'invoice_id': inv.id,
@@ -81,9 +85,13 @@ def _compute_tenancy_payments_props(tenancy, company_image_url):
             'payment_transaction_id': str(first_payment.get('date', '')),
             'payment_method': str(first_payment.get('payment_method_name', '')),
             'reference_number': str(first_payment.get('ref', '')),
-        }]
+        }
+        tenancy_lines[rs.id] = [line_data]
+        tenancy_payments_list.append(line_data)
     return {
         'tenancy_lines': tenancy_lines,
+        'tenancy_payments_list': tenancy_payments_list,
+        'tenancy_payments_json': json.dumps(tenancy_payments_list),
         'company_image_url': company_image_url,
     }
 

@@ -7,27 +7,43 @@
                         <p class="breadcrumb-item active col-12">Payment Link Details</p>
                         <div class="col-12 col-md-8 order-2 order-md-1">
                             <h4 class="payment-link-title" t-esc="tenancy.company_id.name"/>
-                            <div class="table-responsive border-0 payment-link-info-table">
+                            <!-- Mobile: stacked layout (no horizontal scroll) -->
+                            <div class="payment-link-info-mobile d-md-none">
+                                <div class="info-row"><span class="info-label">Property Manager</span><span class="info-value" t-esc="tenancy.property_manager_id.name"/>
+                                </div>
+                                <div class="info-row"><span class="info-label">Tenant</span><span class="info-value" t-esc="tenancy.tenant_id.name"/>
+                                </div>
+                                <div class="info-row"><span class="info-label">Tenancy</span><span class="info-value" t-esc="tenancy.name"/>
+                                </div>
+                                <div class="info-row"><span class="info-label">Phone</span><span class="info-value" t-esc="tenancy.tenant_id.phone"/>
+                                </div>
+                                <div class="info-row"><span class="info-label">Property</span><span class="info-value" t-esc="tenancy.property_id.name"/>
+                                </div>
+                                <div class="info-row"><span class="info-label">Email</span><span class="info-value" t-esc="tenancy.tenant_id.email"/>
+                                </div>
+                            </div>
+                            <!-- Desktop: table layout -->
+                            <div class="table-responsive border-0 payment-link-info-table d-none d-md-block">
                                 <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                     <tbody>
                                         <tr>
                                             <td class="text-center"><span><strong>Property Manager</strong></span></td>
-                                            <td class="text-center"><span t-esc="tenancy.manager_id.name"/></td>
-                                            <td class="d-none d-md-table-cell"></td>
+                                            <td class="text-center"><span t-esc="tenancy.property_manager_id.name" /></td>
+                                            <td></td>
                                             <td class="text-center"><span><strong>Tenant</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.tenant_id.name"/></td>
                                         </tr>
                                         <tr>
                                             <td class="text-center"><span><strong>Tenancy</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.name"/></td>
-                                            <td class="d-none d-md-table-cell"></td>
+                                            <td></td>
                                             <td class="text-center"><span><strong>Phone</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.tenant_id.phone"/></td>
                                         </tr>
                                         <tr>
                                             <td class="text-center"><span><strong>Property</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.property_id.name"/></td>
-                                            <td class="d-none d-md-table-cell"></td>
+                                            <td></td>
                                             <td class="text-center"><span><strong>Email</strong></span></td>
                                             <td class="text-center"><span t-esc="tenancy.tenant_id.email"/></td>
                                         </tr>
@@ -50,47 +66,106 @@
                             <div t-else="" class="alert alert-info">
                                 <p>No unpaid invoices found.<t t-if="unpaid_rent_schedules"> (Count: <t t-esc="len(unpaid_rent_schedules)"/>)</t></p>
                             </div>
+                            <t t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
+                                <div class="table-responsive border-0 mt-2">
+                                    <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <td class="text-center"><span><strong>Total</strong></span></td>
+                                                <td id="InvoiceTotal"></td>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <a href="#"
+                                   class="btn btn-primary w-100 mt-2"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#payment_method">
+                                    <i class="fa fa-fw fa-arrow-circle-right"/> Pay
+                                </a>
+                            </t>
                         </div>
-                        <div class="col-12 col-lg-6">
-                            <div t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
-                                <owl-component name="property_payment_link.tenancy_payment_invoice_receipt" t-att-props="json.dumps(tenancy_payments_props)"/>
-                            </div>
-                            <div t-else="" class="alert alert-info">
-                                <p>No paid invoices found.<t t-if="paid_rent_schedules"> (Count: <t t-esc="len(paid_rent_schedules)"/>)</t></p>
-                            </div>
+                        <div class="col-12 col-lg-6" id="payment-receipt-section"
+                             t-att-data-receipt-list="tenancy_payments_props.get('tenancy_payments_json', '[]')">
+                            <t t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
+                                <div class="table-responsive border-0 payment-link-receipt-table">
+                                    <h4><strong>Payment Receipt</strong></h4>
+                                    <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <td class="text-center"><span><strong>Date</strong></span></td>
+                                                <td class="text-center"><span><strong>Invoice No</strong></span></td>
+                                                <td class="text-center"><span><strong>Payment Date</strong></span></td>
+                                                <td class="text-center"><span><strong>View</strong></span></td>
+                                                <td class="text-center"><span><strong>Download</strong></span></td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="tenancy_payments_props.get('tenancy_payments_list', [])" t-as="line">
+                                                <tr>
+                                                    <td class="text-center"><span t-esc="line.get('date', '')"/></td>
+                                                    <td class="text-center"><span t-esc="line.get('invoice_name', '')"/></td>
+                                                    <td class="text-center"><span t-esc="line.get('payment_date', '')"/></td>
+                                                    <td class="text-center">
+                                                        <a href="#" class="payment-receipt-view-btn" title="View"
+                                                           t-att-data-schedule-id="line.get('rent_schedule_id')"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#view_payment"><i class="fa fa-filter"/></a>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <a class="btn btn-sm btn-primary" role="button" target="_blank"
+                                                           t-att-href="line.get('payment_link_report_url', '#')"
+                                                           title="Download"><i class="fa fa-download"/></a>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal fade" id="view_payment" role="dialog" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h3 class="modal-title">Payment Receipt</h3>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="container">
+                                                    <div class="row mb-2">
+                                                        <div class="col-12 text-center">
+                                                            <img class="d-inline-block" t-att-src="tenancy_payments_props.get('company_image_url', '')" alt="Company logo" style="max-width: 150px; height: auto;"/>
+                                                        </div>
+                                                    </div>
+                                                    <h4 class="text-center">Payment Receipt: ايصال الدفع</h4>
+                                                    <div class="table-table border-1 mt-3">
+                                                        <table class="table table-sm" dir="rtl">
+                                                            <tbody>
+                                                                <tr><td class="text-end"><strong>رقم العقد</strong></td><td class="text-center" id="modal_tenancy_name"></td><td class="text-end"><strong>رقم الفاتورة</strong></td><td class="text-center" id="modal_invoice_name"></td></tr>
+                                                                <tr><td class="text-end"><strong>تاريخ الاستحقاق</strong></td><td class="text-center" id="modal_invoice_due_date"></td><td class="text-end"><strong>قيمة الفاتورة</strong></td><td class="text-center" id="modal_invoice_amount"></td></tr>
+                                                                <tr><td class="text-end"><strong>اسم العميل</strong></td><td class="text-center" id="modal_customer_name" colspan="3"></td></tr>
+                                                                <tr><td class="text-end"><strong>الوحدة</strong></td><td class="text-center" id="modal_unit" colspan="3"></td></tr>
+                                                                <tr><td class="text-end"><strong>عن الفترة</strong></td><td class="text-center" id="modal_tenant_date"></td><td class="text-end"><strong>الرقم الالي للوحدة</strong></td><td class="text-center" id="modal_unit_serial_number"></td></tr>
+                                                                <tr><td class="text-end"><strong>القيمة المدفوعة</strong></td><td class="text-center" id="modal_paid_amount"></td><td class="text-end"><strong>المبلغ بالحروف</strong></td><td class="text-center" id="modal_paid_amount_words"></td></tr>
+                                                                <tr><td class="text-end"><strong>تاريخ الدفع</strong></td><td class="text-center" id="modal_payment_date"></td><td class="text-end"><strong>القيمة المتبقية</strong></td><td class="text-center" id="modal_residual_amount"></td></tr>
+                                                                <tr><td class="text-end"><strong>رقم المرجع</strong></td><td class="text-center" id="modal_reference_number"></td><td class="text-end"><strong>طريقة الدفع</strong></td><td class="text-center" id="modal_payment_method"></td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="alert alert-info">
+                                    <p>No paid invoices found.<t t-if="paid_rent_schedules"> (Count: <t t-esc="len(paid_rent_schedules)"/>)</t></p>
+                                </div>
+                            </t>
                         </div>
                     </div>
 
                     <div class="o_portal_pager d-flex justify-content-center my-3"></div>
-                    <div class="row">
-                        <div class="col-12 col-md-8">
-                            <div class="row payment-link-actions">
-                                <div class="col-12 col-sm-6 mb-2 mb-sm-0">
-                                    <a href="#"
-                                       class="btn btn-primary w-100"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#payment_method">
-                                        <i class="fa fa-fw fa-arrow-circle-right"/> Pay
-                                    </a>
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <div class="table-responsive border-0">
-                                        <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <td class="text-center"><span><strong>Total</strong></span></td>
-                                                    <td id="InvoiceTotal"></td>
-                                                </tr>
-                                            </thead>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="o_portal_pager d-flex justify-content-center my-3">
-
-                    </div>
 
                     <!-- Hidden input to store selected rent schedule IDs -->
                     <input type="hidden" id="selected_rent_schedule_ids" name="selected_rent_schedule_ids" value="[]"/>
