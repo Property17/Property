@@ -126,12 +126,10 @@ class PropertyPaymentLink(PaymentPortal):
         # If no invoices, create a dummy recordset to avoid errors
         account_move = tenancy_account_move[0] if tenancy_account_move else request.env['account.move']
         
-        print("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",tenancy_account_move)
         ctx = dict(request.env.context)
         ctx.update({
             'tenancy_token': [access_token]
         })
-        print(ctx,"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",access_token,"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu context ",request.env.context)
         
         # Only get payment values if there's at least one invoice
         if account_move:
@@ -178,7 +176,6 @@ class PropertyPaymentLink(PaymentPortal):
             'tenancy_info_json': json.dumps(tenancy_info),
         })
 
-        print(request.env.context,"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",values)
         return http.request.render('property_payment_link.tenancy_payment_link_detail', values)
 
     @http.route('/tenancy_payment_link/tenant_partner/payment_report/<int:invoice_id>', type='http', auth="public", website=True)
@@ -323,8 +320,6 @@ class PropertyPaymentLink(PaymentPortal):
         logged_in = not request.env.user._is_public()
         partner_sudo = request.env.user.partner_id if logged_in else invoice_sudo.partner_id
         self._validate_transaction_kwargs(kwargs)
-        print(invoice_id,"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwwweewewwewewewe")
-        # print(invoice_id,"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwwweewewwewewewe",tx_sudo)
 
         kwargs.update({
             'currency_id': invoice_sudo.currency_id.id,
@@ -418,6 +413,4 @@ class PropertyPaymentLink(PaymentPortal):
             custom_create_values={'invoice_ids': [Command.set(invoices.ids)]},
             **kwargs,
         )
-        
-        print(f"Created transaction for {len(invoices)} selected invoices: {invoices.ids}")
         return tx_sudo._get_processing_values()
