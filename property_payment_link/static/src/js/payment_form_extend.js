@@ -3,6 +3,42 @@
 import publicWidget from '@web/legacy/js/public/public_widget';
 import { patch } from "@web/core/utils/patch";
 
+// Tenant/Property info - inject via JS (bypasses theme/CSS that may hide server-rendered content)
+publicWidget.registry.PaymentLinkTenantInfo = publicWidget.Widget.extend({
+    selector: '.payment-link-detail-container',
+
+    start: function () {
+        const container = document.getElementById('payment-link-tenant-info');
+        if (container) {
+            const raw = container.getAttribute('data-tenant-info');
+            if (raw) {
+                try {
+                    const info = JSON.parse(raw);
+                    const rows = [
+                        ['Property Manager', info.property_manager],
+                        ['Tenant', info.tenant],
+                        ['Tenancy', info.tenancy],
+                        ['Phone', info.phone],
+                        ['Property', info.property],
+                        ['Email', info.email],
+                    ];
+                    let html = '';
+                    rows.forEach(function (r) {
+                        html += '<div class="info-row" style="display:flex;flex-wrap:wrap;padding:0.5rem 0;border-bottom:1px solid #dee2e6;">';
+                        html += '<span class="info-label" style="font-weight:600;flex:0 0 110px;font-size:0.85rem;">' + (r[0] || '') + '</span>';
+                        html += '<span class="info-value" style="flex:1 1 auto;word-break:break-word;font-size:0.9rem;">' + (r[1] || '') + '</span>';
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                } catch (e) {
+                    console.warn('PaymentLinkTenantInfo: parse error', e);
+                }
+            }
+        }
+        return this._super.apply(this, arguments);
+    },
+});
+
 // Payment Receipt View modal - populate when View link clicked (server-rendered, no OWL duplication)
 publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
     selector: '#payment-receipt-section',

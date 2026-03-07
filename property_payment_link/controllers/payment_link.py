@@ -157,6 +157,14 @@ class PropertyPaymentLink(PaymentPortal):
             tenancy_record, company_image_url
         )
 
+        tenancy_info = {
+            'property_manager': tenancy_record.property_manager_id.name or '',
+            'tenant': tenancy_record.tenant_id.name or '',
+            'tenancy': tenancy_record.name or '',
+            'phone': tenancy_record.tenant_id.phone or '',
+            'property': tenancy_record.property_id.name or '',
+            'email': tenancy_record.tenant_id.email or '',
+        }
         values.update({
             'tenancy': tenancy_record,
             'company_image_url': company_image_url,
@@ -167,6 +175,7 @@ class PropertyPaymentLink(PaymentPortal):
             'paid_rent_schedules': paid_rent_schedules,
             'tenancy_invoices_props': tenancy_invoices_props,
             'tenancy_payments_props': tenancy_payments_props,
+            'tenancy_info_json': json.dumps(tenancy_info),
         })
 
         print(request.env.context,"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",values)
