@@ -21,7 +21,7 @@
                     #payment-link-tenant-info .pl-info-label { font-weight: 600; flex: 0 0 110px; font-size: 0.85rem; }
                     #payment-link-tenant-info .pl-info-value { flex: 1 1 calc(100% - 110px); word-break: break-word; font-size: 0.9rem; }
                 </style>
-                <div class="container payment-link-detail-container">
+                <div class="container payment-link-detail-container" data-pl-version="0.3">
                     <div class="row">
                         <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
                         <div class="col-12 col-md-8 order-1 order-md-1">
@@ -75,23 +75,26 @@
                                     <p>No unpaid invoices found.<t t-if="unpaid_rent_schedules"> (Count: <t t-esc="len(unpaid_rent_schedules)"/>)</t></p>
                                 </div>
                             </div>
+                            <!-- Total and Pay: always under Invoices (Total=0 when no unpaid) -->
+                            <div class="table-responsive border-0 mt-2">
+                                <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <td class="text-center"><span><strong>Total</strong></span></td>
+                                            <td id="InvoiceTotal"><t t-if="not (unpaid_rent_schedules and len(unpaid_rent_schedules) > 0)">0</t></td>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
                             <t t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
-                                <div class="table-responsive border-0 mt-2">
-                                    <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <td class="text-center"><span><strong>Total</strong></span></td>
-                                                <td id="InvoiceTotal"></td>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                <a href="#"
-                                   class="btn btn-primary w-100 mt-2"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#payment_method">
+                                <a href="#" class="btn btn-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#payment_method">
                                     <i class="fa fa-fw fa-arrow-circle-right"/> Pay
                                 </a>
+                            </t>
+                            <t t-else="">
+                                <button type="button" class="btn btn-secondary w-100 mt-2" disabled="disabled">
+                                    <i class="fa fa-fw fa-arrow-circle-right"/> Pay
+                                </button>
                             </t>
                         </div>
                         <div class="col-12 col-lg-6" id="payment-receipt-section"

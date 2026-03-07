@@ -80,5 +80,12 @@ If payment links return 404 for logged-out users, ensure:
 - `payment_link_nodb` is in `server_wide_modules` in odoo.conf
 - Payment links include `&db=yourdb` in the URL
 
+## 8. Verify New Template is Loaded
+After upgrade, open a payment link page and:
+1. Right-click → **View Page Source** (or Ctrl+U)
+2. Search for: `data-pl-version="0.3"`
+3. If found → new template is loaded ✓
+4. If NOT found → upgrade did not apply; check Odoo logs for errors during upgrade
+
 ---
-**Version bumped to 0.2** – Upgrade the module to apply all template/asset changes.
+**Current version: 0.3** – Upgrade the module to apply all template/asset changes.
