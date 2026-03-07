@@ -69,8 +69,11 @@
                             <div t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
                                 <owl-component name="property_payment_link.tenancy_payment_invoice_line" t-att-props="json.dumps(tenancy_invoices_props)"/>
                             </div>
-                            <div t-else="" class="alert alert-info">
-                                <p>No unpaid invoices found.<t t-if="unpaid_rent_schedules"> (Count: <t t-esc="len(unpaid_rent_schedules)"/>)</t></p>
+                            <div t-else="">
+                                <h4 class="fw-bold"><strong>Invoices</strong></h4>
+                                <div class="alert alert-info">
+                                    <p>No unpaid invoices found.<t t-if="unpaid_rent_schedules"> (Count: <t t-esc="len(unpaid_rent_schedules)"/>)</t></p>
+                                </div>
                             </div>
                             <t t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
                                 <div class="table-responsive border-0 mt-2">
@@ -93,9 +96,9 @@
                         </div>
                         <div class="col-12 col-lg-6" id="payment-receipt-section"
                              t-att-data-receipt-list="tenancy_payments_props.get('tenancy_payments_json', '[]')">
+                            <h4><strong>Payment Receipt</strong></h4>
                             <t t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
                                 <div class="table-responsive border-0 payment-link-receipt-table">
-                                    <h4><strong>Payment Receipt</strong></h4>
                                     <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                         <thead>
                                             <tr>
@@ -165,7 +168,7 @@
                             </t>
                             <t t-else="">
                                 <div class="alert alert-info">
-                                    <p>No paid invoices found.<t t-if="paid_rent_schedules"> (Count: <t t-esc="len(paid_rent_schedules)"/>)</t></p>
+                                    <p>No payment receipts found.<t t-if="paid_rent_schedules"> (Count: <t t-esc="len(paid_rent_schedules)"/>)</t></p>
                                 </div>
                             </t>
                         </div>
