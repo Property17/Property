@@ -256,11 +256,26 @@ class MyfatoorahController(http.Controller):
         match = re.search(r'tenancy_payment_link/tenant_partner/(\d+)', referer)
         return int(match.group(1)) if match else None
 
+    def _get_initiate_params(self):
+        """Extract params from JSON-RPC request - handle multiple payload structures."""
+        raw = http.request.httprequest.data
+        if not raw:
+            return {}
+        try:
+            request_data = json.loads(raw.decode('utf-8'))
+        except (json.JSONDecodeError, TypeError):
+            return {}
+        params = request_data.get('params')
+        if params is None:
+            params = request_data
+        elif isinstance(params, list) and len(params) > 0 and isinstance(params[0], dict):
+            params = params[0]
+        return params if isinstance(params, dict) else {}
+
     @http.route("/payment/myfatoorah/initiate-payment",  type='json', auth='public', methods=['GET', 'POST'], website=True)
     def myfatoorah_initiate_payment(self, **data):
         try:
-            request_data = json.loads(http.request.httprequest.data.decode('utf-8'))
-            params = request_data.get('params') or {}
+            params = self._get_initiate_params()
             amount = None
             currency_iso = None
 
@@ -286,10 +301,11 @@ class MyfatoorahController(http.Controller):
                         lambda rs: rs.move_check and not rs.paid and rs.invoice_id
                     )
                     selected_ids = params.get('selected_rent_schedule_ids')
-                    if selected_ids:
+                    if selected_ids is not None:
                         try:
                             ids = selected_ids if isinstance(selected_ids, list) else json.loads(selected_ids)
                             if ids:
+                                ids = [int(x) for x in ids]
                                 unpaid_schedules = unpaid_schedules.filtered(lambda rs: rs.id in ids)
                         except (TypeError, ValueError):
                             pass
@@ -390,14 +406,17 @@ class MyfatoorahController(http.Controller):
     @http.route("/payment/myfatoorah/execute-payment", type='json', auth='public', methods=['POST'], website=False)
     def myfatoorah_execute_payment(self, **kw):
         request_data = json.loads(http.request.httprequest.data.decode('utf-8'))
-        params = request_data.get('params')
-        print(params,"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",kw)
-        if params is not None and 'SessionId' in params:
+        params = request_data.get('params') or {}
+        if isinstance(params, list) and len(params) > 0 and isinstance(params[0], dict):
+            params = params[0]
+        elif not isinstance(params, dict):
+            params = {}
+        if params and 'SessionId' in params:
             session_id = params['SessionId']
         else:
             session_id = None
 
-        if params is not None and 'PaymentMethodId' in params:
+        if params and 'PaymentMethodId' in params:
             payment_method_id = params['PaymentMethodId']
         else:
             payment_method_id = None
@@ -427,7 +446,6 @@ class MyfatoorahController(http.Controller):
                     "status_code" : 422,
                     "message" : "Invalid Transaction"
                 }
-        print("zzzzzzzzzzzassssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",transaction)
         customer = transaction.partner_id
         customer_data = {}
         if customer:
@@ -488,8 +506,7 @@ class MyfatoorahController(http.Controller):
 
         _logger.info("Myfatoorah payload:\n%s", payload)
 
-        print("aaaaaaaaaaassssssssssssssssssfffffffffffffffffffffffffffffffffff sending request",payload)
-        response = requests.post(url,  json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
         return {
             "success" : True,
             "status_code" : 200,

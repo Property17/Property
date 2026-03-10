@@ -70,11 +70,14 @@ paymentForm.include({
                 if (tenancy_id) {
                     initiateParams.tenancy_id = tenancy_id;
                     var hiddenInput = document.getElementById('selected_rent_schedule_ids');
-                    if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
-                        try {
-                            initiateParams.selected_rent_schedule_ids = JSON.parse(hiddenInput.value);
-                        } catch (e) {
-                            initiateParams.selected_rent_schedule_ids = hiddenInput.value;
+                    if (hiddenInput && hiddenInput.value) {
+                        var rawVal = hiddenInput.value.trim();
+                        if (rawVal && rawVal !== '[]') {
+                            try {
+                                initiateParams.selected_rent_schedule_ids = JSON.parse(rawVal);
+                            } catch (e) {
+                                initiateParams.selected_rent_schedule_ids = rawVal;
+                            }
                         }
                     }
                 }
