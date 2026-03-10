@@ -4,6 +4,11 @@ var is_form_prepared = false;
 var is_form_preparing = false;
 let formPreparationPromise = null;
 
+function resetMyFatoorahFormState() {
+    is_form_prepared = false;
+    formPreparationPromise = null;
+}
+
 function _getMfSessionScript(state, country_code, gateway){
 
     var subdomain = '';

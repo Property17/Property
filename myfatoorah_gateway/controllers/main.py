@@ -312,6 +312,12 @@ class MyfatoorahController(http.Controller):
                     invoices = unpaid_schedules.mapped('invoice_id')
                     if invoices:
                         amount = sum(inv.amount_residual for inv in invoices)
+                        _logger.info(
+                            "MyFatoorah tenancy payment: tenancy_id=%s selected_ids=%s "
+                            "filtered_invoices=%s amount=%s",
+                            tenancy_id, params.get('selected_rent_schedule_ids'),
+                            invoices.mapped('name'), amount
+                        )
                         currency_iso = invoices[0].currency_id.name
                     else:
                         return {"success": False, "message": "No unpaid invoices found for this tenancy"}

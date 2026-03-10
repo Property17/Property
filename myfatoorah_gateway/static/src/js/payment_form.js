@@ -29,6 +29,11 @@ paymentForm.include({
             return formPreparationPromise;
         }
 
+        var currentURL = window.location.href;
+        var isTenancyPage = currentURL.includes("tenancy_payment_link");
+        if (isTenancyPage && typeof resetMyFatoorahFormState === 'function') {
+            resetMyFatoorahFormState();
+        }
         if(is_form_prepared || is_form_preparing){
             return;
         }
