@@ -24,7 +24,12 @@
                 <div class="container payment-link-detail-container" data-pl-version="0.3">
                     <div class="row">
                         <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
-                        <div class="col-12 col-md-8 order-1 order-md-1">
+                        <div class="col-12 col-md-4 order-1 order-md-2 mb-3 mb-md-0">
+                            <div class="payment-link-company-logo">
+                                <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo" class="mx-auto d-block img-thumbnail"/>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-8 order-2 order-md-1">
                             <h4 class="payment-link-title text-center" t-esc="tenancy.company_id.name"/>
                             <!-- JS-injected on mobile (see payment_form_extend.js) -->
                             <div id="payment-link-tenant-info" t-att-data-tenant-info="tenancy_info_json"></div>
@@ -55,11 +60,6 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4 order-2 order-md-2 mb-3 mb-md-0">
-                            <div class="payment-link-company-logo">
-                                <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo" class="mx-auto d-block img-thumbnail"/>
                             </div>
                         </div>
                     </div>
