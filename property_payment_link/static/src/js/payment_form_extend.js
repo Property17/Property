@@ -39,6 +39,19 @@ publicWidget.registry.PaymentLinkTenantInfo = publicWidget.Widget.extend({
     },
 });
 
+// Reset MyFatoorah form cache when Pay is clicked so modal uses current invoice selection
+publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
+    selector: '.payment-link-detail-container',
+    events: {
+        'click a[data-bs-target="#payment_method"]': '_onPayClick',
+    },
+    _onPayClick: function () {
+        if (typeof window.resetMyFatoorahFormCache === 'function') {
+            window.resetMyFatoorahFormCache();
+        }
+    },
+});
+
 // Payment Receipt View modal - populate when View link clicked (server-rendered, no OWL duplication)
 publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
     selector: '#payment-receipt-section',
@@ -85,17 +98,9 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
 // Get the PaymentForm widget from the registry
 const PaymentFormWidget = publicWidget.registry.PaymentForm;
 
-// Patch the PaymentForm for tenancy payment links
+// Patch the PaymentForm to include selected rent schedule IDs in transaction params
 if (PaymentFormWidget) {
     patch(PaymentFormWidget.prototype, {
-        async start() {
-            var isTenancyPage = typeof window !== 'undefined' && window.location.href.indexOf('tenancy_payment_link') !== -1;
-            if (isTenancyPage) {
-                var r = document.querySelector('input[name="o_payment_radio"]:checked');
-                if (r) r.checked = false;
-            }
-            await this._super.apply(this, arguments);
-        },
         /**
          * @override
          * Add selected_rent_schedule_ids to the transaction route params

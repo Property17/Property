@@ -4,9 +4,18 @@ var is_form_prepared = false;
 var is_form_preparing = false;
 let formPreparationPromise = null;
 
-function resetMyFatoorahFormState() {
+/**
+ * Reset the form cache so the next payment will re-fetch amounts (e.g. when
+ * invoice selection changes on tenancy payment link). Call this when the user
+ * changes their invoice selection or before opening the payment modal.
+ */
+function resetMyFatoorahFormCache() {
     is_form_prepared = false;
+    is_form_preparing = false;
     formPreparationPromise = null;
+}
+if (typeof window !== 'undefined') {
+    window.resetMyFatoorahFormCache = resetMyFatoorahFormCache;
 }
 
 function _getMfSessionScript(state, country_code, gateway){

@@ -29,11 +29,6 @@ paymentForm.include({
             return formPreparationPromise;
         }
 
-        var currentURL = window.location.href;
-        var isTenancyPage = currentURL.includes("tenancy_payment_link");
-        if (isTenancyPage && typeof resetMyFatoorahFormState === 'function') {
-            resetMyFatoorahFormState();
-        }
         if(is_form_prepared || is_form_preparing){
             return;
         }
@@ -75,14 +70,11 @@ paymentForm.include({
                 if (tenancy_id) {
                     initiateParams.tenancy_id = tenancy_id;
                     var hiddenInput = document.getElementById('selected_rent_schedule_ids');
-                    if (hiddenInput && hiddenInput.value) {
-                        var rawVal = hiddenInput.value.trim();
-                        if (rawVal && rawVal !== '[]') {
-                            try {
-                                initiateParams.selected_rent_schedule_ids = JSON.parse(rawVal);
-                            } catch (e) {
-                                initiateParams.selected_rent_schedule_ids = rawVal;
-                            }
+                    if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
+                        try {
+                            initiateParams.selected_rent_schedule_ids = JSON.parse(hiddenInput.value);
+                        } catch (e) {
+                            initiateParams.selected_rent_schedule_ids = hiddenInput.value;
                         }
                     }
                 }
