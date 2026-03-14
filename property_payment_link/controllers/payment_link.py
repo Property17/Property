@@ -3,10 +3,15 @@ import json
 from odoo import http, _, fields
 from odoo.http import request
 from odoo.addons.payment.controllers.portal import PaymentPortal
-
+from odoo.tools.misc import formatLang
 
 from odoo.exceptions import AccessError, MissingError, ValidationError
 from odoo.fields import Command
+
+try:
+    from babel.dates import format_date as babel_format_date
+except ImportError:
+    babel_format_date = None
 
 
 def _compute_unpaid_rent_schedules(tenancy):
@@ -49,8 +54,19 @@ def _compute_tenancy_invoices_props(tenancy):
     }
 
 
+def _format_period_month_year(date_val):
+    """Format date as month-year (e.g. January-2026) to match PDF receipt."""
+    if not date_val:
+        return ''
+    if babel_format_date:
+        return babel_format_date(date_val, format='MMMM-y', locale='en')
+    return date_val.strftime('%B-%Y') if hasattr(date_val, 'strftime') else str(date_val)
+
+
 def _compute_tenancy_payments_props(tenancy, company_image_url):
-    """Build payment receipt data for OWL component (kept for modal View) and server-side rendering."""
+    """Build payment receipt data for OWL component (kept for modal View) and server-side rendering.
+    Field names and formatting aligned with Rent Collection Receipt PDF (ايصال تحصيل ايجار)."""
+    env = request.env
     paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
     tenancy_lines = {}
     tenancy_payments_list = []  # Flat list for server-side QWeb (avoids OWL duplication)
@@ -60,6 +76,16 @@ def _compute_tenancy_payments_props(tenancy, company_image_url):
         content = widget.get('content', [])
         first_payment = content[0] if content else {}
         paid_amount = first_payment.get('amount', 0)
+        currency = inv.currency_id or tenancy.company_id.currency_id
+        # Collector name (اسم المحصل) from account.payment
+        collector_name = ''
+        payment_id = first_payment.get('account_payment_id')
+        if payment_id:
+            payment = env['account.payment'].sudo().browse(payment_id)
+            if payment.exists():
+                collector_name = (payment.create_uid.name or '') if payment.create_uid else ''
+        ref = first_payment.get('ref', '') or ''
+        residual = inv.amount_residual
         line_data = {
             'rent_schedule_id': rs.id,
             'payment_id': str(content),
@@ -67,6 +93,7 @@ def _compute_tenancy_payments_props(tenancy, company_image_url):
             'invoice_id': inv.id,
             'invoice_token': inv.access_token,
             'invoice_name': inv.name,
+            'receipt_number': inv.name,
             'payment_link_report_url': (
                 '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s'
                 % (inv.id, inv.access_token)
@@ -76,23 +103,34 @@ def _compute_tenancy_payments_props(tenancy, company_image_url):
             'tenancy_name': tenancy.name,
             'invoice_due_date': str(inv.invoice_date_due),
             'invoice_amount': rs.amount,
+            'invoice_amount_formatted': formatLang(env, rs.amount, currency_obj=currency),
             'customer_name': tenancy.tenant_id.name,
             'unit': tenancy.property_id.name,
             'unit_serial_number': tenancy.property_id.auto_add_no or '',
+            'period_formatted': _format_period_month_year(rs.start_date),
             'paid_amount': str(paid_amount),
+            'paid_amount_formatted': formatLang(env, paid_amount, currency_obj=currency),
             'paid_amount_words': tenancy.change_amount_to_word(paid_amount, 'ar_001'),
-            'residual_amount': inv.amount_residual,
+            'residual_amount': residual,
+            'residual_amount_formatted': formatLang(env, residual, currency_obj=currency),
             'payment_transaction_id': str(first_payment.get('date', '')),
             'payment_method': str(first_payment.get('payment_method_name', '')),
-            'reference_number': str(first_payment.get('ref', '')),
+            'reference_number': ref,
+            'payment_details': ref,
+            'collector_name': collector_name,
         }
         tenancy_lines[rs.id] = [line_data]
         tenancy_payments_list.append(line_data)
+    company = tenancy.company_id
+    company_name = company.name or ''
+    company_location = company.country_id.name if company and company.country_id else ''
     return {
         'tenancy_lines': tenancy_lines,
         'tenancy_payments_list': tenancy_payments_list,
         'tenancy_payments_json': json.dumps(tenancy_payments_list),
         'company_image_url': company_image_url,
+        'company_name': company_name,
+        'company_location': company_location,
     }
 
 

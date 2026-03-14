@@ -80,18 +80,29 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
         const scheduleId = parseInt(ev.currentTarget.getAttribute('data-schedule-id'), 10);
         const line = this.receiptData.find(function (l) { return l.rent_schedule_id === scheduleId; });
         if (!line) return;
-        const ids = ['modal_tenancy_name', 'modal_invoice_name', 'modal_invoice_due_date', 'modal_invoice_amount',
-            'modal_customer_name', 'modal_unit', 'modal_tenant_date', 'modal_unit_serial_number',
-            'modal_paid_amount', 'modal_paid_amount_words', 'modal_residual_amount', 'modal_payment_date',
-            'modal_reference_number', 'modal_payment_method'];
-        const keys = ['tenancy_name', 'invoice_name', 'invoice_due_date', 'invoice_amount',
-            'customer_name', 'unit', 'date', 'unit_serial_number',
-            'paid_amount', 'paid_amount_words', 'residual_amount', 'payment_date',
-            'reference_number', 'payment_method'];
-        for (let i = 0; i < ids.length; i++) {
-            const el = document.getElementById(ids[i]);
-            if (el) el.textContent = line[keys[i]] || '';
-        }
+        // Map modal element ids to data keys (aligned with PDF Rent Collection Receipt)
+        const mapping = [
+            ['modal_receipt_number', line.receipt_number || line.invoice_name],
+            ['modal_tenancy_name', line.tenancy_name],
+            ['modal_invoice_due_date', line.invoice_due_date],
+            ['modal_unit', line.unit],
+            ['modal_unit_serial_number', line.unit_serial_number],
+            ['modal_customer_name', line.customer_name],
+            ['modal_period_formatted', line.period_formatted || line.date],
+            ['modal_paid_amount_words', line.paid_amount_words],
+            ['modal_rental_value', line.invoice_amount_formatted || line.invoice_amount],
+            ['modal_paid_amount', line.paid_amount_formatted || line.paid_amount],
+            ['modal_paid_amount_words_2', line.paid_amount_words],
+            ['modal_residual_amount', line.residual_amount_formatted != null ? line.residual_amount_formatted : (line.residual_amount != null ? String(line.residual_amount) : '0.00')],
+            ['modal_payment_date', line.payment_date],
+            ['modal_payment_method', line.payment_method],
+            ['modal_payment_details', line.payment_details || line.reference_number],
+            ['modal_collector_name', line.collector_name],
+        ];
+        mapping.forEach(function (pair) {
+            const el = document.getElementById(pair[0]);
+            if (el) el.textContent = pair[1] != null && pair[1] !== '' ? String(pair[1]) : '';
+        });
     },
 });
 

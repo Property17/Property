@@ -148,20 +148,29 @@
                                                             <img class="d-inline-block" t-att-src="tenancy_payments_props.get('company_image_url', '')" alt="Company logo" style="max-width: 150px; height: auto;"/>
                                                         </div>
                                                     </div>
+                                                    <div class="row mb-2" dir="rtl">
+                                                        <div class="col-12 text-center">
+                                                            <p class="mb-0 fw-bold" t-esc="tenancy_payments_props.get('company_name', '')"/>
+                                                            <p class="mb-0 text-muted" t-esc="tenancy_payments_props.get('company_location', '')"/>
+                                                        </div>
+                                                    </div>
                                                     <h4 class="text-center">Payment Receipt: ايصال الدفع</h4>
                                                     <div class="table-table border-1 mt-3">
                                                         <table class="table table-sm" dir="rtl">
                                                             <tbody>
-                                                                <tr><td class="text-end"><strong>رقم العقد</strong></td><td class="text-center" id="modal_tenancy_name"></td><td class="text-end"><strong>رقم الفاتورة</strong></td><td class="text-center" id="modal_invoice_name"></td></tr>
-                                                                <tr><td class="text-end"><strong>تاريخ الاستحقاق</strong></td><td class="text-center" id="modal_invoice_due_date"></td><td class="text-end"><strong>قيمة الفاتورة</strong></td><td class="text-center" id="modal_invoice_amount"></td></tr>
-                                                                <tr><td class="text-end"><strong>اسم العميل</strong></td><td class="text-center" id="modal_customer_name" colspan="3"></td></tr>
-                                                                <tr><td class="text-end"><strong>الوحدة</strong></td><td class="text-center" id="modal_unit" colspan="3"></td></tr>
-                                                                <tr><td class="text-end"><strong>عن الفترة</strong></td><td class="text-center" id="modal_tenant_date"></td><td class="text-end"><strong>الرقم الالي للوحدة</strong></td><td class="text-center" id="modal_unit_serial_number"></td></tr>
-                                                                <tr><td class="text-end"><strong>القيمة المدفوعة</strong></td><td class="text-center" id="modal_paid_amount"></td><td class="text-end"><strong>المبلغ بالحروف</strong></td><td class="text-center" id="modal_paid_amount_words"></td></tr>
-                                                                <tr><td class="text-end"><strong>تاريخ الدفع</strong></td><td class="text-center" id="modal_payment_date"></td><td class="text-end"><strong>القيمة المتبقية</strong></td><td class="text-center" id="modal_residual_amount"></td></tr>
-                                                                <tr><td class="text-end"><strong>رقم المرجع</strong></td><td class="text-center" id="modal_reference_number"></td><td class="text-end"><strong>طريقة الدفع</strong></td><td class="text-center" id="modal_payment_method"></td></tr>
+                                                                <tr><td class="text-end"><strong>رقم الايصال</strong></td><td class="text-center" id="modal_receipt_number"></td><td class="text-end"><strong>رقم العقد</strong></td><td class="text-center" id="modal_tenancy_name"></td><td class="text-end"><strong>تاريخ الاستحقاق</strong></td><td class="text-center" id="modal_invoice_due_date"></td></tr>
+                                                                <tr><td class="text-end"><strong>رقم الوحدة</strong></td><td class="text-center" id="modal_unit" colspan="3"></td><td class="text-end"><strong>الرقم الالي</strong></td><td class="text-center" id="modal_unit_serial_number"></td></tr>
+                                                                <tr><td class="text-end"><strong>وصلنا من السيد</strong></td><td class="text-center" id="modal_customer_name" colspan="5"></td></tr>
+                                                                <tr><td class="text-end"><strong>عن الفترة</strong></td><td class="text-center" id="modal_period_formatted"></td><td class="text-end"><strong>ملاحظات</strong></td><td class="text-center" id="modal_paid_amount_words"></td><td class="text-end"><strong>القيمة الايجارية</strong></td><td class="text-center" id="modal_rental_value"></td></tr>
+                                                                <tr><td class="text-end"><strong>المبلغ المدفوع</strong></td><td class="text-center" id="modal_paid_amount"></td><td colspan="2" class="text-center" id="modal_paid_amount_words_2"></td><td class="text-end"><strong>القيمة المتبقية</strong></td><td class="text-center" id="modal_residual_amount"></td></tr>
+                                                                <tr><td class="text-end"><strong>تاريخ الدفع</strong></td><td class="text-center" id="modal_payment_date"></td><td class="text-end"><strong>طريقة الدفع</strong></td><td class="text-center" id="modal_payment_method"></td><td class="text-end"><strong>تفاصيل الدفع</strong></td><td class="text-center" id="modal_payment_details"></td></tr>
+                                                                <tr><td class="text-end"><strong>اسم المحصل</strong></td><td class="text-center" id="modal_collector_name" colspan="5"></td></tr>
                                                             </tbody>
                                                         </table>
+                                                    </div>
+                                                    <div class="mt-4 pt-3 border-top" style="direction: rtl; text-align: center;">
+                                                        <p class="mb-1 small text-muted">لا يعتبر الايصال صالحا مالم يكن مختوما وموقعا من قبل الشركة</p>
+                                                        <p class="mb-0 small text-muted">هذا الايصال اثبات بالدفع فقط ولا يعتد به في تحديد القيمة الايجارية . يعتبر هذا الايصال لاغي في حالة عدم تحصيل الشيك</p>
                                                     </div>
                                                 </div>
                                             </div>
