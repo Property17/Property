@@ -491,6 +491,20 @@ class MyfatoorahController(http.Controller):
 
         print("aaaaaaaaaaassssssssssssssssssfffffffffffffffffffffffffffffffffff sending request",payload)
         response = requests.post(url,  json=payload, headers=headers)
+
+        # Try to store provider reference (InvoiceId) on the transaction for traceability
+        try:
+            resp_json = response.json()
+        except ValueError:
+            resp_json = {}
+        invoice_id = None
+        if isinstance(resp_json, dict):
+            data_section = resp_json.get('Data') or {}
+            invoice_id = data_section.get('InvoiceId')
+        if transaction and invoice_id:
+            # Store MyFatoorah invoice id on the payment transaction (Provider Reference field)
+            transaction.sudo().write({'provider_reference': invoice_id})
+
         return {
             "success" : True,
             "status_code" : 200,
