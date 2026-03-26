@@ -47,7 +47,11 @@ class PropertyPaymentLink(models.Model):
     # Direct fields
     last_sent_date = fields.Datetime(string="Last Sent Date", tracking=True)
     last_login_date = fields.Datetime(string="Last Login Date", tracking=True)
-    tenant_url = fields.Char(tracking=True)
+    tenant_url = fields.Char(
+        tracking=True,
+        compute="_compute_tenant_url",
+        store=False,
+    )
     access_url = fields.Char(compute='_compute_access_url', tracking=True)
     has_sent_payment_link = fields.Boolean(string="Has Sent Payment Link", default=False)
 
@@ -103,6 +107,16 @@ class PropertyPaymentLink(models.Model):
             else:
                 link.multi_properitis = False
 
+    @api.depends("tenancy_id")
+    def _compute_tenant_url(self):
+        """Always compute the latest portal URL for this link.
+
+        This prevents users from opening an old/stale stored URL that no longer matches
+        the current `access_token` on the record.
+        """
+        for link in self:
+            link.tenant_url = link.get_portal_url()
+
     def _compute_access_url(self):
         super()._compute_access_url()
         for link in self:
@@ -144,12 +158,14 @@ class PropertyPaymentLink(models.Model):
 
     def create_payment_link_message(self):
         for link in self:
-            link.tenant_url = link.get_portal_url()
+            # tenant_url is computed; keep method for backward compatibility.
+            link._compute_tenant_url()
 
     def send_payment_link(self):
         """Open WhatsApp composer to send payment link to tenant via WhatsApp (with template selection)"""
         self.ensure_one()
-        self.tenant_url = self.get_portal_url()
+        # tenant_url is computed; keep method for backward compatibility.
+        self._compute_tenant_url()
         self.last_sent_date = fields.Datetime.now()
         self.write({'has_sent_payment_link': True})
 
@@ -208,7 +224,7 @@ class PropertyPaymentLink(models.Model):
             ) % ', '.join(records_without_phone.mapped('name')))
 
         for link in self:
-            link.tenant_url = link.get_portal_url()
+            link._compute_tenant_url()
         self.write({'last_sent_date': fields.Datetime.now()})
         self.write({'has_sent_payment_link': True})
         wa_template = self.env['whatsapp.template']._find_default_for_model('property.payment.link')
