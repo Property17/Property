@@ -107,7 +107,7 @@ class PropertyPaymentLink(models.Model):
             else:
                 link.multi_properitis = False
 
-    @api.depends("tenancy_id")
+    @api.depends('tenancy_id', 'access_token')
     def _compute_tenant_url(self):
         """Always compute the latest portal URL for this link.
 
@@ -117,21 +117,35 @@ class PropertyPaymentLink(models.Model):
         for link in self:
             link.tenant_url = link.get_portal_url()
 
+    @api.depends('tenancy_id')
     def _compute_access_url(self):
         super()._compute_access_url()
         for link in self:
-            path = '/tenancy_payment_link/tenant_partner/%s' % (link.tenancy_id.id)
-            base_url = link.get_base_url().rstrip('/') if link.tenancy_id else ''
-            link.access_url = base_url + path if base_url else path
+            if not link.tenancy_id:
+                link.access_url = '#'
+                continue
+            path = '/tenancy_payment_link/tenant_partner/%s' % link.tenancy_id.id
+            base = link.get_base_url()
+            base_url = (base or '').rstrip('/') if isinstance(base, str) else ''
+            link.access_url = (base_url + path) if base_url else path
 
     def get_portal_url(self, suffix=None, report_type=None, download=None, query_string=None, anchor=None):
         """Override to add db param so link works when opened logged out (no session)."""
-        url = super().get_portal_url(
-            suffix=suffix,
-            report_type=report_type,
-            download=download,
-            query_string=query_string,
-            anchor=anchor,
+        self.ensure_one()
+        # portal.mixin uses self.access_url + str; Char can be False before _compute_access_url runs.
+        access_base = self.access_url
+        if not isinstance(access_base, str):
+            self._compute_access_url()
+            access_base = self.access_url
+        if not isinstance(access_base, str):
+            access_base = '#'
+        url = access_base + '%s?access_token=%s%s%s%s%s' % (
+            suffix if suffix else '',
+            self._portal_ensure_token(),
+            '&report_type=%s' % report_type if report_type else '',
+            '&download=true' if download else '',
+            query_string if query_string else '',
+            '#%s' % anchor if anchor else '',
         )
         dbname = None
         try:
