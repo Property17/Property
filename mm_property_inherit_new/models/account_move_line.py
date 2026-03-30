@@ -16,15 +16,15 @@ class AccountMoveLine(models.Model):
         payment moves get tenancy analytic from account.payment when not deposit receive.
         """
         for line in self:
-            payment = line.move_id.payment_id
+            # Prefer the direct payment_id on the line (stored related) in case
+            # the move/payment link isn't written yet.
+            payment = getattr(line, 'payment_id', False) or line.move_id.payment_id
             if not payment:
                 continue
             tenancy = getattr(payment, 'tenancy_id', False)
             if not tenancy:
                 continue
             if getattr(payment, 'is_deposit_receive', False):
-                continue
-            if line.credit <= 0:
                 continue
             updates = {}
             if not line.analytic_account_id:
@@ -54,8 +54,6 @@ class AccountMove(models.Model):
             if getattr(payment, 'is_deposit_receive', False):
                 continue
             for line in move.line_ids:
-                if line.credit <= 0:
-                    continue
                 updates = {}
                 if not line.analytic_account_id:
                     updates['analytic_account_id'] = payment.tenancy_id.id
