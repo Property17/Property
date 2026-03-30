@@ -7,4 +7,5 @@ from . import contract_template
 from . import contract
 from . import discount
 from . import general_ledger_custom
+from . import account_move_line
 
