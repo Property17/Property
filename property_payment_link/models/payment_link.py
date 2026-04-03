@@ -39,7 +39,7 @@ class PropertyPaymentLink(models.Model):
          ('cancelled', 'Cancelled')],
         related='tenancy_id.state', string="Tenancy Status", store=False)
     flexible_payment = fields.Boolean(related='tenancy_id.flexible_payment', string="Flexible Payment", store=False)
-    block_payment = fields.Boolean(compute='_compute_block_payment', string="Block Payments", store=False)
+    block_payment = fields.Boolean(related='tenancy_id.is_blocked', string="Block Payments", store=False)
     # Computed fields
     multi_properitis = fields.Char(compute='_compute_multi_properties', string="Properties", store=False)
     total_amount_due = fields.Float(compute='_compute_total_amount_due', string="Total Amount Due", store=False)
@@ -84,11 +84,6 @@ class PropertyPaymentLink(models.Model):
             else:
                 link.total_amount_due = 0.0
 
-    @api.depends('flexible_payment')
-    def _compute_block_payment(self):
-        """Compute block_payment as inverse of flexible_payment"""
-        for link in self:
-            link.block_payment = not link.flexible_payment
 
     @api.depends('property_id')
     def _compute_multi_properties(self):
