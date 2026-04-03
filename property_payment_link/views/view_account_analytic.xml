@@ -6,6 +6,12 @@
         <field name="model">account.analytic.account</field>
         <field name="inherit_id" ref="property_management.property_analytic_view_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_view_payment_links" string="Tenant Payment Link" type="object"
+                    icon="fa-link" class="btn-secondary"
+                    invisible="state != 'open'"
+                    help="Create or open the portal payment link for this tenancy (calls create_payment_link if none exists)."/>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_payment_links" type="object"
                     class="oe_stat_button" icon="fa-link"

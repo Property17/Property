@@ -17,6 +17,7 @@ class PropertyPaymentLink(models.Model):
     _description = 'Property Payment Link'
     _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
     _rec_name = 'name'
+    _order = 'id desc'
 
     name = fields.Char(compute='_compute_name', string="Name", store=True, readonly=True)
     tenancy_id = fields.Many2one('account.analytic.account', string="Tenancy", required=True, tracking=True)
@@ -337,13 +338,17 @@ class AccountMove(models.Model):
     def action_view_payment_links(self):
         """Open payment links for this tenancy. Create one if none exists."""
         self.ensure_one()
+        form_view = self.env.ref(
+            'property_payment_link.tenant_payment_link_view_form',
+            raise_if_not_found=False,
+        )
         payment_link = self.env['property.payment.link'].search([
             ('tenancy_id', '=', self.id)
         ], limit=1)
         if not payment_link:
             payment_link = self.create_payment_link()
         if payment_link:
-            return {
+            action_vals = {
                 'type': 'ir.actions.act_window',
                 'name': _('Link Payment'),
                 'res_model': 'property.payment.link',
@@ -355,6 +360,9 @@ class AccountMove(models.Model):
                     'default_company_id': self.company_id.id if self.company_id else self.env.company.id,
                 },
             }
+            if form_view:
+                action_vals['views'] = [(form_view.id, 'form')]
+            return action_vals
         action = self.env.ref(
             'property_payment_link.action_tenant_payment_link_view',
             raise_if_not_found=False
@@ -376,6 +384,39 @@ class AccountMove(models.Model):
         for tenancy in self:
             tenancy.create_payment_link()
         return res
+
+    def action_create_payment_links_batch(self):
+        """Create portal payment link for each selected property tenancy; skip if a link already exists."""
+        tenancies = self.filtered('is_property')
+        PaymentLink = self.env['property.payment.link']
+        created = 0
+        skipped = 0
+        for tenancy in tenancies:
+            if PaymentLink.search([('tenancy_id', '=', tenancy.id)], limit=1):
+                skipped += 1
+            else:
+                tenancy.create_payment_link()
+                created += 1
+        ignored = len(self) - len(tenancies)
+        parts = []
+        if created:
+            parts.append(_('%s payment link(s) created') % created)
+        if skipped:
+            parts.append(_('%s tenancy(ies) already had a link') % skipped)
+        if ignored:
+            parts.append(_('%s record(s) skipped (not a property tenancy)') % ignored)
+        if not parts:
+            parts.append(_('Nothing to do.'))
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Tenant payment links'),
+                'message': ' '.join(parts),
+                'type': 'success' if created else 'info',
+                'sticky': False,
+            },
+        }
 
     def create_payment_link(self):
         """Create a property.payment.link record for this tenancy"""
