@@ -372,6 +372,11 @@ class PropertyPaymentLink(PaymentPortal):
     def tenancy_transaction(self, tenancy_id, access_token=None, selected_rent_schedule_ids=None, **kwargs):
         """Create a transaction for selected invoices in a tenancy"""
         tenancy = request.env['account.analytic.account'].sudo().browse(tenancy_id)
+        # Do not create transactions for blocked tenancies.
+        if tenancy.is_blocked or tenancy.state == 'blocked':
+            raise ValidationError(_(
+                "Payments are blocked for this tenancy. Please contact the property manager."
+            ))
         
         # Check if selected_rent_schedule_ids is in kwargs (might be passed there instead)
         if not selected_rent_schedule_ids and 'selected_rent_schedule_ids' in kwargs:

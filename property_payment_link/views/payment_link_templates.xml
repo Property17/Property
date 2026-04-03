@@ -87,9 +87,19 @@
                                 </table>
                             </div>
                             <t t-if="unpaid_rent_schedules and len(unpaid_rent_schedules) > 0">
-                                <a href="#" class="btn btn-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#payment_method">
-                                    <i class="fa fa-fw fa-arrow-circle-right"/> Pay
-                                </a>
+                                <t t-if="tenancy.is_blocked or tenancy.state == 'blocked'">
+                                    <button type="button" class="btn btn-secondary w-100 mt-2" disabled="disabled">
+                                        <i class="fa fa-fw fa-ban"/> Pay
+                                    </button>
+                                    <div class="alert alert-warning mt-2 mb-0">
+                                        <t>Payments are blocked for this tenancy. Please contact the property manager.</t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <a href="#" class="btn btn-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#payment_method">
+                                        <i class="fa fa-fw fa-arrow-circle-right"/> Pay
+                                    </a>
+                                </t>
                             </t>
                             <t t-else="">
                                 <button type="button" class="btn btn-secondary w-100 mt-2" disabled="disabled">
