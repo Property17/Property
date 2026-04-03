@@ -25,8 +25,9 @@
                     <div class="row">
                         <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
                         <div class="col-12 col-md-4 order-1 order-md-2 mb-3 mb-md-0">
-                            <div class="payment-link-company-logo">
-                                <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo" class="mx-auto d-block img-thumbnail"/>
+                            <div class="payment-link-company-logo mx-auto mx-md-0 text-center text-md-end">
+                                <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo"
+                                    class="img-fluid img-thumbnail payment-link-company-logo__img"/>
                             </div>
                         </div>
                         <div class="col-12 col-md-8 order-2 order-md-1">

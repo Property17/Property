@@ -1,5 +1,46 @@
-// Payment Link Details - Mobile responsive styles
+// Payment Link Details - Company logo (all viewports; prevents huge res logos on desktop)
 .payment-link-detail-container {
+    .payment-link-company-logo {
+        display: block;
+        max-width: 100%;
+
+        .payment-link-company-logo__img,
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+            height: auto;
+            // Native CSS min(); unquote so Sass does not evaluate (px vs % is invalid in Sass min())
+            max-width: unquote("min(200px, 100%)");
+            max-height: 100px;
+            object-fit: contain;
+            object-position: center;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .payment-link-company-logo {
+            .payment-link-company-logo__img,
+            img {
+                max-width: unquote("min(220px, 100%)");
+                max-height: 120px;
+                margin-left: auto;
+                margin-right: 0;
+            }
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .payment-link-company-logo {
+            .payment-link-company-logo__img,
+            img {
+                max-width: unquote("min(180px, 75vw)");
+                max-height: 90px;
+            }
+        }
+    }
+
     @media (max-width: 767.98px) {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
@@ -65,11 +106,6 @@
                     font-size: 0.9rem;
                 }
             }
-        }
-
-        .payment-link-company-logo img {
-            max-width: 120px;
-            max-height: 120px;
         }
 
         .payment-link-actions {
