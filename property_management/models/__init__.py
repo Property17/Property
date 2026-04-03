@@ -7,5 +7,6 @@ from . import property
 from . import tenant_partner
 from . import tenancy_rent_schedule
 from . import account
+from . import payment_transaction
 from . import crm_lead
 from . import sale

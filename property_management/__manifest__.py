@@ -17,6 +17,7 @@
         'analytic',
         'sale_crm',
         'account',
+        'account_payment',
     ],
     'data': [
         'data/data_sequence_property.xml',

@@ -275,6 +275,7 @@ class AccountPaymentInhNew(models.Model):
         if not tenancy:
             invoices = self.env['account.move']
             tx = self.payment_transaction_id
+            self.sudo().compute_mm_move_id()
             if tx:
                 # Same invoice resolution as account_payment payment.transaction._create_payment
                 if tx.source_transaction_id and tx.operation == tx.source_transaction_id.operation:

@@ -256,22 +256,15 @@ class AccountPaymentRegister(models.TransientModel):
     
     
     def _create_payments(self):
-        
-        """Override to add logic for updating payment_journal_id and paid_date."""
-        result = super(AccountPaymentRegister, self)._create_payments()
-        # Update the related `account.move` record
-        for record in self:
-            if record.invoice_id:
-                # Update payment_journal_id with the journal_id
-                record.invoice_id.payment_journal_id = record.journal_id.id
-                # Update paid_date with the date
-                record.invoice_id.paid_date = record.payment_date
-                record.invoice_id.payment_method_line_id = record.payment_method_line_id.id
-                record.invoice_id.invoice_user_id = self.env.user.id
-                record.invoice_id.payment_reference = record.communication
-                # record.mm_move_id
+        """After posting and reconciliation, sync invoice fields from payments.
 
-        return result    
+        Register-payment wizard used to update only ``invoice_id`` on the wizard; online
+        payments (e.g. payment providers) never run ``_onchange_mm_move_id`` on the payment
+        form, so ``payment_reference`` / ``paid_date`` stayed empty on the invoice.
+        """
+        result = super(AccountPaymentRegister, self)._create_payments()
+        result._property_sync_customer_invoices_from_payment()
+        return result
      
         
 
@@ -375,6 +368,36 @@ class AccountPayment(models.Model):
     #     else:
     #         self.mm_move_id  = False
     
+    def _property_sync_customer_invoices_from_payment(self):
+        """Copy payment display fields onto reconciled customer invoices (UI onchange only did this)."""
+        for pay in self:
+            if pay.payment_type != 'inbound':
+                continue
+            pay.invalidate_recordset(['reconciled_invoice_ids'])
+            invoices = pay.reconciled_invoice_ids.filtered(
+                lambda m: m.is_invoice(include_receipts=True) and m.move_type in ('out_invoice', 'out_refund')
+            )
+            if not invoices:
+                continue
+            ref = (pay.ref or pay.name or '').strip()
+            collector = getattr(pay, 'user_id', False) or pay.create_uid
+            for inv in invoices:
+                vals = {}
+                if ref and not (inv.payment_reference or '').strip():
+                    vals['payment_reference'] = ref
+                    if collector:
+                        vals['invoice_user_id'] = collector.id
+                if pay.date and not inv.paid_date:
+                    vals['paid_date'] = pay.date
+                if pay.payment_method_line_id and not inv.payment_method_line_id:
+                    vals['payment_method_line_id'] = pay.payment_method_line_id.id
+                if pay.journal_id and not inv.payment_journal_id:
+                    vals['payment_journal_id'] = pay.journal_id.id
+                if collector and not inv.invoice_user_id and 'invoice_user_id' not in vals:
+                    vals['invoice_user_id'] = collector.id
+                if vals:
+                    inv.write(vals)
+
     @api.onchange('mm_move_id')
     def _onchange_mm_move_id(self):
         """
