@@ -14,6 +14,19 @@ except ImportError:
     babel_format_date = None
 
 
+def _public_company_logo_url(company):
+    """Return a company logo URL that works for anonymous portal visitors.
+
+    ``/web/image?model=res.company&field=logo`` checks record rules; public users often get
+    AccessError and Odoo serves the grey placeholder (broken image on mobile/desktop).
+    Core ``/logo?company=`` (``web.controllers.binary.company_logo``) reads ``logo_web`` with
+    ``auth=none`` and is intended for unauthenticated pages.
+    """
+    if not company:
+        return ''
+    return '/logo?company=%s' % int(company.id)
+
+
 def _compute_unpaid_rent_schedules(tenancy):
     return tenancy.rent_schedule_ids.filtered(
         lambda rs: rs.move_check and not rs.paid
@@ -153,7 +166,7 @@ class PropertyPaymentLink(PaymentPortal):
         if not tenancy_record.exists():
             raise request.not_found()
         payment_link.write({'last_login_date': fields.Datetime.now()})
-        company_image_url = '/web/image?model=res.company&id=%s&field=logo' % tenancy_record.company_id.id
+        company_image_url = _public_company_logo_url(tenancy_record.company_id)
         # Get all unpaid invoices from rent schedules
         tenancy_account_move = tenancy_record.rent_schedule_ids.filtered(lambda rs: rs.move_check and not rs.paid).mapped('invoice_id')
         # Ensure portal tokens exist for all invoices
