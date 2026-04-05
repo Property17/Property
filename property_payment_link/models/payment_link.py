@@ -11,6 +11,14 @@ except ImportError:
     _logger.warning("The num2words python library is not installed, amount-to-text features won't be fully available.")
     num2words = None
 
+# If non-empty, tenant / portal URLs for property.payment.link always use this origin (no trailing slash).
+# Overrides ir.config_parameter "property_payment_link.portal_base_url" and changing web.base.url.
+# Example: _PAYMENT_LINK_PORTAL_BASE_URL = 'https://lusailpearlgroub.com'
+_PAYMENT_LINK_PORTAL_BASE_URL = ''
+
+# System parameter key (Settings > Technical > System Parameters) when the constant above is empty.
+_PAYMENT_LINK_PORTAL_BASE_URL_PARAM = 'property_payment_link.portal_base_url'
+
 
 class PropertyPaymentLink(models.Model):
     _name = 'property.payment.link'
@@ -55,6 +63,28 @@ class PropertyPaymentLink(models.Model):
     )
     access_url = fields.Char(compute='_compute_access_url', tracking=True)
     has_sent_payment_link = fields.Boolean(string="Has Sent Payment Link", default=False)
+
+    def get_base_url(self):
+        """Public origin for tenant links: fixed URL if configured, else standard Odoo (web.base.url / website).
+
+        Odoo may overwrite ``web.base.url`` when an admin logs in via an IP or alternate host unless
+        ``web.base.url.freeze`` is set. Use this method (via constant or ICP) so payment links stay canonical.
+        """
+        if len(self) > 1:
+            raise ValueError("Expected singleton or no record: %s" % self)
+        url = ''
+        if isinstance(_PAYMENT_LINK_PORTAL_BASE_URL, str) and _PAYMENT_LINK_PORTAL_BASE_URL.strip():
+            url = _PAYMENT_LINK_PORTAL_BASE_URL.strip().rstrip('/')
+        if not url:
+            url = (
+                self.env['ir.config_parameter']
+                .sudo()
+                .get_param(_PAYMENT_LINK_PORTAL_BASE_URL_PARAM)
+                or ''
+            ).strip().rstrip('/')
+        if url:
+            return url
+        return super().get_base_url()
 
     @api.depends('tenancy_id', 'tenant_id')
     def _compute_name(self):

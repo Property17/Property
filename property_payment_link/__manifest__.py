@@ -23,6 +23,7 @@ Long description of module's purpose
     # always loaded
     'data': [
         'data/whatsapp_template_action.xml',
+        'data/payment_link_portal_base_url.xml',
         'data/tenancy_payment_link_server_action.xml',
         'security/ir.model.access.csv',
         'views/payment_link.xml',

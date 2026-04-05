@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Canonical public URL for tenant payment links (ignores auto-changing web.base.url).
+         Edit in Settings > Technical > System Parameters: property_payment_link.portal_base_url
+         noupdate: module upgrades do not overwrite your value. -->
+    <data noupdate="1">
+        <record id="property_payment_link_portal_base_url" model="ir.config_parameter">
+            <field name="key">property_payment_link.portal_base_url</field>
+            <field name="value">https://lusailpearlgroub.com</field>
+        </record>
+    </data>
+</odoo>
