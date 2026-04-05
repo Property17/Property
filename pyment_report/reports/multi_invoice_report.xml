@@ -27,6 +27,8 @@
         <template id="mm_multi_invoice_report">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="doc1" >
+                    <t t-set="o" t-value="doc1['move']"/>
+                    <t t-set="company" t-value="o.company_id.sudo() if o.company_id else res_company"/>
                     <t t-call="web.external_layout">
                         <div class="page">
                             <div>

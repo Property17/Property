@@ -67,10 +67,10 @@ class InvReportView(models.AbstractModel):
                 payment_details = move.payment_reference or getattr(move, 'cheque_detail', '') or ''
                 if not payment_details and first_widget_line:
                     payment_details = first_widget_line.get('ref') or ''
-                # print("move.name", move.name)
-                # print("move.invoice_date", move.invoice_date)
-                # print("tenancy.tenancy_id.code", tenancy.tenancy_id.code)
+                # Pass the move on each doc so web.external_layout can set company/logo from
+                # move.company_id (portal PDF uses sudo(); env.company would be wrong).
                 docs.append({
+                    'move': move,
                     'property_manager': tenancy.tenancy_id.property_manager_id.name,
                     'company_st': tenancy.tenancy_id.property_manager_id.street,
                     'company_st2': tenancy.tenancy_id.property_manager_id.street2,
