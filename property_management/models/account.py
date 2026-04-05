@@ -379,7 +379,7 @@ class AccountPayment(models.Model):
             )
             if not invoices:
                 continue
-            ref = (pay.ref or pay.name or '').strip()
+            ref = (pay.payment_transaction_id.provider_reference if pay.payment_transaction_id.provider_reference else pay.ref or pay.name or '').strip()
             collector = getattr(pay, 'user_id', False) or pay.create_uid
             for inv in invoices:
                 vals = {}
