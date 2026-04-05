@@ -1,5 +1,8 @@
-// Payment Link Details - Company logo (all viewports; prevents huge res logos on desktop)
+// Payment Link Details — mobile scroll: avoid iOS jank from nested momentum scrolling + wide tables
 .payment-link-detail-container {
+    // Faster taps, less scroll gesture ambiguity with nested overflow regions
+    touch-action: manipulation;
+
     .payment-link-company-logo {
         display: block;
         max-width: 100%;
@@ -117,27 +120,45 @@
 
 }
 
-// Invoice table - mobile friendly (scoped to payment link container)
-.payment-link-detail-container .table-responsive {
-    -webkit-overflow-scrolling: touch;
+// Invoice / receipt tables — do not use -webkit-overflow-scrolling: touch on nested areas (iOS freeze/jank)
+.payment-link-detail-container .table-responsive,
+.payment-link-detail-container .payment-link-invoice-table,
+.payment-link-detail-container .payment-link-receipt-table {
+    // Keep horizontal pan inside the table strip; reduce scroll chaining with the page
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
 
     @media (max-width: 767.98px) {
         margin-left: -0.5rem;
         margin-right: -0.5rem;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+        // Prefer vertical page scroll; inner region handles horizontal only when needed
+        touch-action: pan-x pan-y;
 
         table {
             font-size: 0.8rem;
-            min-width: 500px; // Horizontal scroll for invoice columns
+            min-width: 0;
+            width: 100%;
+            table-layout: fixed;
         }
 
         th, td {
             padding: 0.4rem 0.3rem;
-            white-space: nowrap;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            vertical-align: top;
         }
 
         .oe_currency_value {
+            white-space: nowrap;
+        }
+
+        // Keep checkbox column from wrapping; text columns use word-break above
+        .payment-link-invoice-table th:first-child,
+        .payment-link-invoice-table td:first-child {
+            width: 2.75rem;
             white-space: nowrap;
         }
     }
@@ -166,7 +187,7 @@
 
         .table-table {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
         }
     }
 }
