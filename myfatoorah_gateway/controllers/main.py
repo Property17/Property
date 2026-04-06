@@ -470,8 +470,8 @@ class MyfatoorahController(http.Controller):
             "CallBackUrl": f"{odoo_base_url}/invoice_link/myfatoorah/process",
             "ErrorUrl": f"{odoo_base_url}/invoice_link/myfatoorah/process",
             "CustomerReference" : customer_reference,
-            "CustomerName": customer_data['name'] if customer_data['name'] else None,
-            "CustomerEmail": customer_data['email'] if customer_data['email'] else None,
+            "CustomerName": customer_data.get('name') if customer_data.get('name') else None,
+            "CustomerEmail": 'lucille.pearlku@gmail.com',
             "CustomerMobile": customer_data['phone'],
             "SourceInfo" : "Oddo 17 - MyFatoorah"
         }

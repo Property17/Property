@@ -121,7 +121,7 @@ class PaymentTransaction(models.Model):
             "InvoiceValue": processing_values['amount'],
             "NotificationOption": "LNK",
             # optional fields
-            "CustomerEmail": self.partner_email,  # Mandatory if the NotificationOption = EML or ALL
+            "CustomerEmail": 'lucille.pearlku@gmail.com',
             "CustomerAddress": {
                 "Block": "string",
                 "Street": "string",
