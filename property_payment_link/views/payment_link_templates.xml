@@ -23,7 +23,9 @@
                 </style>
                 <div class="container payment-link-detail-container" data-pl-version="0.3">
                     <div class="row">
-                        <p class="breadcrumb-item active col-12 payment-link-breadcrumb">Payment Link Details</p>
+                
+                        <h4 class="breadcrumb-item active col-12 payment-link-breadcrumb fw-bold"><strong>Payment
+                                Link Details</strong></h4>
                         <div class="col-12 col-md-4 order-1 order-md-2 mb-3 mb-md-0">
                             <div class="payment-link-company-logo mx-auto mx-md-0 text-center text-md-end">
                                 <img t-if="company_image_url" t-att-src="company_image_url" alt="Company Logo"
