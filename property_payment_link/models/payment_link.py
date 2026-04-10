@@ -31,10 +31,13 @@ class PropertyPaymentLink(models.Model):
     tenancy_id = fields.Many2one('account.analytic.account', string="Tenancy", required=True, tracking=True)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, tracking=True)
     
-    # Related fields from tenancy_id - no need for @api.depends, Odoo handles related fields automatically
-    property_manager_id = fields.Many2one(related='tenancy_id.property_manager_id', string="Property Manager", store=False)
-    property_id = fields.Many2one(related='tenancy_id.property_id', string="Property", store=False)
-    property_parent_id = fields.Many2one(related='property_id.parent_id', string="Property Parent", store=False)
+    # Related fields: store=True so search filters / list group-by work on this model.
+    property_manager_id = fields.Many2one(
+        related='tenancy_id.property_manager_id', string="Property Manager", store=True, readonly=True)
+    property_id = fields.Many2one(
+        related='tenancy_id.property_id', string="Property", store=True, readonly=True)
+    property_parent_id = fields.Many2one(
+        related='property_id.parent_id', string="Property Parent", store=True, readonly=True)
     tenant_id = fields.Many2one(related='tenancy_id.tenant_id', string="Tenant", store=False)
     tenant_phone = fields.Char(related='tenant_id.phone', string="Phone", store=False)
     tenancy_status = fields.Selection(
@@ -46,12 +49,15 @@ class PropertyPaymentLink(models.Model):
          ('close', 'Closed'),
          ('blocked', 'Blocked'),
          ('cancelled', 'Cancelled')],
-        related='tenancy_id.state', string="Tenancy Status", store=False)
-    flexible_payment = fields.Boolean(related='tenancy_id.flexible_payment', string="Flexible Payment", store=False)
-    block_payment = fields.Boolean(related='tenancy_id.is_blocked', string="Block Payments", store=False)
-    # Computed fields
-    multi_properitis = fields.Char(compute='_compute_multi_properties', string="Properties", store=False)
-    total_amount_due = fields.Float(compute='_compute_total_amount_due', string="Total Amount Due", store=False)
+        related='tenancy_id.state', string="Tenancy Status", store=True, readonly=True)
+    flexible_payment = fields.Boolean(
+        related='tenancy_id.flexible_payment', string="Flexible Payment", store=True, readonly=True)
+    block_payment = fields.Boolean(
+        related='tenancy_id.is_blocked', string="Block Payments", store=True, readonly=True)
+    # Computed fields (stored for search / group by)
+    multi_properitis = fields.Char(compute='_compute_multi_properties', string="Properties", store=True, readonly=True)
+    total_amount_due = fields.Float(
+        compute='_compute_total_amount_due', string="Total Amount Due", store=True, readonly=True)
     
     # Direct fields
     last_sent_date = fields.Datetime(string="Last Sent Date", tracking=True)

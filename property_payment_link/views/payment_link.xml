@@ -182,12 +182,57 @@
         </field>
     </record>
 
+    <!-- Search: filters (incl. Total Amount Due) + group by manager / parent / property / tenancy / flags -->
+    <record id="tenant_payment_link_view_search" model="ir.ui.view">
+        <field name="name">tenant.payment.link.view.search</field>
+        <field name="model">property.payment.link</field>
+        <field name="arch" type="xml">
+            <search string="Tenant Payment Link">
+                <field name="name"/>
+                <field name="tenancy_id"/>
+                <field name="tenant_id"/>
+                <field name="company_id"/>
+                <field name="property_manager_id"/>
+                <field name="property_parent_id"/>
+                <field name="property_id"/>
+                <field name="multi_properitis"/>
+                <field name="total_amount_due"/>
+                <separator/>
+                <filter string="With Amount Due" name="filter_total_amount_due_positive"
+                    domain="[('total_amount_due', '&gt;', 0)]"/>
+                <filter string="No Amount Due" name="filter_total_amount_due_zero"
+                    domain="[('total_amount_due', '=', 0)]"/>
+                <separator/>
+                <filter string="Flexible Payment" name="filter_flexible_payment"
+                    domain="[('flexible_payment', '=', True)]"/>
+                <filter string="Block Payments" name="filter_block_payment"
+                    domain="[('block_payment', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
+                    <filter string="Property Manager" name="group_property_manager"
+                        context="{'group_by': 'property_manager_id'}"/>
+                    <filter string="Property Parent" name="group_property_parent"
+                        context="{'group_by': 'property_parent_id'}"/>
+                    <filter string="Properties" name="group_property"
+                        context="{'group_by': 'property_id'}"/>
+                    <filter string="Tenancy Status" name="group_tenancy_status"
+                        context="{'group_by': 'tenancy_status'}"/>
+                    <filter string="Flexible Payment" name="group_flexible_payment"
+                        context="{'group_by': 'flexible_payment'}"/>
+                    <filter string="Block Payments" name="group_block_payment"
+                        context="{'group_by': 'block_payment'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <!--Action For Tenant Payment Link Views -->
     <record id="action_tenant_payment_link_view" model="ir.actions.act_window">
         <field name="name">Tenant Payment Link</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">property.payment.link</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="tenant_payment_link_view_search"/>
         <field name="view_ids" eval="[(5, 0, 0),
                                        (0, 0, {'view_mode': 'tree', 'view_id': ref('tenant_payment_link_view_tree')}),
                                        (0, 0, {'view_mode': 'form', 'view_id': ref('tenant_payment_link_view_form')})]"/>
@@ -205,6 +250,7 @@
         <field name="res_model">property.payment.link</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('has_sent_payment_link', '=', True)]</field>
+        <field name="search_view_id" ref="tenant_payment_link_view_search"/>
         <field name="view_ids" eval="[(5, 0, 0),
                                        (0, 0, {'view_mode': 'tree', 'view_id': ref('tenant_payment_link_sent_view_tree')}),
                                        (0, 0, {'view_mode': 'form', 'view_id': ref('tenant_payment_link_sent_view_form')})]"/>
