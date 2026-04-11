@@ -24,6 +24,20 @@ class MyfatoorahController(http.Controller):
         super(MyfatoorahController, self).__init__(*args, **kwargs)
         self.country_data = self._fetch_countries_data()
 
+    def _mf_exchange_list_text(self, provider):
+        """GET /v2/GetCurrenciesExchangeList using this provider's token (per-company)."""
+        country = provider.myfatoorah_country
+        state = provider.state
+        api_key = provider.myfatoorah_token
+        headers = {"Content-Type": "application/json", "Authorization": "Bearer " + api_key}
+        if state == 'enabled':
+            base_api_url = self.country_data[country]['v2']
+        else:
+            base_api_url = self.country_data[country]['testv2']
+        url = f"{base_api_url}/v2/GetCurrenciesExchangeList"
+        response = requests.get(url, headers=headers)
+        return response.text
+
     def _fetch_countries_data(self):
         url = "https://portal.myfatoorah.com/Files/API/mf-config.json"
         countries_response = requests.get(url, headers={"Content-Type":"application/json"})
@@ -181,21 +195,27 @@ class MyfatoorahController(http.Controller):
 
     @http.route("/invoice_link/myfatoorah/webhook", type='json', auth='public', methods=['GET', 'POST'], website=False)
     def invoice_link_myfatoorah_webhook(self, **data):
-        provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
-        secret_key = provider.myfatoorah_webhook
-        # Validate MyFatoorah-Signature
         mf_signature = http.request.httprequest.headers.get('MyFatoorah-Signature')
         if not mf_signature:
             return http.Response(status=404)
 
-        # Validate input
         body = http.request.httprequest.data
         input_data = json.loads(body)
         if not input_data.get('Data') or not input_data.get('EventType') or input_data.get('EventType') != 1:
             return http.Response(status=404)
 
-        #Validate Signature
-        if not self.is_signature_valid(input_data, secret_key, mf_signature, input_data.get('EventType')):
+        providers = http.request.env['payment.provider'].sudo().search([
+            ('code', '=', 'myfatoorah'),
+            ('myfatoorah_webhook', '!=', False),
+        ])
+        event_type = input_data.get('EventType')
+        for provider in providers:
+            secret_key = provider.myfatoorah_webhook
+            if secret_key and self.is_signature_valid(
+                input_data, secret_key, mf_signature, event_type
+            ):
+                break
+        else:
             return http.Response(status=404)
         return http.request.env['payment.transaction'].sudo()._handle_notification_data('myfatoorah', input_data)
 
@@ -227,7 +247,20 @@ class MyfatoorahController(http.Controller):
 
     @http.route("/payment/myfatoorah/initiate-session",  type='json', auth='public', methods=['GET', 'POST'], website=False)
     def myfatoorah_initiate_session(self, **data):
-        provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
+        params = {}
+        if http.request.httprequest.data:
+            try:
+                request_data = json.loads(http.request.httprequest.data.decode('utf-8'))
+                params = request_data.get('params') or {}
+            except (ValueError, UnicodeDecodeError):
+                pass
+        company = self._mf_resolve_company_for_mf(request.env, params)
+        provider = self._mf_myfatoorah_provider(request.env, company)
+        if not provider:
+            return {
+                "response": {"IsSuccess": False, "Message": "MyFatoorah is not configured for this company."},
+                "base_api_url": "",
+            }
         api_key = provider.myfatoorah_token
         base_api_url = ''
         state = provider.state
@@ -255,6 +288,60 @@ class MyfatoorahController(http.Controller):
         referer = http.request.httprequest.referrer or ''
         match = re.search(r'tenancy_payment_link/tenant_partner/(\d+)', referer)
         return int(match.group(1)) if match else None
+
+    def _mf_myfatoorah_provider(self, env, company):
+        """Pick MyFatoorah provider for this company, then shared (no company), then any."""
+        Provider = env['payment.provider'].sudo()
+        if company:
+            prov = Provider.search([
+                ('code', '=', 'myfatoorah'),
+                ('company_id', '=', company.id),
+            ], limit=1)
+            if prov:
+                return prov
+        prov = Provider.search([
+            ('code', '=', 'myfatoorah'),
+            ('company_id', '=', False),
+        ], limit=1)
+        if prov:
+            return prov
+        return Provider.search([('code', '=', 'myfatoorah')], limit=1)
+
+    def _mf_resolve_company_for_mf(self, env, params):
+        """Infer Odoo company for MyFatoorah API token (same rules as amount resolution)."""
+        if params.get('invoice_id'):
+            invoice = env['account.move'].sudo().browse(int(params['invoice_id']))
+            if invoice.exists():
+                return invoice.company_id
+        tenancy_id = params.get('tenancy_id')
+        if tenancy_id is None:
+            tid = self._get_tenancy_id_from_request()
+            if tid:
+                tenancy_id = tid
+        if tenancy_id:
+            tenancy = env['account.analytic.account'].sudo().browse(int(tenancy_id))
+            if tenancy.exists():
+                unpaid = tenancy.rent_schedule_ids.filtered(
+                    lambda rs: rs.move_check and not rs.paid and rs.invoice_id
+                )
+                invoices = unpaid.mapped('invoice_id')
+                if invoices:
+                    return invoices[0].company_id
+                return tenancy.company_id
+        tx_id = request.session.get('__payment_monitored_tx_id__')
+        if tx_id:
+            tx = env['payment.transaction'].sudo().browse(tx_id)
+            if tx.exists():
+                return tx.company_id
+        order_id = request.session.get('sale_order_id')
+        if order_id:
+            order = env['sale.order'].sudo().browse(order_id)
+            if order.exists():
+                return order.company_id
+        website = getattr(request, 'website', None)
+        if website and website.company_id:
+            return website.company_id
+        return env.company
 
     @http.route("/payment/myfatoorah/initiate-payment",  type='json', auth='public', methods=['GET', 'POST'], website=True)
     def myfatoorah_initiate_payment(self, **data):
@@ -329,7 +416,10 @@ class MyfatoorahController(http.Controller):
                     "message": "Invalid order details, please try again"
                 }
 
-            provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
+            company = self._mf_resolve_company_for_mf(request.env, params)
+            provider = self._mf_myfatoorah_provider(request.env, company)
+            if not provider:
+                return {"success": False, "message": "MyFatoorah is not configured for this company."}
             api_key = provider.myfatoorah_token
             state = provider.state
             country = provider.myfatoorah_country
@@ -350,8 +440,8 @@ class MyfatoorahController(http.Controller):
             gateways = json.loads(mf_response.text)
 
 
-            #Get Currency Rates
-            currency_rates = self.get_currency_exchange_rates()
+            # Get currency rates with the same merchant token as InitiatePayment
+            currency_rates = self._mf_exchange_list_text(provider)
             rates = json.loads(currency_rates)
             currency_rate = self.get_one_currency_rate(currency_iso, rates)
 
@@ -391,7 +481,6 @@ class MyfatoorahController(http.Controller):
     def myfatoorah_execute_payment(self, **kw):
         request_data = json.loads(http.request.httprequest.data.decode('utf-8'))
         params = request_data.get('params')
-        print(params,"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",kw)
         if params is not None and 'SessionId' in params:
             session_id = params['SessionId']
         else:
