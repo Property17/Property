@@ -278,8 +278,8 @@ class MyfatoorahController(http.Controller):
         payload = {}
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         dd = {
-            "response" : json.loads(response.text),
-            "base_api_url" : api_key
+            "response": json.loads(response.text),
+            "base_api_url": base_api_url,
         }
         return dd
 
@@ -292,20 +292,23 @@ class MyfatoorahController(http.Controller):
     def _mf_myfatoorah_provider(self, env, company):
         """Pick MyFatoorah provider for this company, then shared (no company), then any."""
         Provider = env['payment.provider'].sudo()
+        state_ok = ('state', 'in', ('enabled', 'test'))
         if company:
             prov = Provider.search([
                 ('code', '=', 'myfatoorah'),
+                state_ok,
                 ('company_id', '=', company.id),
             ], limit=1)
             if prov:
                 return prov
         prov = Provider.search([
             ('code', '=', 'myfatoorah'),
+            state_ok,
             ('company_id', '=', False),
         ], limit=1)
         if prov:
             return prov
-        return Provider.search([('code', '=', 'myfatoorah')], limit=1)
+        return Provider.search([('code', '=', 'myfatoorah'), state_ok], limit=1)
 
     def _mf_resolve_company_for_mf(self, env, params):
         """Infer Odoo company for MyFatoorah API token (same rules as amount resolution)."""
@@ -470,7 +473,9 @@ class MyfatoorahController(http.Controller):
                 "country_code" : provider.myfatoorah_country,
                 "state" : state,
                 "amount" : amount,
-                "checkout_gateways" : checkoutGateways
+                "checkout_gateways" : checkoutGateways,
+                "provider_id": provider.id,
+                "company_id": company.id,
             }
 
             return response
@@ -502,22 +507,23 @@ class MyfatoorahController(http.Controller):
         #     _logger.info("Myfatoorah key: %s value: %s ", key, value)
 
         tarnsaction_id = request.session.get('__payment_monitored_tx_id__')
-        customer_reference = ''
-        transaction = ''
-        if tarnsaction_id:
-            transaction = request.env['payment.transaction'].sudo().search([
-                ('id', '=', tarnsaction_id),
-                ('state', '=', 'draft')
-            ], limit=1)
-            if transaction:
-                customer_reference = transaction.reference
-            else:
-                return {
-                    "status_code" : 422,
-                    "message" : "Invalid Transaction"
-                }
-        print("zzzzzzzzzzzassssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",transaction)
-        print("zzzzzzzzzzzassssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",transaction)
+        if not tarnsaction_id:
+            return {
+                "success": False,
+                "status_code": 422,
+                "message": "No payment transaction in session.",
+            }
+        transaction = request.env['payment.transaction'].sudo().search([
+            ('id', '=', tarnsaction_id),
+            ('state', '=', 'draft'),
+        ], limit=1)
+        if not transaction:
+            return {
+                "status_code": 422,
+                "message": "Invalid Transaction",
+            }
+        customer_reference = transaction.reference
+
         customer = transaction.partner_id
         customer_data = {}
         if customer:
@@ -536,7 +542,16 @@ class MyfatoorahController(http.Controller):
 
         odoo_base_url = request.httprequest.host_url
 
-        provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
+        if transaction.provider_id and transaction.provider_id.code == 'myfatoorah':
+            provider = transaction.provider_id.sudo()
+        else:
+            provider = self._mf_myfatoorah_provider(request.env, transaction.company_id)
+        if not provider:
+            return {
+                "success": False,
+                "status_code": 422,
+                "message": "No MyFatoorah provider for this transaction's company.",
+            }
         api_key = provider.myfatoorah_token
         base_api_url = ''
         state = provider.state
@@ -561,7 +576,8 @@ class MyfatoorahController(http.Controller):
             "CustomerReference" : customer_reference,
             "CustomerName": customer_data.get('name') if customer_data.get('name') else None,
             "CustomerEmail": 'lucille.pearlku@gmail.com',
-            "CustomerMobile": customer_data['phone'],
+            # "CustomerMobile": customer_data['phone'],
+            "CustomerMobile": customer_data.get('phone'),
             "SourceInfo" : "Oddo 17 - MyFatoorah"
         }
 
@@ -578,8 +594,7 @@ class MyfatoorahController(http.Controller):
 
         _logger.info("Myfatoorah payload:\n%s", payload)
 
-        print("aaaaaaaaaaassssssssssssssssssfffffffffffffffffffffffffffffffffff sending request",payload)
-        response = requests.post(url,  json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
         # Try to store provider reference (InvoiceId) on the transaction for traceability
         try:
@@ -603,20 +618,18 @@ class MyfatoorahController(http.Controller):
 
     @http.route("/payment/myfatoorah/get-currency-rates",  type='json', auth='public', methods=['GET', 'POST'], website=False)
     def get_currency_exchange_rates(self, **kw):
-        provider = http.request.env['payment.provider'].sudo().search([('code', '=', 'myfatoorah')], limit=1)
-        country = provider.myfatoorah_country
-        state = provider.state
-        api_key = provider.myfatoorah_token
-
-        headers = {"Content-Type": "application/json", "Authorization": "Bearer " + api_key}
-
-        if state == 'enabled':
-            base_api_url = self.country_data[country]['v2']
-        else:
-            base_api_url = self.country_data[country]['testv2']
-        url = f"{base_api_url}/v2/GetCurrenciesExchangeList"
-        response = requests.get(url, headers = headers)
-        return response.text
+        params = {}
+        if http.request.httprequest.data:
+            try:
+                request_data = json.loads(http.request.httprequest.data.decode('utf-8'))
+                params = request_data.get('params') or {}
+            except (ValueError, UnicodeDecodeError):
+                pass
+        company = self._mf_resolve_company_for_mf(request.env, params)
+        provider = self._mf_myfatoorah_provider(request.env, company)
+        if not provider:
+            return json.dumps({"IsSuccess": False, "Message": "MyFatoorah is not configured for this company."})
+        return self._mf_exchange_list_text(provider)
 
     @http.route("/payment/myfatoorah/get-one_currency_rate",  type='json', auth='public', methods=['GET', 'POST'], website=False)
     def get_one_currency_rate(self, displayCurrencyIso, allRates):

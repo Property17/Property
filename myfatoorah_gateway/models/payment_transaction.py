@@ -3,7 +3,6 @@
 import logging
 import requests
 import json
-from odoo.http import request
 from odoo import _, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -20,42 +19,80 @@ class PaymentTransaction(models.Model):
         tx = super()._get_tx_from_notification_data(provider_code, notification_data)
         if provider_code != 'myfatoorah':
             return tx
-        provider_id = request.env['payment.provider'].sudo().search([
-            ('code', '=', 'myfatoorah')
-        ], limit=1)
-        api_key = provider_id.myfatoorah_token
-        base_api_url = provider_id._myfatoorah_get_api_url()
-        url = f"{base_api_url}/v2/GetPaymentStatus"
-        payment_id = ''
-        if notification_data.get('paymentId'):
-            payment_id = notification_data.get('paymentId')
-        else:
-            payment_id = notification_data['Data']['PaymentId']
-        payload = json.dumps({
-            "Key": payment_id,
-            "KeyType": "paymentId"
-        })
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {api_key}',
-        }
-        response = requests.request("POST", url, headers=headers, data=payload)
-        response_data = response.json()
-        _logger.info("MyFatoorah Payment Status: \n%s", response_data)
+        payment_id = notification_data.get('paymentId')
+        if not payment_id and isinstance(notification_data.get('Data'), dict):
+            payment_id = notification_data['Data'].get('PaymentId')
+        if not payment_id:
+            _logger.warning("MyFatoorah notification without paymentId")
+            return tx
+
+        provider_recs = self.env['payment.provider'].sudo().search([
+            ('code', '=', 'myfatoorah'),
+            ('state', 'in', ('enabled', 'test')),
+        ])
+        response_data = None
+        matched_provider = None
+        for mf_prov in provider_recs:
+            api_key = mf_prov.myfatoorah_token
+            base_api_url = mf_prov._myfatoorah_get_api_url()
+            url = f"{base_api_url}/v2/GetPaymentStatus"
+            payload = json.dumps({
+                "Key": payment_id,
+                "KeyType": "paymentId"
+            })
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {api_key}',
+            }
+            response = requests.request("POST", url, headers=headers, data=payload)
+            try:
+                response_data = response.json()
+            except ValueError:
+                continue
+            if not isinstance(response_data, dict):
+                continue
+            if response_data.get('IsSuccess') and response_data.get('Data'):
+                matched_provider = mf_prov
+                break
+            response_data = None
+
+        if not response_data or not response_data.get('Data'):
+            _logger.error(
+                "MyFatoorah GetPaymentStatus failed for payment_id=%s (tried %s provider(s))",
+                payment_id, len(provider_recs),
+            )
+            return tx
+
+        data = response_data['Data']
+        inv_txs = data.get('InvoiceTransactions') or []
         payment_status = ''
-        for transaction in response_data['Data']['InvoiceTransactions']:
-            if transaction['PaymentId'] == payment_id:
-                payment_status = transaction['TransactionStatus']
-        customer_reference = response_data['Data']['CustomerReference']
-        tx = self.sudo().search([
+        for inv_tx in inv_txs:
+            if inv_tx.get('PaymentId') == payment_id:
+                payment_status = inv_tx.get('TransactionStatus') or ''
+                break
+        customer_reference = data.get('CustomerReference')
+        if not customer_reference:
+            return tx
+
+        _logger.info("MyFatoorah Payment Status: \n%s", response_data)
+
+        domain = [
             ('provider_code', '=', 'myfatoorah'),
             ('reference', '=', customer_reference),
-        ])
+        ]
+        if matched_provider:
+            domain.append(('provider_id', '=', matched_provider.id))
+        tx = self.sudo().search(domain, limit=1)
+        if not tx:
+            tx = self.sudo().search([
+                ('provider_code', '=', 'myfatoorah'),
+                ('reference', '=', customer_reference),
+            ], limit=1)
         notification_data.update({
-            'invoice_status': response_data["Data"]["InvoiceStatus"],
+            'invoice_status': data.get('InvoiceStatus'),
             'payment_status': payment_status,
-            'reference' : customer_reference
+            'reference': customer_reference,
         })
         return tx
     
