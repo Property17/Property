@@ -15,6 +15,13 @@
         <field name="binding_model_id" ref="property_payment_link.model_property_payment_link"/>
         <field name="binding_view_types">form,list</field>
         <field name="state">code</field>
-        <field name="code">action = records.action_send_payment_link_bulk()</field>
+        <field name="code">
+ids = env.context.get('active_ids') or []
+if isinstance(ids, (tuple, set)):
+    ids = list(ids)
+if not ids and env.context.get('active_id'):
+    ids = [env.context['active_id']]
+action = env['property.payment.link'].browse(ids).action_send_payment_link_bulk()
+        </field>
     </record>
 </odoo>

@@ -305,7 +305,7 @@ class PropertyPaymentLink(models.Model):
             'context': {
                 'active_model': 'property.payment.link',
                 'active_id': self[0].id,
-                'active_ids': self.ids,
+                'active_ids': list(self.ids),
                 'default_wa_template_id': wa_template.id,
             },
         }
