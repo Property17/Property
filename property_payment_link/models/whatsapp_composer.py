@@ -39,11 +39,21 @@ class WhatsAppComposer(models.TransientModel):
             }
             return result
 
-        # Ensure res_ids is a string for property.payment.link (Char field + literal_eval in composer)
+        # Ensure res_ids is a string for property.payment.link (Char field + literal_eval in composer).
+        # Enterprise default_get may leave res_ids as a list; bulk would then break _compute_number.
         context = self.env.context
         if context.get('active_model') == 'property.payment.link':
             ids = _payment_link_context_doc_ids(context)
             if ids:
                 result['res_ids'] = str(ids)
                 result['batch_mode'] = len(ids) > 1
+            else:
+                rid = result.get('res_ids')
+                if isinstance(rid, (list, tuple)):
+                    norm = [i for i in rid if i]
+                    result['res_ids'] = str(norm)
+                    result['batch_mode'] = len(norm) > 1
+                elif rid is not None and not isinstance(rid, str):
+                    result['res_ids'] = str([rid])
+                    result['batch_mode'] = False
         return result

@@ -202,6 +202,24 @@ class PropertyPaymentLink(models.Model):
         """Phone fields allowed for WhatsApp template on property.payment.link"""
         return {'tenant_phone', 'tenant_id.phone', 'tenant_id.mobile'}
 
+    def _get_whatsapp_tenant_number(self):
+        """Phone or mobile on the tenant partner (WhatsApp / composer)."""
+        self.ensure_one()
+        tenant = self.tenant_id
+        if not tenant:
+            return ''
+        return (tenant.phone or tenant.mobile or '').strip()
+
+    def _find_value_from_field_path(self, field_path):
+        """WhatsApp resolves template phone paths using phone or mobile on the tenant."""
+        if self and len(self) == 1 and self._name == 'property.payment.link':
+            if field_path in ('tenant_phone', 'tenant_id.phone', 'tenant_id.mobile'):
+                value = super()._find_value_from_field_path(field_path)
+                if value and str(value).strip():
+                    return value
+                return self._get_whatsapp_tenant_number()
+        return super()._find_value_from_field_path(field_path)
+
     def create_payment_link_message(self):
         for link in self:
             # tenant_url is computed; keep method for backward compatibility.
@@ -260,9 +278,7 @@ class PropertyPaymentLink(models.Model):
         """Open WhatsApp composer for bulk send - works on multiple selected property.payment.link records"""
         if not self:
             raise UserError(_('Please select at least one Payment Link to send.'))
-        records_without_phone = self.filtered(
-            lambda r: not r.tenant_phone and not (r.tenant_id and r.tenant_id.phone)
-        )
+        records_without_phone = self.filtered(lambda r: not r._get_whatsapp_tenant_number())
         if records_without_phone:
             raise UserError(_(
                 'The following Payment Links have no phone number set on the tenant: %s. '
@@ -306,6 +322,7 @@ class PropertyPaymentLink(models.Model):
                 'active_model': 'property.payment.link',
                 'active_id': self[0].id,
                 'active_ids': list(self.ids),
+                'default_phone': self[0]._get_whatsapp_tenant_number(),
                 'default_wa_template_id': wa_template.id,
             },
         }
