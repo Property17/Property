@@ -14,6 +14,18 @@ class PaymentTransaction(models.Model):
 
     capture_manually = fields.Boolean(related='provider_id.capture_manually')
 
+    def _create_payment(self, **extra_create_values):
+        """Use only MyFatoorah InvoiceId as payment memo (ref).
+
+        Standard ``account_payment`` builds ``{tx.reference} - {partner} - {provider_reference}``;
+        we keep the provider id only (e.g. MyFatoorah InvoiceId).
+        """
+        self.ensure_one()
+        if self.provider_code == 'myfatoorah':
+            ref = (self.provider_reference or '').strip() or (self.reference or '').strip()
+            return super()._create_payment(ref=ref, **extra_create_values)
+        return super()._create_payment(**extra_create_values)
+
     #=== ACTION METHODS ===#
     def _get_tx_from_notification_data(self, provider_code, notification_data):
         tx = super()._get_tx_from_notification_data(provider_code, notification_data)

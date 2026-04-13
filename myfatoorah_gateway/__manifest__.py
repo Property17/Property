@@ -8,7 +8,7 @@
     'sequence': 1,
     'Summary': "MyFatoorah Payment Gateway.",
     'description': "A hassle-free payment experience with the international credit cards & local GCC payment methods.",
-    'depends': ['payment', 'account', 'website', 'website_sale'],
+    'depends': ['payment', 'account', 'account_payment', 'website', 'website_sale'],
     'author': "MyFatoorah",
     'company': 'MyFatoorah',
     'maintainer': 'MyFatoorah',
