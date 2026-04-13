@@ -210,6 +210,17 @@ class PropertyPaymentLink(models.Model):
             return ''
         return (tenant.phone or tenant.mobile or '').strip()
 
+    def _whatsapp_format_phone_number(self, number, raise_exception=False):
+        """Parse/format number for WhatsApp using tenant contact country (not payment link record)."""
+        self.ensure_one()
+        from odoo.addons.whatsapp.tools import phone_validation as wa_pv
+        return wa_pv.wa_phone_format(
+            self.tenant_id or self,
+            number=(number or '').strip(),
+            raise_exception=raise_exception,
+            force_format='WHATSAPP',
+        )
+
     def _find_value_from_field_path(self, field_path):
         """WhatsApp resolves template phone paths using phone or mobile on the tenant."""
         if self and len(self) == 1 and self._name == 'property.payment.link':
@@ -233,8 +244,8 @@ class PropertyPaymentLink(models.Model):
         self.last_sent_date = fields.Datetime.now()
         self.write({'has_sent_payment_link': True})
 
-        if not self.tenant_phone and not (self.tenant_id and self.tenant_id.phone):
-            raise UserError(_('Please set a phone number on the tenant (%s) before sending the payment link via WhatsApp.') % (self.tenant_id.name or ''))
+        if not self._get_whatsapp_tenant_number():
+            raise UserError(_('Please set a phone or mobile number on the tenant (%s) before sending the payment link via WhatsApp.') % (self.tenant_id.name or ''))
 
         wa_template = self.env['whatsapp.template']._find_default_for_model('property.payment.link')
         if not wa_template:
@@ -269,7 +280,7 @@ class PropertyPaymentLink(models.Model):
                 'active_model': 'property.payment.link',
                 'active_id': self.id,
                 'active_ids': [self.id],
-                'default_phone': self.tenant_phone or (self.tenant_id.phone if self.tenant_id else ''),
+                'default_phone': self._get_whatsapp_tenant_number(),
                 'default_wa_template_id': wa_template.id,
             },
         }
