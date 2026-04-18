@@ -8,6 +8,9 @@ from datetime import date, datetime, time
 from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
 
+# Skip flag for account.analytic.account name translation sync (ar → en) to avoid write recursion.
+MM_SKIP_NAME_EN_AR_SYNC = 'mm_skip_name_en_ar_sync'
+
 
 class AccountMoveInheritNew(models.Model):
     _inherit = "account.move"
@@ -605,7 +608,6 @@ class TenancyCloseWizard(models.TransientModel):
 
 class AccountAnalyticAccountNew(models.Model):
     _inherit = "account.analytic.account"
-    
 
     legal_type_id = fields.Many2one('legal.type', string='Legal Type', )
     # activity_type_lo_id = fields.Many2one('activity.type', string='Activity Type', )
@@ -622,7 +624,8 @@ class AccountAnalyticAccountNew(models.Model):
                                     string='Units')
 
     contract_count = fields.Integer(compute='get_mm_contract_count')
-    name = fields.Char('Description', required=False)
+    # Keep translate=True like core analytic account; omitting it breaks EN/AR on create.
+    name = fields.Char('Description', required=False, translate=True)
     run_comp = fields.Boolean(compute='_compute_run_func')
     plan_id = fields.Many2one(
         comodel_name='account.analytic.plan',
@@ -803,10 +806,37 @@ class AccountAnalyticAccountNew(models.Model):
             if rec.code:
                 rec.name = str(rec.code)
 
-    @api.model
-    def create(self, vals):
-        res = super(AccountAnalyticAccountNew, self).create(vals)
-        res._onchange_mm_code()
+    def _mm_sync_name_en_from_arabic(self):
+        """When users create/edit in Arabic, EN `name` can stay as '/' or empty. Mirror Arabic into en_US."""
+        lang_ar = 'ar_001'
+        lang_en = 'en_US'
+        bad_en_placeholders = {'', '/'}
+        for rec in self:
+            name_ar = (rec.with_context(lang=lang_ar).name or '').strip()
+            name_en = (rec.with_context(lang=lang_en).name or '').strip()
+            if not name_ar:
+                continue
+            if name_en and name_en not in bad_en_placeholders:
+                continue
+            rec.with_context(lang=lang_en, **{MM_SKIP_NAME_EN_AR_SYNC: True}).write({
+                'name': rec.with_context(lang=lang_ar).name,
+            })
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.code:
+                rec.write({'name': str(rec.code)})
+        records._mm_sync_name_en_from_arabic()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get(MM_SKIP_NAME_EN_AR_SYNC):
+            return res
+        if any(k in vals for k in ('name', 'code')):
+            self._mm_sync_name_en_from_arabic()
         return res
 
     def open_mm_contract(self):
