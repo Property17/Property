@@ -330,19 +330,25 @@ class AccountPayment(models.Model):
         comodel_name='account.move',
         string='Invoice2',
         help='Select the related invoice.',
-        
+        compute="compute_mm_move_id"
     )
     mm_invoice_id = fields.Many2one('account.move', string="Invoice")
 
-    # compute="compute_mm_move_id"
-    # @api.depends('mm_invoice_id')
-    # def compute_mm_move_id(self):
-    #     for rec in self:
-    #         if rec.mm_invoice_id:
-    #             rec.mm_move_id = rec.mm_invoice_id.id
-    #             rec._onchange_mm_move_id()
-    #         else:
-    #             rec.mm_move_id = False
+    
+    @api.depends('mm_invoice_id')
+    def compute_mm_move_id(self):
+        for rec in self:
+            if rec.mm_invoice_id:
+                rec.mm_move_id = rec.mm_invoice_id.id
+                rec._onchange_mm_move_id()
+            else:
+                rec.mm_move_id = False
+                
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.compute_mm_move_id()
+        return records
                 
     # @api.onchange('mm_invoice_id')
     # def _onchange_mm_invoice_id(self):
