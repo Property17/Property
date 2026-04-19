@@ -20,18 +20,6 @@
                     #payment-link-tenant-info .pl-info-row:last-child { border-bottom: none; }
                     #payment-link-tenant-info .pl-info-label { font-weight: 600; flex: 0 0 110px; font-size: 0.85rem; }
                     #payment-link-tenant-info .pl-info-value { flex: 1 1 calc(100% - 110px); word-break: break-word; font-size: 0.9rem; }
-                    /* Hide only Odoo footer Pay; keep the node in DOM — MyFatoorah triggers it via .click() for some flows. */
-                    #payment_method .o_payment_form button[name="o_payment_submit_button"] {
-                        position: absolute !important;
-                        width: 1px !important;
-                        height: 1px !important;
-                        padding: 0 !important;
-                        margin: -1px !important;
-                        overflow: hidden !important;
-                        clip: rect(0, 0, 0, 0) !important;
-                        white-space: nowrap !important;
-                        border: 0 !important;
-                    }
                 </style>
                 <div class="container payment-link-detail-container" data-pl-version="0.3">
                     <div class="row">
