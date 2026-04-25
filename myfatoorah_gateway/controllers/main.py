@@ -522,7 +522,8 @@ class MyfatoorahController(http.Controller):
                 "status_code": 422,
                 "message": "Invalid Transaction",
             }
-        customer_reference = transaction.reference
+        # MyFatoorah limits CustomerReference to 50 chars; use transaction id (see payment_transaction).
+        customer_reference = transaction._myfatoorah_customer_reference()
 
         customer = transaction.partner_id
         customer_data = {}

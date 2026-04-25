@@ -8,11 +8,19 @@ from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+# MyFatoorah API: CustomerReference max length 50 (ExecutePayment, SendPayment).
+MYFATOORAH_CUSTOMER_REFERENCE_MAX = 50
+
 
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
 
     capture_manually = fields.Boolean(related='provider_id.capture_manually')
+
+    def _myfatoorah_customer_reference(self):
+        """Stable, short value for MyFatoorah (max 50 chars). Uses transaction id so callbacks can resolve the tx."""
+        self.ensure_one()
+        return str(self.id)[:MYFATOORAH_CUSTOMER_REFERENCE_MAX]
 
     def _create_payment(self, **extra_create_values):
         """Use only MyFatoorah InvoiceId as payment memo (ref).
@@ -89,18 +97,34 @@ class PaymentTransaction(models.Model):
 
         _logger.info("MyFatoorah Payment Status: \n%s", response_data)
 
-        domain = [
-            ('provider_code', '=', 'myfatoorah'),
-            ('reference', '=', customer_reference),
-        ]
-        if matched_provider:
-            domain.append(('provider_id', '=', matched_provider.id))
-        tx = self.sudo().search(domain, limit=1)
+        cr = str(customer_reference).strip()
+        # Primary: we send CustomerReference = str(transaction.id); resolve by id
+        if cr.isdigit():
+            tx = self.sudo().search(
+                [
+                    ('id', '=', int(cr)),
+                    ('provider_code', '=', 'myfatoorah'),
+                ],
+                limit=1,
+            )
+        else:
+            tx = self.env['payment.transaction']
         if not tx:
-            tx = self.sudo().search([
+            domain = [
                 ('provider_code', '=', 'myfatoorah'),
                 ('reference', '=', customer_reference),
-            ], limit=1)
+            ]
+            if matched_provider:
+                domain.append(('provider_id', '=', matched_provider.id))
+            tx = self.sudo().search(domain, limit=1)
+        if not tx:
+            tx = self.sudo().search(
+                [
+                    ('provider_code', '=', 'myfatoorah'),
+                    ('reference', '=', customer_reference),
+                ],
+                limit=1,
+            )
         notification_data.update({
             'invoice_status': data.get('InvoiceStatus'),
             'payment_status': payment_status,
@@ -178,7 +202,7 @@ class PaymentTransaction(models.Model):
                 "Address": self.partner_address,
                 "AddressInstructions": self.partner_city
             },
-            "CustomerReference": processing_values['reference'],
+            "CustomerReference": self._myfatoorah_customer_reference(),
             "CallBackUrl": f"{odoo_base_url}/invoice_link/myfatoorah/process",
             "ErrorUrl": f"{odoo_base_url}/invoice_link/myfatoorah/process",
             "DisplayCurrencyIso": self.currency_id.name if self.currency_id.name else 'KWD',
