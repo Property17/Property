@@ -51,5 +51,11 @@ class AccountTax(models.Model):
             and base_line._name == "account.move.line"
             and base_line.discount_fixed
         ):
-            res["discount"] = base_line._get_discount_from_fixed_discount()
+            # Tax base = exact net unit price; do not use rounded % discount.
+            res["discount"] = 0.0
+            res["price_unit"] = base_line._get_discount_price_unit()
+            if quantity is not None:
+                res["quantity"] = quantity
+            elif base_line.quantity is not None:
+                res["quantity"] = base_line.quantity
         return res

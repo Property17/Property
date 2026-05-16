@@ -144,3 +144,55 @@ class TestInvoiceFixedDiscount(TransactionCase):
             price_unit=10,
             currency=1,
         )
+
+    def test_05_exact_fixed_discount_amount(self):
+        """300 − 10 fixed discount must be exactly 290 (not 290.01 / 9.99)."""
+        invoice = self.env["account.move"].with_context(
+            check_move_validity=False
+        ).create(
+            {
+                "journal_id": self.env["account.journal"]
+                .search([("type", "=", "sale")], limit=1)
+                .id,
+                "partner_id": self.partner.id,
+                "move_type": "out_invoice",
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "Rent",
+                            "quantity": 1.0,
+                            "price_unit": 300.0,
+                            "discount_fixed": 10.0,
+                            "account_id": self.account.id,
+                        },
+                    )
+                ],
+            }
+        )
+        line = invoice.invoice_line_ids[0]
+        self.assertEqual(line.price_subtotal, 290.0)
+        self.assertEqual(line._get_fixed_discount_amount_currency(), 10.0)
+        company = invoice.company_id
+        if company.account_discount_expense_allocation_id:
+            discount_lines = invoice.line_ids.filtered(
+                lambda l: l.display_type == "discount"
+            )
+            discount_on_income = discount_lines.filtered(
+                lambda l: l.account_id == line.account_id
+            )
+            discount_on_allocation = discount_lines.filtered(
+                lambda l: l.account_id
+                == company.account_discount_expense_allocation_id
+            )
+            self.assertAlmostEqual(
+                sum(discount_on_income.mapped("credit")),
+                10.0,
+                places=2,
+            )
+            self.assertAlmostEqual(
+                sum(discount_on_allocation.mapped("debit")),
+                10.0,
+                places=2,
+            )
