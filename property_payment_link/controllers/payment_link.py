@@ -33,6 +33,41 @@ def _compute_unpaid_rent_schedules(tenancy):
     )
 
 
+def _compute_unpaid_service_rents(tenancy):
+    """Unpaid invoiced services (``service.rent`` / tenancy.service_ids)."""
+    if 'service.rent' not in tenancy.env:
+        return tenancy.env['service.rent']
+    return tenancy.env['service.rent'].sudo().search([
+        ('tenancy_id', '=', tenancy.id),
+        ('posted', '=', True),
+        ('paid', '=', False),
+        ('move_id', '!=', False),
+    ])
+
+
+def _compute_all_unpaid_invoices(tenancy):
+    """All customer invoices due on the payment link (rent + services)."""
+    rent_invoices = _compute_unpaid_rent_schedules(tenancy).mapped('invoice_id')
+    service_invoices = _compute_unpaid_service_rents(tenancy).mapped('move_id')
+    return (rent_invoices | service_invoices).filtered(
+        lambda inv: inv.state == 'posted' and inv.amount_residual > 0
+    )
+
+
+def _parse_id_list(value):
+    """Parse JSON list of ids from the portal (string or list)."""
+    if not value:
+        return []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(value, list):
+        return []
+    return [int(x) for x in value if str(x).isdigit()]
+
+
 def _compute_paid_rent_schedules(tenancy):
     return tenancy.rent_schedule_ids.filtered(
         lambda rs: (
@@ -46,20 +81,43 @@ def _compute_paid_rent_schedules(tenancy):
 
 def _compute_tenancy_invoices_props(tenancy):
     unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
+    unpaid_service_rents = _compute_unpaid_service_rents(tenancy)
     tenancy_lines_dict = {}
     for rs in unpaid_rent_schedules:
-        tenancy_lines_dict[rs.id] = [{
+        inv = rs.invoice_id
+        if not inv:
+            continue
+        line_key = f'rent_{rs.id}'
+        tenancy_lines_dict[line_key] = [{
+            'line_key': line_key,
+            'line_type': 'rent',
             'rent_schedule_id': rs.id,
+            'service_rent_id': False,
             'date': str(rs.start_date),
-            'invoice_name': rs.invoice_id.name if rs.invoice_id else '',
+            'invoice_name': inv.name or '',
+            'line_label': _('Rent'),
             'invoice_date_due': (
-                str(rs.invoice_id.invoice_date_due)
-                if rs.invoice_id and rs.invoice_id.invoice_date_due
-                else ''
+                str(inv.invoice_date_due) if inv.invoice_date_due else ''
             ),
-            # 'invoice_amount_residual': rs.amount,
-            'invoice_amount_residual': rs.rent_residual,
-
+            'invoice_amount_residual': inv.amount_residual,
+        }]
+    for sr in unpaid_service_rents:
+        inv = sr.move_id
+        if not inv:
+            continue
+        line_key = f'service_{sr.id}'
+        tenancy_lines_dict[line_key] = [{
+            'line_key': line_key,
+            'line_type': 'service',
+            'rent_schedule_id': False,
+            'service_rent_id': sr.id,
+            'date': str(sr.start_date or sr.date or ''),
+            'invoice_name': inv.name or '',
+            'line_label': sr.service_type_id.name or _('Service'),
+            'invoice_date_due': (
+                str(inv.invoice_date_due) if inv.invoice_date_due else ''
+            ),
+            'invoice_amount_residual': inv.amount_residual,
         }]
     return {
         'tenancy_lines': tenancy_lines_dict,
@@ -167,8 +225,10 @@ class PropertyPaymentLink(PaymentPortal):
             raise request.not_found()
         payment_link.write({'last_login_date': fields.Datetime.now()})
         company_image_url = _public_company_logo_url(tenancy_record.company_id)
-        # Get all unpaid invoices from rent schedules
-        tenancy_account_move = tenancy_record.rent_schedule_ids.filtered(lambda rs: rs.move_check and not rs.paid).mapped('invoice_id')
+        tenancy_account_move = _compute_all_unpaid_invoices(tenancy_record)
+        unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy_record)
+        unpaid_service_rents = _compute_unpaid_service_rents(tenancy_record)
+        has_payable = bool(unpaid_rent_schedules or unpaid_service_rents)
         # Ensure portal tokens exist for all invoices
         for invoice in tenancy_account_move:
             invoice._portal_ensure_token()
@@ -198,8 +258,6 @@ class PropertyPaymentLink(PaymentPortal):
         else:
             values = {}
         
-        # Pre-compute template data in Python (QWeb forbids complex expressions)
-        unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy_record)
         paid_rent_schedules = _compute_paid_rent_schedules(tenancy_record)
         tenancy_invoices_props = _compute_tenancy_invoices_props(tenancy_record)
         tenancy_payments_props = _compute_tenancy_payments_props(
@@ -221,6 +279,8 @@ class PropertyPaymentLink(PaymentPortal):
             'tenancy_access_token': access_token,
             'flexible_payment': tenancy_record.flexible_payment,
             'unpaid_rent_schedules': unpaid_rent_schedules,
+            'unpaid_service_rents': unpaid_service_rents,
+            'has_payable': has_payable,
             'paid_rent_schedules': paid_rent_schedules,
             'tenancy_invoices_props': tenancy_invoices_props,
             'tenancy_payments_props': tenancy_payments_props,
@@ -382,71 +442,53 @@ class PropertyPaymentLink(PaymentPortal):
         return tx_sudo._get_processing_values()
 
     @http.route('/tenancy/transaction/<int:tenancy_id>/', type='json', auth='public')
-    def tenancy_transaction(self, tenancy_id, access_token=None, selected_rent_schedule_ids=None, **kwargs):
-        """Create a transaction for selected invoices in a tenancy"""
+    def tenancy_transaction(
+        self,
+        tenancy_id,
+        access_token=None,
+        selected_rent_schedule_ids=None,
+        selected_service_rent_ids=None,
+        **kwargs,
+    ):
+        """Create a transaction for selected rent and service invoices on a tenancy."""
         tenancy = request.env['account.analytic.account'].sudo().browse(tenancy_id)
-        # Do not create transactions for blocked tenancies.
         if tenancy.is_blocked or tenancy.state == 'blocked':
             raise ValidationError(_(
                 "Payments are blocked for this tenancy. Please contact the property manager."
             ))
-        
-        # Check if selected_rent_schedule_ids is in kwargs (might be passed there instead)
+
         if not selected_rent_schedule_ids and 'selected_rent_schedule_ids' in kwargs:
             selected_rent_schedule_ids = kwargs.get('selected_rent_schedule_ids')
-        
-        # Remove non-whitelisted params from kwargs before validation
+        if not selected_service_rent_ids and 'selected_service_rent_ids' in kwargs:
+            selected_service_rent_ids = kwargs.get('selected_service_rent_ids')
+
         kwargs.pop('access_token', None)
         kwargs.pop('selected_rent_schedule_ids', None)
-        
-        # Get all unpaid rent schedules
-        all_rent_schedules = tenancy.rent_schedule_ids.filtered(
-            lambda rs: rs.move_check and not rs.paid
-        )
-        
-        # If flexible_payment is False, user must pay ALL invoices
+        kwargs.pop('selected_service_rent_ids', None)
+
+        all_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
+        all_service_rents = _compute_unpaid_service_rents(tenancy)
+
+        rent_schedule_ids = _parse_id_list(selected_rent_schedule_ids)
+        service_rent_ids = _parse_id_list(selected_service_rent_ids)
+
         if not tenancy.flexible_payment:
-            # Force selection of all invoices
             rent_schedules = all_rent_schedules
-            # Validate that all invoices are selected
-            if selected_rent_schedule_ids:
-                # Parse the selected IDs if it's a string (from JSON)
-                if isinstance(selected_rent_schedule_ids, str):
-                    import json
-                    try:
-                        selected_rent_schedule_ids = json.loads(selected_rent_schedule_ids)
-                    except:
-                        selected_rent_schedule_ids = []
-                
-                selected_ids = set(selected_rent_schedule_ids) if selected_rent_schedule_ids else set()
-                all_ids = set(all_rent_schedules.ids)
-                
-                # Check if all invoices are selected
-                # if selected_ids != all_ids:
-                #     raise ValidationError(_("When flexible payment is disabled, you must pay all invoices. Please select all invoices."))
+            service_rents = all_service_rents
         else:
-            # If flexible_payment or normal mode, allow selection
-            if selected_rent_schedule_ids:
-                # Parse the selected IDs if it's a string (from JSON)
-                if isinstance(selected_rent_schedule_ids, str):
-                    import json
-                    try:
-                        selected_rent_schedule_ids = json.loads(selected_rent_schedule_ids)
-                    except:
-                        selected_rent_schedule_ids = []
-                
-                if selected_rent_schedule_ids and len(selected_rent_schedule_ids) > 0:
-                    rent_schedules = all_rent_schedules.filtered(
-                        lambda rs: rs.id in selected_rent_schedule_ids
-                    )
-                else:
-                    raise ValidationError(_("Please select at least one invoice to pay."))
-            else:
+            if not rent_schedule_ids and not service_rent_ids:
                 raise ValidationError(_("Please select at least one invoice to pay."))
-        
-        # Get invoices from selected rent schedules
-        invoices = rent_schedules.mapped('invoice_id')
-        
+            rent_schedules = all_rent_schedules.filtered(
+                lambda rs: rs.id in rent_schedule_ids
+            ) if rent_schedule_ids else all_rent_schedules.browse()
+            service_rents = all_service_rents.filtered(
+                lambda sr: sr.id in service_rent_ids
+            ) if service_rent_ids else all_service_rents.browse()
+
+        invoices = (
+            rent_schedules.mapped('invoice_id') | service_rents.mapped('move_id')
+        ).filtered(lambda inv: inv.amount_residual > 0)
+
         if not invoices:
             raise ValidationError(_("No invoices found for the selected items."))
         

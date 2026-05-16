@@ -103,23 +103,36 @@ class PropertyPaymentLink(models.Model):
             else:
                 link.name = f"Payment Link #{link.id}" if link.id else "New Payment Link"
 
-    @api.depends('tenancy_id', 'tenancy_id.rent_schedule_ids', 'tenancy_id.rent_schedule_ids.move_check', 
-                 'tenancy_id.rent_schedule_ids.paid', 'tenancy_id.rent_schedule_ids.invoice_id', 
-                 'tenancy_id.rent_schedule_ids.invoice_id.amount_residual')
+    @api.depends(
+        'tenancy_id',
+        'tenancy_id.rent_schedule_ids.move_check',
+        'tenancy_id.rent_schedule_ids.paid',
+        'tenancy_id.rent_schedule_ids.invoice_id.amount_residual',
+    )
     def _compute_total_amount_due(self):
-        """Compute total outstanding amount from unpaid invoices"""
+        """Total due: unpaid rent schedule invoices + unpaid service.rent invoices."""
         for link in self:
-            if link.tenancy_id:
-                # Get unpaid rent schedules that have invoices
-                unpaid_rent_schedules = link.tenancy_id.rent_schedule_ids.filtered(
-                    lambda rs: rs.move_check and not rs.paid and rs.invoice_id
-                )
-                # Get invoices from unpaid rent schedules
-                unpaid_invoices = unpaid_rent_schedules.mapped('invoice_id')
-                # Sum the outstanding amounts
-                link.total_amount_due = sum(inv.amount_residual for inv in unpaid_invoices)
-            else:
+            if not link.tenancy_id:
                 link.total_amount_due = 0.0
+                continue
+            unpaid_rent = link.tenancy_id.rent_schedule_ids.filtered(
+                lambda rs: rs.move_check and not rs.paid and rs.invoice_id
+            )
+            invoices = unpaid_rent.mapped('invoice_id')
+            if 'service.rent' in self.env:
+                service_rents = self.env['service.rent'].search([
+                    ('tenancy_id', '=', link.tenancy_id.id),
+                    ('posted', '=', True),
+                    ('paid', '=', False),
+                    ('move_id', '!=', False),
+                ])
+                invoices |= service_rents.mapped('move_id')
+            link.total_amount_due = sum(
+                inv.amount_residual
+                for inv in invoices.filtered(
+                    lambda m: m.state == 'posted' and m.amount_residual > 0
+                )
+            )
 
 
     @api.depends('property_id')

@@ -45,7 +45,35 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
     events: {
         'click a[data-bs-target="#payment_method"]': '_onPayClick',
     },
-    _onPayClick: function () {
+    _onPayClick: function (ev) {
+        const rentInput = document.getElementById('selected_rent_schedule_ids');
+        const serviceInput = document.getElementById('selected_service_rent_ids');
+        let rentIds = [];
+        let serviceIds = [];
+        try {
+            if (rentInput && rentInput.value) {
+                rentIds = JSON.parse(rentInput.value);
+            }
+            if (serviceInput && serviceInput.value) {
+                serviceIds = JSON.parse(serviceInput.value);
+            }
+        } catch (e) {
+            rentIds = [];
+            serviceIds = [];
+        }
+        const payBtn = document.getElementById('payment_link_pay_btn');
+        if (
+            payBtn
+            && (payBtn.classList.contains('disabled')
+                || payBtn.getAttribute('aria-disabled') === 'true')
+        ) {
+            ev.preventDefault();
+            return;
+        }
+        if (!rentIds.length && !serviceIds.length) {
+            ev.preventDefault();
+            return;
+        }
         if (typeof window.resetMyFatoorahFormCache === 'function') {
             window.resetMyFatoorahFormCache();
         }
@@ -124,13 +152,13 @@ if (PaymentFormWidget) {
             if (this.paymentContext && this.paymentContext['transactionRoute'] && 
                 this.paymentContext['transactionRoute'].includes('/tenancy/transaction/')) {
                 
-                // Get selected rent schedule IDs from hidden input
-                const hiddenInput = document.getElementById('selected_rent_schedule_ids');
-                if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
-                    params.selected_rent_schedule_ids = hiddenInput.value;
-                    console.log("PaymentForm patch: Added selected_rent_schedule_ids:", hiddenInput.value);
-                } else {
-                    console.log("PaymentForm patch: No selected_rent_schedule_ids found");
+                const rentInput = document.getElementById('selected_rent_schedule_ids');
+                if (rentInput && rentInput.value && rentInput.value !== '[]') {
+                    params.selected_rent_schedule_ids = rentInput.value;
+                }
+                const serviceInput = document.getElementById('selected_service_rent_ids');
+                if (serviceInput && serviceInput.value && serviceInput.value !== '[]') {
+                    params.selected_service_rent_ids = serviceInput.value;
                 }
             }
             

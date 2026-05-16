@@ -1,18 +1,16 @@
 /** @odoo-module **/
 
-import { Component, useRef, EventBus, onWillStart, useSubEnv, useState } from "@odoo/owl";
+import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
 
 export class PaymentLinkInvoice extends Component {
     static template = "property_payment_link.tenancy_payment_invoice_line";
 
-    setup(){
+    setup() {
         super.setup();
 
-        // Parse props if passed as JSON string (from t-att-props="json.dumps(...)")
         let props = this.props;
-        if (typeof props === 'string') {
+        if (typeof props === "string") {
             try {
                 props = JSON.parse(props);
             } catch (e) {
@@ -20,228 +18,220 @@ export class PaymentLinkInvoice extends Component {
                 props = { tenancy_lines: {}, flexible_payment: false };
             }
         }
-        if (typeof props.tenancy_lines === 'string') {
+        if (typeof props.tenancy_lines === "string") {
             try {
                 props.tenancy_lines = JSON.parse(props.tenancy_lines);
             } catch (e) {
                 props.tenancy_lines = {};
             }
         }
-        
-        // Get payment flags from props
+
         this.flexiblePayment = props.flexible_payment || false;
         this.parsedProps = props;
 
-        // Sort invoices by date (oldest first) for chronological selection
-        this.sortedInvoiceIds = [];
-        if (props.tenancy_lines) {
-            // Create array of [rentScheduleId, date] pairs and sort by date
-            const invoiceDates = Object.entries(props.tenancy_lines).map(([rentScheduleId, lines]) => {
-                const dateStr = lines && lines.length > 0 ? lines[0].date : '';
-                // Parse date string (format: YYYY-MM-DD)
+        const lineEntries = Object.entries(props.tenancy_lines || {}).map(
+            ([lineKey, lines]) => {
+                const line = lines && lines.length > 0 ? lines[0] : {};
+                const dateStr = line.date || "";
                 const date = dateStr ? new Date(dateStr) : new Date(0);
-                return { rentScheduleId: parseInt(rentScheduleId), date: date };
-            });
-            
-            // Sort by date (oldest first)
-            invoiceDates.sort((a, b) => a.date - b.date);
-            this.sortedInvoiceIds = invoiceDates.map(item => item.rentScheduleId);
-        }
-        
-        // Initialize state - if flexible_payment is False, select all invoices
-        let initialSelectedIds = [];
-        let initialTotal = 0.00;
-        
+                return { lineKey, line, date };
+            }
+        );
+        lineEntries.sort((a, b) => a.date - b.date);
+        this.sortedLineKeys = lineEntries.map((e) => e.lineKey);
+
+        let initialSelectedKeys = [];
+        let initialTotal = 0.0;
+
         if (!this.flexiblePayment && props.tenancy_lines) {
-            initialSelectedIds = Object.keys(props.tenancy_lines || {}).map(id => parseInt(id));
-            Object.entries(props.tenancy_lines || {}).forEach(([rentScheduleId, lines]) => {
-                if (lines && lines.length > 0) {
-                    const line = lines[0];
-                    initialTotal += line.invoice_amount_residual || 0;
+            initialSelectedKeys = [...this.sortedLineKeys];
+            for (const lineKey of initialSelectedKeys) {
+                const lines = props.tenancy_lines[lineKey];
+                if (lines && lines[0]) {
+                    initialTotal += lines[0].invoice_amount_residual || 0;
                 }
-            });
+            }
         }
-        
+
         this.state = useState({
             totalInvoice: initialTotal,
-            selectedRentScheduleIds: initialSelectedIds,
+            selectedLineKeys: initialSelectedKeys,
         });
-        
-        // Update hidden input and total display after component renders
+
         onWillStart(() => {
-            if (!this.flexiblePayment && initialSelectedIds.length > 0) {
-                // Use setTimeout to ensure DOM is ready
-                setTimeout(() => {
-                    const totalElement = document.getElementById('InvoiceTotal');
-                    if (totalElement) {
-                        totalElement.innerText = initialTotal;
-                    }
-                    
-                    const hiddenInput = document.getElementById('selected_rent_schedule_ids');
-                    if (hiddenInput) {
-                        hiddenInput.value = JSON.stringify(initialSelectedIds);
-                    }
-                }, 50);
-            }
+            setTimeout(() => this._syncHiddenInputs(), 50);
         });
     }
 
-    isSelected(rentScheduleId){
-        return this.state.selectedRentScheduleIds.includes(rentScheduleId);
+    _updatePayButton() {
+        const btn = document.getElementById("payment_link_pay_btn");
+        if (!btn) {
+            return;
+        }
+        const hasSelection = this.state.selectedLineKeys.length > 0;
+        const disabled = this.flexiblePayment && !hasSelection;
+        if (disabled) {
+            btn.classList.remove("btn-primary");
+            btn.classList.add("btn-secondary", "disabled");
+            btn.setAttribute("aria-disabled", "true");
+            btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.65";
+            btn.removeAttribute("data-bs-toggle");
+            btn.removeAttribute("data-bs-target");
+        } else {
+            btn.classList.add("btn-primary");
+            btn.classList.remove("btn-secondary", "disabled");
+            btn.removeAttribute("aria-disabled");
+            btn.style.pointerEvents = "";
+            btn.style.opacity = "";
+            btn.setAttribute("data-bs-toggle", "modal");
+            btn.setAttribute("data-bs-target", "#payment_method");
+        }
     }
 
-    isCheckboxDisabled(rentScheduleId){
-        // If not flexible payment, checkbox is disabled (all must be selected)
+    _syncHiddenInputs() {
+        const totalElement = document.getElementById("InvoiceTotal");
+        if (totalElement) {
+            totalElement.innerText = this.state.totalInvoice.toFixed(2);
+        }
+        this._updatePayButton();
+        const rentIds = [];
+        const serviceIds = [];
+        for (const lineKey of this.state.selectedLineKeys) {
+            const line = this.parsedProps.tenancy_lines[lineKey]?.[0];
+            if (!line) {
+                continue;
+            }
+            if (line.line_type === "service" && line.service_rent_id) {
+                serviceIds.push(line.service_rent_id);
+            } else if (line.rent_schedule_id) {
+                rentIds.push(line.rent_schedule_id);
+            }
+        }
+        const rentInput = document.getElementById("selected_rent_schedule_ids");
+        const serviceInput = document.getElementById("selected_service_rent_ids");
+        if (rentInput) {
+            rentInput.value = JSON.stringify(rentIds);
+        }
+        if (serviceInput) {
+            serviceInput.value = JSON.stringify(serviceIds);
+        }
+    }
+
+    isSelected(lineKey) {
+        return this.state.selectedLineKeys.includes(lineKey);
+    }
+
+    isCheckboxDisabled(lineKey) {
         if (!this.flexiblePayment) {
             return true;
         }
-        
-        const isSelected = this.isSelected(rentScheduleId);
-        
-        // If invoice is selected, check if it can be deselected
+        const isSelected = this.isSelected(lineKey);
         if (isSelected) {
-            return !this.canDeselectInvoice(rentScheduleId);
+            return !this.canDeselectLine(lineKey);
         }
-        
-        // If invoice is not selected, check if it can be selected
-        return !this.canSelectInvoice(rentScheduleId);
+        return !this.canSelectLine(lineKey);
     }
 
-    canSelectInvoice(rentScheduleId){
-        // Check if invoice can be selected (all older invoices must be selected first)
+    canSelectLine(lineKey) {
         if (!this.flexiblePayment) {
-            return true; // If not flexible, all invoices are auto-selected
+            return true;
         }
-        
-        // Find the index of this invoice in the sorted list
-        const currentIndex = this.sortedInvoiceIds.indexOf(rentScheduleId);
+        const currentIndex = this.sortedLineKeys.indexOf(lineKey);
         if (currentIndex === -1) {
-            return false; // Invoice not found
+            return false;
         }
-        
-        // Check if all previous (older) invoices are selected
         for (let i = 0; i < currentIndex; i++) {
-            const olderInvoiceId = this.sortedInvoiceIds[i];
-            if (!this.state.selectedRentScheduleIds.includes(olderInvoiceId)) {
-                return false; // There's an older invoice that's not selected
+            if (!this.state.selectedLineKeys.includes(this.sortedLineKeys[i])) {
+                return false;
             }
         }
-        
-        return true; // All older invoices are selected, can select this one
+        return true;
     }
 
-    canDeselectInvoice(rentScheduleId){
-        // Check if invoice can be deselected (no newer invoices can be selected)
+    canDeselectLine(lineKey) {
         if (!this.flexiblePayment) {
-            return false; // If not flexible, cannot deselect
+            return false;
         }
-        
-        // Find the index of this invoice in the sorted list
-        const currentIndex = this.sortedInvoiceIds.indexOf(rentScheduleId);
+        const currentIndex = this.sortedLineKeys.indexOf(lineKey);
         if (currentIndex === -1) {
-            return false; // Invoice not found
+            return false;
         }
-        
-        // Check if any newer invoices are selected
-        for (let i = currentIndex + 1; i < this.sortedInvoiceIds.length; i++) {
-            const newerInvoiceId = this.sortedInvoiceIds[i];
-            if (this.state.selectedRentScheduleIds.includes(newerInvoiceId)) {
-                return false; // There's a newer invoice that's selected, cannot deselect this one
+        for (let i = currentIndex + 1; i < this.sortedLineKeys.length; i++) {
+            if (this.state.selectedLineKeys.includes(this.sortedLineKeys[i])) {
+                return false;
             }
         }
-        
-        return true; // No newer invoices selected, can deselect this one
+        return true;
     }
 
-    onCheckboxClick(ev){
-        const rentScheduleId = parseInt(ev.target.getAttribute('data-schedule-id'));
-        const lineData = this.parsedProps.tenancy_lines[rentScheduleId][0];
-        this.addToTotal(ev, lineData);
+    onCheckboxClick(ev) {
+        const lineKey = ev.target.getAttribute("data-line-key");
+        const lineData = this.parsedProps.tenancy_lines[lineKey]?.[0];
+        if (!lineData) {
+            return;
+        }
+        this.addToTotal(ev, lineKey, lineData);
     }
 
-    addToTotal(ev, line){
-        // If flexible_payment is False, prevent unchecking
+    addToTotal(ev, lineKey, line) {
         if (!this.flexiblePayment && !ev.target.checked) {
             ev.preventDefault();
             ev.target.checked = true;
             return;
         }
-        
-        // If flexible_payment is False, prevent any changes
         if (!this.flexiblePayment) {
             ev.preventDefault();
             ev.target.checked = true;
             return;
         }
-        
-        const rentScheduleId = line.rent_schedule_id;
-        const isCurrentlySelected = this.state.selectedRentScheduleIds.includes(rentScheduleId);
-        
-        // Check the actual checkbox state after click
+
+        const isCurrentlySelected = this.state.selectedLineKeys.includes(lineKey);
         const willBeChecked = ev.target.checked;
-        
-        // Prevent duplicate additions/removals
+
         if (willBeChecked && isCurrentlySelected) {
-            // Already selected, don't add again
             ev.target.checked = true;
             return;
         }
-        
         if (!willBeChecked && !isCurrentlySelected) {
-            // Already unselected, don't remove again
             ev.target.checked = false;
             return;
         }
-        
-        // Enforce chronological selection rules for flexible payment
+
         if (this.flexiblePayment) {
-            if (willBeChecked && !isCurrentlySelected) {
-                // Trying to select: check if all older invoices are selected
-                if (!this.canSelectInvoice(rentScheduleId)) {
-                    ev.preventDefault();
-                    ev.target.checked = false;
-                    alert('Please select older invoices first. You must pay invoices in chronological order.');
-                    return;
-                }
-            } else if (!willBeChecked && isCurrentlySelected) {
-                // Trying to deselect: check if any newer invoices are selected
-                if (!this.canDeselectInvoice(rentScheduleId)) {
-                    ev.preventDefault();
-                    ev.target.checked = true;
-                    alert('Please deselect newer invoices first. You can only remove invoices in reverse chronological order.');
-                    return;
-                }
+            if (willBeChecked && !isCurrentlySelected && !this.canSelectLine(lineKey)) {
+                ev.preventDefault();
+                ev.target.checked = false;
+                alert(
+                    "Please select older invoices first. You must pay invoices in chronological order."
+                );
+                return;
+            }
+            if (!willBeChecked && isCurrentlySelected && !this.canDeselectLine(lineKey)) {
+                ev.preventDefault();
+                ev.target.checked = true;
+                alert(
+                    "Please deselect newer invoices first. You can only remove invoices in reverse chronological order."
+                );
+                return;
             }
         }
-        
-        // Update state based on checkbox action
+
         if (willBeChecked && !isCurrentlySelected) {
-            // Adding: checkbox is checked and not in selected list
-            this.state.totalInvoice = this.state.totalInvoice + line.invoice_amount_residual;
-            // Create new array to trigger reactivity
-            this.state.selectedRentScheduleIds = [...this.state.selectedRentScheduleIds, rentScheduleId];
+            this.state.totalInvoice += line.invoice_amount_residual || 0;
+            this.state.selectedLineKeys = [...this.state.selectedLineKeys, lineKey];
         } else if (!willBeChecked && isCurrentlySelected) {
-            // Removing: checkbox is unchecked and in selected list
-            this.state.totalInvoice = this.state.totalInvoice - line.invoice_amount_residual;
-            // Create new array without the removed item to trigger reactivity
-            this.state.selectedRentScheduleIds = this.state.selectedRentScheduleIds.filter(id => id !== rentScheduleId);
+            this.state.totalInvoice -= line.invoice_amount_residual || 0;
+            this.state.selectedLineKeys = this.state.selectedLineKeys.filter(
+                (k) => k !== lineKey
+            );
         }
-        
-        // Update the total display (using setTimeout to ensure state is updated)
-        setTimeout(() => {
-            const totalElement = document.getElementById('InvoiceTotal');
-            if (totalElement) {
-                totalElement.innerText = this.state.totalInvoice.toFixed(2);
-            }
-            
-            // Update the hidden input with selected IDs (for the payment form)
-            const hiddenInput = document.getElementById('selected_rent_schedule_ids');
-            if (hiddenInput) {
-                hiddenInput.value = JSON.stringify(this.state.selectedRentScheduleIds);
-                console.log("Updated selected rent schedule IDs:", this.state.selectedRentScheduleIds);
-            }
-        }, 0);
+
+        setTimeout(() => this._syncHiddenInputs(), 0);
     }
 }
 
-registry.category('public_components').add("property_payment_link.tenancy_payment_invoice_line", PaymentLinkInvoice);
+registry.category("public_components").add(
+    "property_payment_link.tenancy_payment_invoice_line",
+    PaymentLinkInvoice
+);
