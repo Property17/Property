@@ -18,7 +18,15 @@ Long description of module's purpose
     'version': '0.3.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['property_management', 'website', 'portal', 'pyment_report', 'mail', 'whatsapp'],
+    'depends': [
+        'property_management',
+        'mm_property_inherit_new',
+        'website',
+        'portal',
+        'pyment_report',
+        'mail',
+        'whatsapp',
+    ],
 
     # always loaded
     'data': [

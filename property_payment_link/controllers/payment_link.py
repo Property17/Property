@@ -34,9 +34,13 @@ def _compute_unpaid_rent_schedules(tenancy):
 
 
 def _compute_unpaid_service_rents(tenancy):
-    """Unpaid invoiced services (``service.rent`` / tenancy.service_ids)."""
+    """Unpaid invoiced services (``tenancy.service_ids`` / ``service.rent``)."""
     if 'service.rent' not in tenancy.env:
         return tenancy.env['service.rent']
+    if 'service_ids' in tenancy._fields:
+        return tenancy.service_ids.filtered(
+            lambda sr: sr.posted and not sr.paid and sr.move_id
+        )
     return tenancy.env['service.rent'].sudo().search([
         ('tenancy_id', '=', tenancy.id),
         ('posted', '=', True),
