@@ -15,10 +15,18 @@ Long description of module's purpose
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '0.3.1',
+    'version': '0.3.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['property_management', 'website', 'portal', 'pyment_report', 'mail', 'whatsapp'],
+    'depends': [
+        'property_management',
+        'mm_property_inherit_new',
+        'website',
+        'portal',
+        'pyment_report',
+        'mail',
+        'whatsapp',
+    ],
 
     # always loaded
     'data': [

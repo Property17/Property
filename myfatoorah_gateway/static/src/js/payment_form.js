@@ -69,12 +69,20 @@ paymentForm.include({
                 if (invoice_id) initiateParams.invoice_id = invoice_id;
                 if (tenancy_id) {
                     initiateParams.tenancy_id = tenancy_id;
-                    var hiddenInput = document.getElementById('selected_rent_schedule_ids');
-                    if (hiddenInput && hiddenInput.value && hiddenInput.value !== '[]') {
+                    var rentInput = document.getElementById('selected_rent_schedule_ids');
+                    if (rentInput && rentInput.value && rentInput.value !== '[]') {
                         try {
-                            initiateParams.selected_rent_schedule_ids = JSON.parse(hiddenInput.value);
+                            initiateParams.selected_rent_schedule_ids = JSON.parse(rentInput.value);
                         } catch (e) {
-                            initiateParams.selected_rent_schedule_ids = hiddenInput.value;
+                            initiateParams.selected_rent_schedule_ids = rentInput.value;
+                        }
+                    }
+                    var serviceInput = document.getElementById('selected_service_rent_ids');
+                    if (serviceInput && serviceInput.value && serviceInput.value !== '[]') {
+                        try {
+                            initiateParams.selected_service_rent_ids = JSON.parse(serviceInput.value);
+                        } catch (e) {
+                            initiateParams.selected_service_rent_ids = serviceInput.value;
                         }
                     }
                 }

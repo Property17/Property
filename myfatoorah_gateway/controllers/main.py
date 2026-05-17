@@ -289,6 +289,47 @@ class MyfatoorahController(http.Controller):
         match = re.search(r'tenancy_payment_link/tenant_partner/(\d+)', referer)
         return int(match.group(1)) if match else None
 
+    @staticmethod
+    def _mf_parse_id_list(value):
+        if not value:
+            return []
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except (TypeError, ValueError):
+                return []
+        if not isinstance(value, list):
+            return []
+        return [int(x) for x in value if str(x).isdigit()]
+
+    def _mf_tenancy_payable_invoices(self, tenancy, params):
+        """Resolve rent + service invoices for MyFatoorah amount (property_payment_link)."""
+        unpaid_rent = tenancy.rent_schedule_ids.filtered(
+            lambda rs: rs.move_check and not rs.paid and rs.invoice_id
+        )
+        rent_ids = self._mf_parse_id_list(params.get('selected_rent_schedule_ids'))
+        if rent_ids:
+            unpaid_rent = unpaid_rent.filtered(lambda rs: rs.id in rent_ids)
+
+        service_rents = request.env['service.rent']
+        if 'service.rent' in request.env:
+            service_rents = request.env['service.rent'].sudo().search([
+                ('tenancy_id', '=', tenancy.id),
+                ('posted', '=', True),
+                ('paid', '=', False),
+                ('move_id', '!=', False),
+            ])
+            service_ids = self._mf_parse_id_list(params.get('selected_service_rent_ids'))
+            if service_ids:
+                service_rents = service_rents.filtered(lambda sr: sr.id in service_ids)
+
+        invoices = unpaid_rent.mapped('invoice_id')
+        if service_rents:
+            invoices |= service_rents.mapped('move_id')
+        return invoices.filtered(
+            lambda inv: inv.state == 'posted' and inv.amount_residual > 0
+        )
+
     def _mf_myfatoorah_provider(self, env, company):
         """Pick MyFatoorah provider for this company, then shared (no company), then any."""
         Provider = env['payment.provider'].sudo()
@@ -324,10 +365,7 @@ class MyfatoorahController(http.Controller):
         if tenancy_id:
             tenancy = env['account.analytic.account'].sudo().browse(int(tenancy_id))
             if tenancy.exists():
-                unpaid = tenancy.rent_schedule_ids.filtered(
-                    lambda rs: rs.move_check and not rs.paid and rs.invoice_id
-                )
-                invoices = unpaid.mapped('invoice_id')
+                invoices = self._mf_tenancy_payable_invoices(tenancy, params)
                 if invoices:
                     return invoices[0].company_id
                 return tenancy.company_id
@@ -372,18 +410,7 @@ class MyfatoorahController(http.Controller):
                     ('id', '=', int(tenancy_id))
                 ], limit=1)
                 if tenancy:
-                    unpaid_schedules = tenancy.rent_schedule_ids.filtered(
-                        lambda rs: rs.move_check and not rs.paid and rs.invoice_id
-                    )
-                    selected_ids = params.get('selected_rent_schedule_ids')
-                    if selected_ids:
-                        try:
-                            ids = selected_ids if isinstance(selected_ids, list) else json.loads(selected_ids)
-                            if ids:
-                                unpaid_schedules = unpaid_schedules.filtered(lambda rs: rs.id in ids)
-                        except (TypeError, ValueError):
-                            pass
-                    invoices = unpaid_schedules.mapped('invoice_id')
+                    invoices = self._mf_tenancy_payable_invoices(tenancy, params)
                     if invoices:
                         amount = sum(inv.amount_residual for inv in invoices)
                         currency_iso = invoices[0].currency_id.name

@@ -57,7 +57,7 @@ class PropertyPaymentLink(models.Model):
     # Computed fields (stored for search / group by)
     multi_properitis = fields.Char(compute='_compute_multi_properties', string="Properties", store=True, readonly=True)
     total_amount_due = fields.Float(
-        compute='_compute_total_amount_due', string="Total Amount Due", store=True, readonly=True)
+        compute='_compute_total_amount_due', string="Total Amount Due", tracking=True, store=True, readonly=True)
     
     # Direct fields
     last_sent_date = fields.Datetime(string="Last Sent Date", tracking=True)
@@ -103,23 +103,52 @@ class PropertyPaymentLink(models.Model):
             else:
                 link.name = f"Payment Link #{link.id}" if link.id else "New Payment Link"
 
-    @api.depends('tenancy_id', 'tenancy_id.rent_schedule_ids', 'tenancy_id.rent_schedule_ids.move_check', 
-                 'tenancy_id.rent_schedule_ids.paid', 'tenancy_id.rent_schedule_ids.invoice_id', 
-                 'tenancy_id.rent_schedule_ids.invoice_id.amount_residual')
+    def _get_unpaid_service_rents_for_tenancy(self, tenancy):
+        """Unpaid invoiced services from ``tenancy.service_ids`` (``service.rent``)."""
+        if not tenancy or 'service.rent' not in self.env:
+            return self.env['service.rent']
+        if 'service_ids' in tenancy._fields:
+            return tenancy.service_ids.filtered(
+                lambda sr: sr.posted and not sr.paid and sr.move_id
+            )
+        return self.env['service.rent'].search([
+            ('tenancy_id', '=', tenancy.id),
+            ('posted', '=', True),
+            ('paid', '=', False),
+            ('move_id', '!=', False),
+        ])
+
+    @api.depends(
+        'tenancy_id',
+        'tenancy_id.rent_schedule_ids.move_check',
+        'tenancy_id.rent_schedule_ids.paid',
+        'tenancy_id.rent_schedule_ids.invoice_id.amount_residual',
+        'tenancy_id.service_ids.posted',
+        'tenancy_id.service_ids.paid',
+        'tenancy_id.service_ids.move_id',
+        'tenancy_id.service_ids.move_id.amount_residual',
+        'tenancy_id.service_ids.move_id.state',
+    )
     def _compute_total_amount_due(self):
-        """Compute total outstanding amount from unpaid invoices"""
+        """Total due: unpaid rent invoices + unpaid service.rent invoices on the tenancy."""
         for link in self:
-            if link.tenancy_id:
-                # Get unpaid rent schedules that have invoices
-                unpaid_rent_schedules = link.tenancy_id.rent_schedule_ids.filtered(
-                    lambda rs: rs.move_check and not rs.paid and rs.invoice_id
-                )
-                # Get invoices from unpaid rent schedules
-                unpaid_invoices = unpaid_rent_schedules.mapped('invoice_id')
-                # Sum the outstanding amounts
-                link.total_amount_due = sum(inv.amount_residual for inv in unpaid_invoices)
-            else:
+            if not link.tenancy_id:
                 link.total_amount_due = 0.0
+                continue
+            tenancy = link.tenancy_id
+            unpaid_rent = tenancy.rent_schedule_ids.filtered(
+                lambda rs: rs.move_check and not rs.paid and rs.invoice_id
+            )
+            invoices = unpaid_rent.mapped('invoice_id')
+            unpaid_services = link._get_unpaid_service_rents_for_tenancy(tenancy)
+            if unpaid_services:
+                invoices |= unpaid_services.mapped('move_id')
+            link.total_amount_due = sum(
+                inv.amount_residual
+                for inv in invoices.filtered(
+                    lambda m: m.state == 'posted' and m.amount_residual > 0
+                )
+            )
 
 
     @api.depends('property_id')
