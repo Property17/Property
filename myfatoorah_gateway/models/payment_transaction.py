@@ -40,8 +40,14 @@ class PaymentTransaction(models.Model):
         if provider_code != 'myfatoorah':
             return tx
         payment_id = notification_data.get('paymentId')
-        if not payment_id and isinstance(notification_data.get('Data'), dict):
-            payment_id = notification_data['Data'].get('PaymentId')
+        data_payload = notification_data.get('Data')
+        if not payment_id and isinstance(data_payload, dict):
+            payment_id = data_payload.get('PaymentId')
+            transaction_block = data_payload.get('Transaction')
+            if not payment_id and isinstance(transaction_block, dict):
+                payment_id = transaction_block.get('PaymentId')
+        if payment_id is not None:
+            payment_id = str(payment_id)
         if not payment_id:
             _logger.warning("MyFatoorah notification without paymentId")
             return tx
@@ -88,7 +94,7 @@ class PaymentTransaction(models.Model):
         inv_txs = data.get('InvoiceTransactions') or []
         payment_status = ''
         for inv_tx in inv_txs:
-            if inv_tx.get('PaymentId') == payment_id:
+            if str(inv_tx.get('PaymentId') or '') == payment_id:
                 payment_status = inv_tx.get('TransactionStatus') or ''
                 break
         customer_reference = data.get('CustomerReference')
@@ -161,29 +167,47 @@ class PaymentTransaction(models.Model):
 
     def _process_notification_data(self, notification_data):
         super()._process_notification_data(notification_data)
-        tx = self.search([
-            ('provider_code', '=', 'myfatoorah'),
-            ('reference', '=', notification_data['reference']),
-        ])
-        _logger.info("notification tx: \n%s", tx)
         if self.provider_code != 'myfatoorah':
             return
-        else:
-            if notification_data['invoice_status'] == 'Paid':
-                self._set_done()
-                order = tx.sale_order_ids
-                _logger.info("Order ids: \n%s", order)
-                order.action_confirm()
-            else:
-                if notification_data['invoice_status'] == 'Pending':
-                    if notification_data['payment_status'] == 'Failed':
-                        self._set_error(
-                            "Myfatoorah: " + _("received invalid transaction status: %s",
-                                               notification_data['payment_status']))
-                    else:
-                        self._set_pending()
-                else:
-                    self._set_pending()
+
+        invoice_status = notification_data.get('invoice_status') or ''
+        payment_status = notification_data.get('payment_status') or ''
+
+        # Webhook V1 may send TransactionStatus on Data when GetPaymentStatus is still Pending.
+        data_payload = notification_data.get('Data')
+        if isinstance(data_payload, dict):
+            webhook_tx_status = data_payload.get('TransactionStatus') or ''
+            transaction_block = data_payload.get('Transaction')
+            if isinstance(transaction_block, dict):
+                webhook_tx_status = transaction_block.get('Status') or webhook_tx_status
+            if webhook_tx_status in ('SUCCESS', 'Paid'):
+                payment_status = webhook_tx_status
+            if data_payload.get('InvoiceStatus') == 'Paid':
+                invoice_status = 'Paid'
+
+        _logger.info(
+            "MyFatoorah notify tx=%s ref=%s invoice_status=%s payment_status=%s state=%s",
+            self.id, self.reference, invoice_status, payment_status, self.state,
+        )
+
+        if invoice_status == 'Paid' or payment_status in ('SUCCESS', 'Paid'):
+            self._set_done()
+            if self.sale_order_ids:
+                self.sale_order_ids.action_confirm()
+            return
+
+        if invoice_status == 'Pending':
+            if payment_status in ('Failed', 'FAILED', 'CANCELED', 'CANCELLED'):
+                if self.state not in ('done', 'cancel'):
+                    self._set_error(
+                        "Myfatoorah: " + _("received invalid transaction status: %s", payment_status)
+                    )
+            elif self.state == 'draft':
+                self._set_pending()
+            return
+
+        if self.state == 'draft':
+            self._set_pending()
 
     def _prepare_myfatoorah_invoice_link_payload(self, processing_values):
         odoo_base_url = self.env['ir.config_parameter'].get_param('web.base.url')
