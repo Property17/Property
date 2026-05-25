@@ -193,57 +193,128 @@ class MyfatoorahController(http.Controller):
         # Return the HTML code as the response
         return html_code
 
-    @http.route("/invoice_link/myfatoorah/webhook", type='json', auth='public', methods=['GET', 'POST'], website=False)
+    @http.route(
+        "/invoice_link/myfatoorah/webhook",
+        type='http',
+        auth='public',
+        methods=['POST'],
+        csrf=False,
+        website=False,
+    )
     def invoice_link_myfatoorah_webhook(self, **data):
-        mf_signature = http.request.httprequest.headers.get('MyFatoorah-Signature')
+        """Receive MyFatoorah server-to-server notifications (raw JSON POST, not JSON-RPC)."""
+        req = http.request.httprequest
+        mf_signature = req.headers.get('MyFatoorah-Signature') or req.headers.get('myfatoorah-signature')
         if not mf_signature:
-            return http.Response(status=404)
+            _logger.warning("MyFatoorah webhook rejected: missing signature header")
+            return request.make_response('Missing signature', status=401)
 
-        body = http.request.httprequest.data
-        input_data = json.loads(body)
-        if not input_data.get('Data') or not input_data.get('EventType') or input_data.get('EventType') != 1:
-            return http.Response(status=404)
+        body = req.data
+        if not body:
+            _logger.warning("MyFatoorah webhook rejected: empty body")
+            return request.make_response('Empty body', status=400)
+        try:
+            input_data = json.loads(body)
+        except (ValueError, TypeError):
+            _logger.warning("MyFatoorah webhook rejected: invalid JSON")
+            return request.make_response('Invalid JSON', status=400)
 
-        providers = http.request.env['payment.provider'].sudo().search([
+        event_type = input_data.get('EventType')
+        if event_type is None and isinstance(input_data.get('Event'), dict):
+            event_type = input_data['Event'].get('Code')
+        if not input_data.get('Data') or event_type != 1:
+            _logger.info(
+                "MyFatoorah webhook ignored (not payment status): EventType=%s Event=%s",
+                input_data.get('EventType'),
+                input_data.get('Event'),
+            )
+            return request.make_response('Ignored', status=200)
+
+        providers = request.env['payment.provider'].sudo().search([
             ('code', '=', 'myfatoorah'),
             ('myfatoorah_webhook', '!=', False),
         ])
-        event_type = input_data.get('EventType')
+        if not providers:
+            _logger.error("MyFatoorah webhook rejected: no provider with webhook secret configured in Odoo")
+            return request.make_response('Provider not configured', status=500)
+
+        matched_provider = None
         for provider in providers:
-            secret_key = provider.myfatoorah_webhook
-            if secret_key and self.is_signature_valid(
-                input_data, secret_key, mf_signature, event_type
-            ):
+            secret_key = (provider.myfatoorah_webhook or '').strip()
+            if secret_key and self.is_signature_valid(input_data, secret_key, mf_signature):
+                matched_provider = provider
                 break
-        else:
-            return http.Response(status=404)
-        return http.request.env['payment.transaction'].sudo()._handle_notification_data('myfatoorah', input_data)
+        if not matched_provider:
+            _logger.warning(
+                "MyFatoorah webhook rejected: signature mismatch (checked %s provider(s))",
+                len(providers),
+            )
+            return request.make_response('Invalid signature', status=403)
+
+        payment_id = self._myfatoorah_payment_id_from_payload(input_data)
+        _logger.info(
+            "MyFatoorah webhook accepted (provider=%s, paymentId=%s)",
+            matched_provider.display_name,
+            payment_id,
+        )
+        request.env['payment.transaction'].sudo()._handle_notification_data('myfatoorah', input_data)
+        return request.make_response('OK', status=200)
 
     @staticmethod
-    def is_signature_valid(json_data, secret_key, mf_signature, event_type):
-        if json_data['Event'] == 'RefundStatusChanged':
-            del json_data['Data']['GatewayReference']
+    def _myfatoorah_payment_id_from_payload(payload):
+        """Extract PaymentId from V1 (flat Data) or V2 (nested Transaction) webhook payloads."""
+        data = payload.get('Data') or {}
+        if not isinstance(data, dict):
+            return payload.get('paymentId')
+        payment_id = data.get('PaymentId')
+        transaction = data.get('Transaction')
+        if not payment_id and isinstance(transaction, dict):
+            payment_id = transaction.get('PaymentId')
+        return payment_id or payload.get('paymentId')
 
-        # Get the unordered array
-        un_ordered_array = json_data['Data']
+    @staticmethod
+    def is_signature_valid(json_data, secret_key, mf_signature):
+        data = json_data.get('Data') or {}
+        if isinstance(data, dict) and (
+            isinstance(data.get('Transaction'), dict) or isinstance(data.get('Invoice'), dict)
+        ):
+            return MyfatoorahController._is_signature_valid_v2(data, secret_key, mf_signature)
+        return MyfatoorahController._is_signature_valid_v1(json_data, secret_key, mf_signature)
 
-        # 1- Order all data properties in alphabetic and case insensitive.
-        ordered_array = sorted(un_ordered_array.keys(), key=lambda x: x.lower())
-
-        # 2- Create one string from the data after ordering its key to be like that key=value,key2=value2 ...
-        ordered_string = ",".join(f"{key}={un_ordered_array[key] if un_ordered_array[key] else ''}" for key in ordered_array)
-
-        # 4- Encrypt the string using HMAC SHA-256 with the secret key in binary mode.
-        result = hmac.new(secret_key.encode('utf-8'), ordered_string.encode('utf-8'), hashlib.sha256).digest()
-
-        # 5- Encode the result from the previous point with base64.
+    @staticmethod
+    def _is_signature_valid_v1(json_data, secret_key, mf_signature):
+        """V1 signing: sorted flat Data keys (TransactionsStatusChanged)."""
+        data = dict(json_data.get('Data') or {})
+        if json_data.get('Event') == 'RefundStatusChanged':
+            data.pop('GatewayReference', None)
+        ordered_array = sorted(data.keys(), key=lambda x: x.lower())
+        ordered_string = ",".join(
+            f"{key}={data[key] if data[key] is not None else ''}" for key in ordered_array
+        )
+        result = hmac.new(
+            secret_key.encode('utf-8'), ordered_string.encode('utf-8'), hashlib.sha256
+        ).digest()
         hash_result = base64.b64encode(result).decode('utf-8')
+        return mf_signature == hash_result
 
-        # The 'result' variable now contains the binary representation of the HMAC-SHA-256 hash
-        if mf_signature == hash_result:
-            return True
-        else:
-            return False
+    @staticmethod
+    def _is_signature_valid_v2(data, secret_key, mf_signature):
+        """V2 signing: Invoice.* and Transaction.* fields (Signing version v1 in portal)."""
+        invoice = data.get('Invoice') or {}
+        transaction = data.get('Transaction') or {}
+        parts = [
+            ('Invoice.Id', invoice.get('Id', '')),
+            ('Invoice.Status', invoice.get('Status', '')),
+            ('Transaction.Status', transaction.get('Status', '')),
+            ('Transaction.PaymentId', transaction.get('PaymentId', '')),
+            ('Invoice.ExternalIdentifier', invoice.get('ExternalIdentifier', '')),
+        ]
+        ordered_string = ','.join(f'{key}={value or ""}' for key, value in parts)
+        result = hmac.new(
+            secret_key.encode('utf-8'), ordered_string.encode('utf-8'), hashlib.sha256
+        ).digest()
+        hash_result = base64.b64encode(result).decode('utf-8')
+        return mf_signature == hash_result
 
     @http.route("/payment/myfatoorah/initiate-session",  type='json', auth='public', methods=['GET', 'POST'], website=False)
     def myfatoorah_initiate_session(self, **data):
