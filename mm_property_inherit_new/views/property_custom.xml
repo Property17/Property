@@ -121,6 +121,7 @@
             </xpath>
 
             <xpath expr="//field[@name='payment_reference']" position="before">
+                <field name="is_deposit_receive" invisible="1"/>
                 <field name="user_paid_by_id" invisible="1"/>
                 <field name="paid_date" invisible="1"/>
                 <field name="mm_journal_id" invisible="1"/>

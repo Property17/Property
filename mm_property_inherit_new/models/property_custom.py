@@ -56,6 +56,10 @@ class AccountMoveInheritNew(models.Model):
     # run_comp = fields.Boolean(compute='_compute_analytic_account')
     
     hide_reset_to_draft = fields.Boolean(compute='_compute_hide_reset_to_draft', store=True)
+    is_deposit_receive = fields.Boolean(
+        string='Is Deposit Receive',
+        help='Deposit received via customer invoice; uses insurance account and no tenancy analytic.',
+    )
 
     @api.depends('amount_total', 'amount_residual')
     def _compute_hide_reset_to_draft(self):

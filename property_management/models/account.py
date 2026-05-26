@@ -31,7 +31,49 @@ class AccountMove(models.Model):
         string='Tenancy',
         help='Tenancy Name.'
     )
-   
+
+    def _property_deposit_receive_tenancies(self):
+        """Tenancies whose deposit receive invoice is one of these moves."""
+        Tenancy = self.env['account.analytic.account']
+        if 'acc_inv_dep_rec_id' not in Tenancy._fields:
+            return Tenancy
+        return Tenancy.search([('acc_inv_dep_rec_id', 'in', self.ids)])
+
+    def _property_sync_deposit_received_from_invoices(self):
+        """Set deposit_received when the linked deposit invoice is paid or in payment."""
+        paid_moves = self.filtered(
+            lambda m: m.move_type == 'out_invoice'
+            and m.payment_state in ('paid', 'in_payment')
+        )
+        if not paid_moves:
+            return
+        tenancies = paid_moves._property_deposit_receive_tenancies()
+        if not tenancies:
+            for move in paid_moves:
+                tenancy = move.tenancy_id or move.new_tenancy_id
+                is_deposit = getattr(move, 'is_deposit_receive', False)
+                if tenancy and is_deposit:
+                    tenancies |= tenancy
+        if tenancies:
+            tenancies.write({'deposit_received': True})
+
+    def _invoice_paid_hook(self):
+        super()._invoice_paid_hook()
+        self._property_sync_deposit_received_from_invoices()
+
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('payment_state'):
+            self._property_sync_deposit_received_from_invoices()
+        return res
+
+    def button_draft(self):
+        deposit_moves = self.filtered(lambda m: m.move_type == 'out_invoice')
+        tenancies = deposit_moves._property_deposit_receive_tenancies()
+        res = super().button_draft()
+        if tenancies:
+            tenancies.write({'deposit_received': False})
+        return res
 
     def assert_balanced(self):
         prec = self.env['decimal.precision'].precision_get('Account')

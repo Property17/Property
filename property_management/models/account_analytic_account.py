@@ -1,6 +1,7 @@
 # See LICENSE file for full copyright and licensing details
 
 from datetime import datetime
+from typing import Any
 from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
@@ -311,7 +312,12 @@ class AccountAnalyticAccount(models.Model):
         comodel_name='account.payment',
         string='Account Payment',
         copy=False,
-        help="Manager of Tenancy.")
+        help="Deposit received via customer payment.")
+    acc_inv_dep_rec_id = fields.Many2one(
+        comodel_name='account.move',
+        string='Deposit Receive Invoice',
+        copy=False,
+        help="Customer invoice created to receive tenancy deposit.")
     acc_pay_dep_ret_id = fields.Many2one(
         comodel_name='account.payment',
         string='Tenancy Manager',
@@ -570,6 +576,28 @@ class AccountAnalyticAccount(models.Model):
             self.rent_type_id = self.property_id.rent_type_id.id
             # self.rent = self.property_id.ground_rent or False
 
+    def _validate_deposit_receive_amount(self):
+        """Shared checks for deposit receive (payment or invoice)."""
+        self.ensure_one()
+        if self.deposit == 0.00:
+            raise ValidationError(_('Please Enter Deposit amount.'))
+        if self.deposit < 0.00:
+            raise ValidationError(_('The deposit amount must be strictly positive.'))
+        if not self.tenant_id or not self.tenant_id.parent_id:
+            raise ValidationError(_('Please set the tenant contact before receiving the deposit.'))
+
+    def _get_deposit_receive_income_account(self):
+        """Insurance account for deposit (same rule as deposit payment credit line)."""
+        self.ensure_one()
+        partner = self.tenant_id.parent_id
+        insurance_account = partner.tenancy_insurance_id
+        if not insurance_account:
+            raise ValidationError(
+                _('Please configure the Tenancy Insurance account on the tenant (%s).')
+                % (self.tenant_id.name or '')
+            )
+        return insurance_account
+
     def button_receive(self):
         """
         This button method is used to open the related
@@ -590,8 +618,7 @@ class AccountAnalyticAccount(models.Model):
                 'context': self.env.context,
             }
         
-        context = dict(self._context) or {}
-        # print("contextcontextbutton_receivebutton_receive", context)
+        context = dict[Any, Any](self._context) or {}
         payment_id = False
         acc_pay_form = self.env.ref(
             'account.view_account_payment_form')
@@ -605,25 +632,7 @@ class AccountAnalyticAccount(models.Model):
 
         context.update({'close_after_process': True})
         for tenancy_rec in self:
-            
-            # if tenancy_rec.acc_pay_dep_rec_id and \
-            #         tenancy_rec.acc_pay_dep_rec_id.id:
-            #     return {
-            #         'view_type': 'form',
-            #         'view_id': acc_pay_form.id,
-            #         'view_mode': 'form',
-            #         'res_model': 'account.payment',
-            #         'res_id': tenancy_rec.acc_pay_dep_rec_id.id,
-            #         'type': 'ir.actions.act_window',
-            #         'target': 'current',
-            #         'context': context,
-            #     }
-                
-            if tenancy_rec.deposit == 0.00:
-                raise ValidationError(_('Please Enter Deposit amount.'))
-            if tenancy_rec.deposit < 0.00:
-                raise ValidationError(
-                    _('The deposit amount must be strictly positive.'))
+            tenancy_rec._validate_deposit_receive_amount()
             vals = {
                 'partner_id': tenancy_rec.tenant_id.parent_id.id,
                 'partner_type': 'customer',
@@ -650,6 +659,84 @@ class AccountAnalyticAccount(models.Model):
             'target': 'current',
             'domain': '[]',
             'context': context,
+        }
+
+    def button_receive_invoice(self):
+        """Create a customer invoice to receive the tenancy deposit (alternative to payment)."""
+        self.ensure_one()
+        if self.acc_inv_dep_rec_id:
+            return self.action_open_deposit_receive_invoice()
+
+        self._validate_deposit_receive_amount()
+        insurance_account = self._get_deposit_receive_income_account()
+
+        journal = self.env['account.journal'].search([
+            ('type', '=', 'sale'),
+            ('company_id', '=', self.company_id.id),
+        ], limit=1)
+        if not journal:
+            raise ValidationError(
+                _('No sales journal found for company %s.') % (self.company_id.name or '')
+            )
+
+        invoice_date = fields.Date.context_today(self)
+        inv_line_values = {
+            'name': _('Deposit Received') or '',
+            'quantity': 1,
+            'price_unit': self.deposit or 0.00,
+            'account_id': insurance_account.id,
+        }
+
+        inv_values = {
+            'move_type': 'out_invoice',
+            'partner_id': self.tenant_id.parent_id.id,
+            'property_id': self.property_id.id,
+            'tenancy_id': self.id,
+            'new_tenancy_id': self.id,
+            'company_id': self.company_id.id,
+            'journal_id': journal.id,
+            'invoice_date': invoice_date,
+            'invoice_date_due': invoice_date,
+            'ref': _('Deposit Received'),
+            'invoice_line_ids': [(0, 0, inv_line_values)],
+        }
+        if 'is_deposit_receive' in self.env['account.move']._fields:
+            inv_values['is_deposit_receive'] = True
+
+        invoice = self.env['account.move'].create(inv_values)
+        self.acc_inv_dep_rec_id = invoice.id
+
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': invoice.id,
+            'target': 'current',
+            'context': self.env.context,
+        }
+
+    def action_open_deposit_receive_payment(self):
+        self.ensure_one()
+        if not self.acc_pay_dep_rec_id:
+            raise ValidationError(_('No deposit receive payment has been created yet.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'account.payment',
+            'res_id': self.acc_pay_dep_rec_id.id,
+            'target': 'current',
+        }
+
+    def action_open_deposit_receive_invoice(self):
+        self.ensure_one()
+        if not self.acc_inv_dep_rec_id:
+            raise ValidationError(_('No deposit receive invoice has been created yet.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': self.acc_inv_dep_rec_id.id,
+            'target': 'current',
         }
     
     def button_return(self):

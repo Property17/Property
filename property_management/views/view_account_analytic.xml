@@ -88,6 +88,13 @@
                             class="oe_highlight"
                         />
                         <button
+                            name="button_receive_invoice"
+                            string="Deposit Invoice"
+                            type="object"
+                            icon="fa-file-text-o"
+                            class="oe_highlight"
+                        />
+                        <button
                             name="button_open_recived"
                             string="Open Deposit Return"
                             type="object"
@@ -147,6 +154,18 @@
                 <sheet>
                     <div class="oe_button_box" name='button_box'>
                         <field name="rent_entry_chck" invisible="1"/>
+                        <button name="action_open_deposit_receive_payment"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-money"
+                            invisible="not acc_pay_dep_rec_id"
+                            string="Deposit Payment"/>
+                        <button name="action_open_deposit_receive_invoice"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-file-text-o"
+                            invisible="not acc_inv_dep_rec_id"
+                            string="Deposit Invoice"/>
                     </div>
                     <div class="oe_title oe_left">
                         <label for="name" class="oe_edit_only" string='Tenancy'/>
@@ -189,6 +208,7 @@
                             <field name="contact_id" />
                             <field name="main_cost" invisible="1" />
                             <field name="acc_pay_dep_rec_id" invisible="1" />
+                            <field name="acc_inv_dep_rec_id" invisible="1" />
                             <field name="acc_pay_dep_ret_id" invisible="1" />
                             <field name="company_id" invisible="1"/>
                             <field name="partner_id" invisible="1" />
