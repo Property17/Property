@@ -87,6 +87,7 @@
                             icon="fa-money"
                             class="oe_highlight"
                         />
+                        
                         <button
                             name="button_receive_invoice"
                             string="Deposit Invoice"
