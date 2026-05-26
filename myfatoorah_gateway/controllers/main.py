@@ -373,8 +373,24 @@ class MyfatoorahController(http.Controller):
             return []
         return [int(x) for x in value if str(x).isdigit()]
 
+    def _mf_unpaid_deposit_invoices(self, tenancy, params):
+        """Deposit receive invoices due (aligned with property_payment_link)."""
+        if hasattr(tenancy, '_payment_link_get_unpaid_deposit_invoices'):
+            deposit_invoices = tenancy._payment_link_get_unpaid_deposit_invoices()
+        else:
+            deposit_invoices = request.env['account.move'].sudo().browse()
+            if 'acc_inv_dep_rec_id' in tenancy._fields and tenancy.acc_inv_dep_rec_id:
+                deposit_invoices |= tenancy.acc_inv_dep_rec_id
+            deposit_invoices = deposit_invoices.filtered(
+                lambda inv: inv.state == 'posted' and inv.amount_residual > 0
+            )
+        deposit_ids = self._mf_parse_id_list(params.get('selected_deposit_invoice_ids'))
+        if deposit_ids:
+            deposit_invoices = deposit_invoices.filtered(lambda inv: inv.id in deposit_ids)
+        return deposit_invoices
+
     def _mf_tenancy_payable_invoices(self, tenancy, params):
-        """Resolve rent + service invoices for MyFatoorah amount (property_payment_link)."""
+        """Resolve rent + service + deposit invoices for MyFatoorah (property_payment_link)."""
         unpaid_rent = tenancy.rent_schedule_ids.filtered(
             lambda rs: rs.move_check and not rs.paid and rs.invoice_id
         )
@@ -397,6 +413,7 @@ class MyfatoorahController(http.Controller):
         invoices = unpaid_rent.mapped('invoice_id')
         if service_rents:
             invoices |= service_rents.mapped('move_id')
+        invoices |= self._mf_unpaid_deposit_invoices(tenancy, params)
         return invoices.filtered(
             lambda inv: inv.state == 'posted' and inv.amount_residual > 0
         )

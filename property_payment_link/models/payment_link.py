@@ -128,9 +128,13 @@ class PropertyPaymentLink(models.Model):
         'tenancy_id.service_ids.move_id',
         'tenancy_id.service_ids.move_id.amount_residual',
         'tenancy_id.service_ids.move_id.state',
+        'tenancy_id.acc_inv_dep_rec_id',
+        'tenancy_id.acc_inv_dep_rec_id.amount_residual',
+        'tenancy_id.acc_inv_dep_rec_id.state',
+        'tenancy_id.acc_inv_dep_rec_id.payment_state',
     )
     def _compute_total_amount_due(self):
-        """Total due: unpaid rent invoices + unpaid service.rent invoices on the tenancy."""
+        """Total due: unpaid rent + service + deposit invoices on the tenancy."""
         for link in self:
             if not link.tenancy_id:
                 link.total_amount_due = 0.0
@@ -143,6 +147,10 @@ class PropertyPaymentLink(models.Model):
             unpaid_services = link._get_unpaid_service_rents_for_tenancy(tenancy)
             if unpaid_services:
                 invoices |= unpaid_services.mapped('move_id')
+            if hasattr(tenancy, '_payment_link_get_unpaid_deposit_invoices'):
+                invoices |= tenancy._payment_link_get_unpaid_deposit_invoices()
+            elif 'acc_inv_dep_rec_id' in tenancy._fields and tenancy.acc_inv_dep_rec_id:
+                invoices |= tenancy.acc_inv_dep_rec_id
             link.total_amount_due = sum(
                 inv.amount_residual
                 for inv in invoices.filtered(

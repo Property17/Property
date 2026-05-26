@@ -120,11 +120,12 @@
                         <div class="col-12 col-lg-6" id="payment-receipt-section"
                              t-att-data-receipt-list="tenancy_payments_props.get('tenancy_payments_json', '[]')">
                             <h4><strong>Payment Receipt</strong></h4>
-                            <t t-if="paid_rent_schedules and len(paid_rent_schedules) > 0">
+                            <t t-if="has_payment_receipts">
                                 <div class="table-responsive border-0 payment-link-receipt-table">
                                     <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                                         <thead>
                                             <tr>
+                                                <td class="text-center"><span><strong>Type</strong></span></td>
                                                 <td class="text-center"><span><strong>Date</strong></span></td>
                                                 <td class="text-center"><span><strong>Invoice No</strong></span></td>
                                                 <td class="text-center"><span><strong>Payment Date</strong></span></td>
@@ -135,12 +136,14 @@
                                         <tbody>
                                             <t t-foreach="tenancy_payments_props.get('tenancy_payments_list', [])" t-as="line">
                                                 <tr>
+                                                    <td class="text-center"><span t-esc="line.get('line_label', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('date', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('invoice_name', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('payment_date', '')"/></td>
                                                     <td class="text-center">
                                                         <a href="#" class="payment-receipt-view-btn" title="View"
-                                                           t-att-data-schedule-id="line.get('rent_schedule_id')"
+                                                           t-att-data-schedule-id="line.get('rent_schedule_id') or ''"
+                                                           t-att-data-deposit-invoice-id="line.get('deposit_invoice_id') or ''"
                                                            data-bs-toggle="modal"
                                                            data-bs-target="#view_payment"><i class="fa fa-filter"/></a>
                                                     </td>
@@ -200,7 +203,7 @@
                             </t>
                             <t t-else="">
                                 <div class="alert alert-info">
-                                    <p>No payment receipts found.<t t-if="paid_rent_schedules"> (Count: <t t-esc="len(paid_rent_schedules)"/>)</t></p>
+                                    <p>No payment receipts found.</p>
                                 </div>
                             </t>
                         </div>
@@ -211,6 +214,7 @@
                     <!-- Hidden input to store selected rent schedule IDs -->
                     <input type="hidden" id="selected_rent_schedule_ids" name="selected_rent_schedule_ids" value="[]"/>
                     <input type="hidden" id="selected_service_rent_ids" name="selected_service_rent_ids" value="[]"/>
+                    <input type="hidden" id="selected_deposit_invoice_ids" name="selected_deposit_invoice_ids" value="[]"/>
 
                     <div class="modal fade" id="payment_method" role="dialog">
                         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">

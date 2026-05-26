@@ -49,11 +49,24 @@ def _compute_unpaid_service_rents(tenancy):
     ])
 
 
+def _compute_unpaid_deposit_invoices(tenancy):
+    """Posted deposit receive invoices still due on the tenancy."""
+    if hasattr(tenancy, '_payment_link_get_unpaid_deposit_invoices'):
+        return tenancy._payment_link_get_unpaid_deposit_invoices()
+    invoices = tenancy.env['account.move'].sudo().browse()
+    if 'acc_inv_dep_rec_id' in tenancy._fields and tenancy.acc_inv_dep_rec_id:
+        invoices |= tenancy.acc_inv_dep_rec_id
+    return invoices.filtered(
+        lambda inv: inv.state == 'posted' and inv.amount_residual > 0
+    )
+
+
 def _compute_all_unpaid_invoices(tenancy):
-    """All customer invoices due on the payment link (rent + services)."""
+    """All customer invoices due on the payment link (rent + services + deposit)."""
     rent_invoices = _compute_unpaid_rent_schedules(tenancy).mapped('invoice_id')
     service_invoices = _compute_unpaid_service_rents(tenancy).mapped('move_id')
-    return (rent_invoices | service_invoices).filtered(
+    deposit_invoices = _compute_unpaid_deposit_invoices(tenancy)
+    return (rent_invoices | service_invoices | deposit_invoices).filtered(
         lambda inv: inv.state == 'posted' and inv.amount_residual > 0
     )
 
@@ -83,9 +96,134 @@ def _compute_paid_rent_schedules(tenancy):
     )
 
 
+def _iter_tenancy_deposit_invoices(tenancy):
+    """Posted deposit receive invoices for this tenancy."""
+    Move = tenancy.env['account.move'].sudo()
+    invoices = Move.browse()
+    if 'acc_inv_dep_rec_id' in tenancy._fields and tenancy.acc_inv_dep_rec_id:
+        invoices |= tenancy.acc_inv_dep_rec_id
+    if 'is_deposit_receive' in Move._fields:
+        invoices |= Move.search([
+            ('tenancy_id', '=', tenancy.id),
+            ('move_type', '=', 'out_invoice'),
+            ('is_deposit_receive', '=', True),
+            ('state', '=', 'posted'),
+        ])
+    return invoices
+
+
+def _compute_paid_deposit_invoices(tenancy):
+    """Deposit invoices paid (portal / MyFatoorah / manual), with or without rent schedule."""
+    return _iter_tenancy_deposit_invoices(tenancy).filtered(
+        lambda inv: inv.payment_state in ('paid', 'in_payment', 'partial')
+        and (
+            inv.amount_residual == 0
+            or (inv.invoice_payments_widget or {}).get('content')
+        )
+    )
+
+
+def _payment_for_invoice(env, invoice):
+    """Resolve ``account.payment`` linked to a paid customer invoice."""
+    widget = invoice.invoice_payments_widget or {}
+    content = widget.get('content') or []
+    if content:
+        payment_id = content[0].get('account_payment_id')
+        if payment_id:
+            payment = env['account.payment'].sudo().browse(payment_id)
+            if payment.exists():
+                return payment
+    Payment = env['account.payment'].sudo()
+    if 'reconciled_invoice_ids' in Payment._fields:
+        payment = Payment.search([
+            ('reconciled_invoice_ids', 'in', invoice.ids),
+            ('state', '=', 'posted'),
+        ], limit=1, order='create_date desc, id desc')
+        if payment:
+            return payment
+    return Payment.browse()
+
+
+def _build_payment_receipt_line(env, tenancy, inv, *, rent_schedule=None, access_token=None):
+    """One payment-receipt row for the portal (rent schedule or deposit invoice)."""
+    widget = inv.invoice_payments_widget or {}
+    content = widget.get('content') or []
+    first_payment = content[0] if content else {}
+    paid_amount = first_payment.get('amount', 0) or (inv.amount_total - inv.amount_residual)
+    currency = inv.currency_id or tenancy.company_id.currency_id
+    payment = _payment_for_invoice(env, inv)
+    collector_name = ''
+    if payment:
+        collector_name = (payment.create_uid.name or '') if payment.create_uid else ''
+    ref = first_payment.get('ref', '') or (payment.ref if payment else '') or ''
+    residual = inv.amount_residual
+    is_deposit = bool(
+        getattr(inv, 'is_deposit_receive', False)
+        or (
+            'acc_inv_dep_rec_id' in tenancy._fields
+            and tenancy.acc_inv_dep_rec_id
+            and tenancy.acc_inv_dep_rec_id.id == inv.id
+        )
+    )
+    inv._portal_ensure_token()
+    if is_deposit and payment and access_token:
+        report_url = (
+            '/tenancy_payment_link/tenant_partner/deposit_report/%s?access_token=%s'
+            % (payment.id, access_token)
+        )
+    else:
+        report_url = (
+            '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s'
+            % (inv.id, inv.access_token)
+        )
+    line_date = (
+        str(rent_schedule.start_date) if rent_schedule
+        else str(inv.invoice_date or inv.invoice_date_due or '')
+    )
+    period_date = rent_schedule.start_date if rent_schedule else inv.invoice_date
+    invoice_amount = rent_schedule.amount if rent_schedule else inv.amount_total
+    return {
+        'line_type': 'deposit' if is_deposit else 'rent',
+        'line_label': _('Deposit') if is_deposit else _('Rent'),
+        'rent_schedule_id': rent_schedule.id if rent_schedule else False,
+        'deposit_invoice_id': inv.id if is_deposit else False,
+        'payment_id': str(content),
+        'date': line_date,
+        'invoice_id': inv.id,
+        'invoice_token': inv.access_token,
+        'invoice_name': inv.name,
+        'receipt_number': inv.name,
+        'payment_link_report_url': report_url,
+        'payment_date': str(first_payment.get('date', '') or (payment.date if payment else '')),
+        'tenancy_id': tenancy.id,
+        'tenancy_name': tenancy.name,
+        'invoice_due_date': str(inv.invoice_date_due),
+        'invoice_amount': invoice_amount,
+        'invoice_amount_formatted': formatLang(env, invoice_amount, currency_obj=currency),
+        'customer_name': tenancy.tenant_id.name,
+        'unit': tenancy.property_id.name,
+        'unit_serial_number': tenancy.property_id.auto_add_no or '',
+        'period_formatted': _format_period_month_year(period_date),
+        'paid_amount': str(paid_amount),
+        'paid_amount_formatted': formatLang(env, paid_amount, currency_obj=currency),
+        'paid_amount_words': tenancy.change_amount_to_word(paid_amount, 'ar_001'),
+        'residual_amount': residual,
+        'residual_amount_formatted': formatLang(env, residual, currency_obj=currency),
+        'payment_transaction_id': str(first_payment.get('date', '')),
+        'payment_method': str(
+            first_payment.get('payment_method_name', '')
+            or (payment.payment_method_line_id.name if payment and payment.payment_method_line_id else '')
+        ),
+        'reference_number': ref,
+        'payment_details': ref,
+        'collector_name': collector_name,
+    }
+
+
 def _compute_tenancy_invoices_props(tenancy):
     unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
     unpaid_service_rents = _compute_unpaid_service_rents(tenancy)
+    unpaid_deposit_invoices = _compute_unpaid_deposit_invoices(tenancy)
     tenancy_lines_dict = {}
     for rs in unpaid_rent_schedules:
         inv = rs.invoice_id
@@ -123,6 +261,22 @@ def _compute_tenancy_invoices_props(tenancy):
             ),
             'invoice_amount_residual': inv.amount_residual,
         }]
+    for inv in unpaid_deposit_invoices:
+        line_key = f'deposit_{inv.id}'
+        tenancy_lines_dict[line_key] = [{
+            'line_key': line_key,
+            'line_type': 'deposit',
+            'rent_schedule_id': False,
+            'service_rent_id': False,
+            'deposit_invoice_id': inv.id,
+            'date': str(inv.invoice_date or inv.invoice_date_due or ''),
+            'invoice_name': inv.name or '',
+            'line_label': _('Deposit'),
+            'invoice_date_due': (
+                str(inv.invoice_date_due) if inv.invoice_date_due else ''
+            ),
+            'invoice_amount_residual': inv.amount_residual,
+        }]
     return {
         'tenancy_lines': tenancy_lines_dict,
         'flexible_payment': tenancy.flexible_payment if tenancy.flexible_payment is not None else False,
@@ -138,63 +292,27 @@ def _format_period_month_year(date_val):
     return date_val.strftime('%B-%Y') if hasattr(date_val, 'strftime') else str(date_val)
 
 
-def _compute_tenancy_payments_props(tenancy, company_image_url):
-    """Build payment receipt data for OWL component (kept for modal View) and server-side rendering.
-    Field names and formatting aligned with Rent Collection Receipt PDF (ايصال تحصيل ايجار)."""
+def _compute_tenancy_payments_props(tenancy, company_image_url, access_token=None):
+    """Build payment receipt data for portal (rent schedules + paid deposit invoices)."""
     env = request.env
     paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
+    paid_deposit_invoices = _compute_paid_deposit_invoices(tenancy)
     tenancy_lines = {}
-    tenancy_payments_list = []  # Flat list for server-side QWeb (avoids OWL duplication)
+    tenancy_payments_list = []
     for rs in paid_rent_schedules:
         inv = rs.invoice_id
-        widget = inv.invoice_payments_widget or {}
-        content = widget.get('content', [])
-        first_payment = content[0] if content else {}
-        paid_amount = first_payment.get('amount', 0)
-        currency = inv.currency_id or tenancy.company_id.currency_id
-        # Collector name (اسم المحصل) from account.payment
-        collector_name = ''
-        payment_id = first_payment.get('account_payment_id')
-        if payment_id:
-            payment = env['account.payment'].sudo().browse(payment_id)
-            if payment.exists():
-                collector_name = (payment.create_uid.name or '') if payment.create_uid else ''
-        ref = first_payment.get('ref', '') or ''
-        residual = inv.amount_residual
-        line_data = {
-            'rent_schedule_id': rs.id,
-            'payment_id': str(content),
-            'date': str(rs.start_date),
-            'invoice_id': inv.id,
-            'invoice_token': inv.access_token,
-            'invoice_name': inv.name,
-            'receipt_number': inv.name,
-            'payment_link_report_url': (
-                '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s'
-                % (inv.id, inv.access_token)
-            ),
-            'payment_date': str(first_payment.get('date', '')),
-            'tenancy_id': tenancy.id,
-            'tenancy_name': tenancy.name,
-            'invoice_due_date': str(inv.invoice_date_due),
-            'invoice_amount': rs.amount,
-            'invoice_amount_formatted': formatLang(env, rs.amount, currency_obj=currency),
-            'customer_name': tenancy.tenant_id.name,
-            'unit': tenancy.property_id.name,
-            'unit_serial_number': tenancy.property_id.auto_add_no or '',
-            'period_formatted': _format_period_month_year(rs.start_date),
-            'paid_amount': str(paid_amount),
-            'paid_amount_formatted': formatLang(env, paid_amount, currency_obj=currency),
-            'paid_amount_words': tenancy.change_amount_to_word(paid_amount, 'ar_001'),
-            'residual_amount': residual,
-            'residual_amount_formatted': formatLang(env, residual, currency_obj=currency),
-            'payment_transaction_id': str(first_payment.get('date', '')),
-            'payment_method': str(first_payment.get('payment_method_name', '')),
-            'reference_number': ref,
-            'payment_details': ref,
-            'collector_name': collector_name,
-        }
+        if not inv:
+            continue
+        line_data = _build_payment_receipt_line(
+            env, tenancy, inv, rent_schedule=rs, access_token=access_token,
+        )
         tenancy_lines[rs.id] = [line_data]
+        tenancy_payments_list.append(line_data)
+    for inv in paid_deposit_invoices:
+        line_data = _build_payment_receipt_line(
+            env, tenancy, inv, access_token=access_token,
+        )
+        tenancy_lines[f'deposit_{inv.id}'] = [line_data]
         tenancy_payments_list.append(line_data)
     company = tenancy.company_id
     company_name = company.name or ''
@@ -232,7 +350,10 @@ class PropertyPaymentLink(PaymentPortal):
         tenancy_account_move = _compute_all_unpaid_invoices(tenancy_record)
         unpaid_rent_schedules = _compute_unpaid_rent_schedules(tenancy_record)
         unpaid_service_rents = _compute_unpaid_service_rents(tenancy_record)
-        has_payable = bool(unpaid_rent_schedules or unpaid_service_rents)
+        unpaid_deposit_invoices = _compute_unpaid_deposit_invoices(tenancy_record)
+        has_payable = bool(
+            unpaid_rent_schedules or unpaid_service_rents or unpaid_deposit_invoices
+        )
         # Ensure portal tokens exist for all invoices
         for invoice in tenancy_account_move:
             invoice._portal_ensure_token()
@@ -263,9 +384,10 @@ class PropertyPaymentLink(PaymentPortal):
             values = {}
         
         paid_rent_schedules = _compute_paid_rent_schedules(tenancy_record)
+        paid_deposit_invoices = _compute_paid_deposit_invoices(tenancy_record)
         tenancy_invoices_props = _compute_tenancy_invoices_props(tenancy_record)
         tenancy_payments_props = _compute_tenancy_payments_props(
-            tenancy_record, company_image_url
+            tenancy_record, company_image_url, access_token=access_token,
         )
 
         tenancy_info = {
@@ -286,6 +408,8 @@ class PropertyPaymentLink(PaymentPortal):
             'unpaid_service_rents': unpaid_service_rents,
             'has_payable': has_payable,
             'paid_rent_schedules': paid_rent_schedules,
+            'paid_deposit_invoices': paid_deposit_invoices,
+            'has_payment_receipts': bool(tenancy_payments_props.get('tenancy_payments_list')),
             'tenancy_invoices_props': tenancy_invoices_props,
             'tenancy_payments_props': tenancy_payments_props,
             'tenancy_info_json': json.dumps(tenancy_info),
@@ -294,10 +418,49 @@ class PropertyPaymentLink(PaymentPortal):
         return http.request.render('property_payment_link.tenancy_payment_link_detail', values)
 
     @http.route('/tenancy_payment_link/tenant_partner/payment_report/<int:invoice_id>', type='http', auth="public", website=True)
-    def payment_report(self,invoice_id, **kw):
-        pdf, _ = request.env['ir.actions.report'].sudo()._render_qweb_pdf('pyment_report.mm_multi_invoice_report_action', res_ids=[invoice_id])
+    def payment_report(self, invoice_id, **kw):
+        pdf, _ = request.env['ir.actions.report'].sudo()._render_qweb_pdf(
+            'pyment_report.mm_multi_invoice_report_action', res_ids=[invoice_id],
+        )
         pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]
         return request.make_response(pdf, headers=pdfhttpheaders)
+
+    def _validate_payment_link_access(self, tenancy, access_token):
+        if not access_token:
+            raise request.not_found()
+        link = request.env['property.payment.link'].sudo().search([
+            ('tenancy_id', '=', tenancy.id),
+            ('access_token', '=', access_token),
+        ], limit=1)
+        if not link:
+            raise request.not_found()
+        return link
+
+    @http.route(
+        '/tenancy_payment_link/tenant_partner/deposit_report/<int:payment_id>',
+        type='http', auth='public', website=True,
+    )
+    def deposit_report(self, payment_id, access_token=None, **kw):
+        """Deposit insurance receipt PDF (ايصال تأمين) for portal download."""
+        payment = request.env['account.payment'].sudo().browse(payment_id)
+        if not payment.exists():
+            raise request.not_found()
+        tenancy = payment.tenancy_id
+        if not tenancy and payment.reconciled_invoice_ids:
+            tenancy = payment.reconciled_invoice_ids[:1].tenancy_id
+        if not tenancy:
+            raise request.not_found()
+        self._validate_payment_link_access(tenancy, access_token)
+        deposit_invoices = _iter_tenancy_deposit_invoices(tenancy)
+        if payment.reconciled_invoice_ids:
+            if not (deposit_invoices & payment.reconciled_invoice_ids):
+                raise request.not_found()
+        pdf, _ = request.env['ir.actions.report'].sudo()._render_qweb_pdf(
+            'pyment_report.action_report_payment_deposite_receipt',
+            res_ids=[payment_id],
+        )
+        headers = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]
+        return request.make_response(pdf, headers=headers)
 
     def _invoice_get_page_view_values(self, invoice, access_token, tenancy=None, tenancy_access_token=None, tenancy_total_amount=None, **kwargs):
         values = super()._invoice_get_page_view_values(invoice, access_token, **kwargs)
@@ -452,9 +615,10 @@ class PropertyPaymentLink(PaymentPortal):
         access_token=None,
         selected_rent_schedule_ids=None,
         selected_service_rent_ids=None,
+        selected_deposit_invoice_ids=None,
         **kwargs,
     ):
-        """Create a transaction for selected rent and service invoices on a tenancy."""
+        """Create a transaction for selected rent, service, and deposit invoices on a tenancy."""
         tenancy = request.env['account.analytic.account'].sudo().browse(tenancy_id)
         if tenancy.is_blocked or tenancy.state == 'blocked':
             raise ValidationError(_(
@@ -465,22 +629,28 @@ class PropertyPaymentLink(PaymentPortal):
             selected_rent_schedule_ids = kwargs.get('selected_rent_schedule_ids')
         if not selected_service_rent_ids and 'selected_service_rent_ids' in kwargs:
             selected_service_rent_ids = kwargs.get('selected_service_rent_ids')
+        if not selected_deposit_invoice_ids and 'selected_deposit_invoice_ids' in kwargs:
+            selected_deposit_invoice_ids = kwargs.get('selected_deposit_invoice_ids')
 
         kwargs.pop('access_token', None)
         kwargs.pop('selected_rent_schedule_ids', None)
         kwargs.pop('selected_service_rent_ids', None)
+        kwargs.pop('selected_deposit_invoice_ids', None)
 
         all_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
         all_service_rents = _compute_unpaid_service_rents(tenancy)
+        all_deposit_invoices = _compute_unpaid_deposit_invoices(tenancy)
 
         rent_schedule_ids = _parse_id_list(selected_rent_schedule_ids)
         service_rent_ids = _parse_id_list(selected_service_rent_ids)
+        deposit_invoice_ids = _parse_id_list(selected_deposit_invoice_ids)
 
         if not tenancy.flexible_payment:
             rent_schedules = all_rent_schedules
             service_rents = all_service_rents
+            deposit_invoices = all_deposit_invoices
         else:
-            if not rent_schedule_ids and not service_rent_ids:
+            if not rent_schedule_ids and not service_rent_ids and not deposit_invoice_ids:
                 raise ValidationError(_("Please select at least one invoice to pay."))
             rent_schedules = all_rent_schedules.filtered(
                 lambda rs: rs.id in rent_schedule_ids
@@ -488,10 +658,15 @@ class PropertyPaymentLink(PaymentPortal):
             service_rents = all_service_rents.filtered(
                 lambda sr: sr.id in service_rent_ids
             ) if service_rent_ids else all_service_rents.browse()
+            deposit_invoices = all_deposit_invoices.filtered(
+                lambda inv: inv.id in deposit_invoice_ids
+            ) if deposit_invoice_ids else all_deposit_invoices.browse()
 
         invoices = (
-            rent_schedules.mapped('invoice_id') | service_rents.mapped('move_id')
-        ).filtered(lambda inv: inv.amount_residual > 0)
+            rent_schedules.mapped('invoice_id')
+            | service_rents.mapped('move_id')
+            | deposit_invoices
+        ).filtered(lambda inv: inv.amount_residual > 0 and inv.state == 'posted')
 
         if not invoices:
             raise ValidationError(_("No invoices found for the selected items."))

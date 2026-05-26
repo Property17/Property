@@ -97,12 +97,15 @@ export class PaymentLinkInvoice extends Component {
         this._updatePayButton();
         const rentIds = [];
         const serviceIds = [];
+        const depositIds = [];
         for (const lineKey of this.state.selectedLineKeys) {
             const line = this.parsedProps.tenancy_lines[lineKey]?.[0];
             if (!line) {
                 continue;
             }
-            if (line.line_type === "service" && line.service_rent_id) {
+            if (line.line_type === "deposit" && line.deposit_invoice_id) {
+                depositIds.push(line.deposit_invoice_id);
+            } else if (line.line_type === "service" && line.service_rent_id) {
                 serviceIds.push(line.service_rent_id);
             } else if (line.rent_schedule_id) {
                 rentIds.push(line.rent_schedule_id);
@@ -110,11 +113,15 @@ export class PaymentLinkInvoice extends Component {
         }
         const rentInput = document.getElementById("selected_rent_schedule_ids");
         const serviceInput = document.getElementById("selected_service_rent_ids");
+        const depositInput = document.getElementById("selected_deposit_invoice_ids");
         if (rentInput) {
             rentInput.value = JSON.stringify(rentIds);
         }
         if (serviceInput) {
             serviceInput.value = JSON.stringify(serviceIds);
+        }
+        if (depositInput) {
+            depositInput.value = JSON.stringify(depositIds);
         }
     }
 
