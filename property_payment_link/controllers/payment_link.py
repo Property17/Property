@@ -456,7 +456,7 @@ class PropertyPaymentLink(PaymentPortal):
             if not (deposit_invoices & payment.reconciled_invoice_ids):
                 raise request.not_found()
         pdf, _ = request.env['ir.actions.report'].sudo()._render_qweb_pdf(
-            'pyment_report.action_report_payment_deposite_receipt',
+            'pyment_report.action_report_payment_deposite_receipt_portal',
             res_ids=[payment_id],
         )
         headers = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]

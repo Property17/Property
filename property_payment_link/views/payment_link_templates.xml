@@ -141,11 +141,13 @@
                                                     <td class="text-center"><span t-esc="line.get('invoice_name', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('payment_date', '')"/></td>
                                                     <td class="text-center">
-                                                        <a href="#" class="payment-receipt-view-btn" title="View"
-                                                           t-att-data-schedule-id="line.get('rent_schedule_id') or ''"
-                                                           t-att-data-deposit-invoice-id="line.get('deposit_invoice_id') or ''"
-                                                           data-bs-toggle="modal"
-                                                           data-bs-target="#view_payment"><i class="fa fa-filter"/></a>
+                                                        <t t-if="line.get('line_type') != 'deposit'">
+                                                            <a href="#" class="payment-receipt-view-btn" title="View"
+                                                               t-att-data-schedule-id="line.get('rent_schedule_id') or ''"
+                                                               t-att-data-deposit-invoice-id="line.get('deposit_invoice_id') or ''"
+                                                               data-bs-toggle="modal"
+                                                               data-bs-target="#view_payment"><i class="fa fa-filter"/></a>
+                                                        </t>
                                                     </td>
                                                     <td class="text-center">
                                                         <a class="btn btn-sm btn-primary" role="button" target="_blank"
