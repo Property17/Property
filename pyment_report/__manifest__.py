@@ -4,7 +4,7 @@
     'author': "My Company",
     'website': "http://www.yourcompany.com",
     'category': 'Uncategorized',
-    'version': '0.1.3',
+    'version': '0.1.4',
     'depends': ['base', 'account'],
 
     # always loaded
