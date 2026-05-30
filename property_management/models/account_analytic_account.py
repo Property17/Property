@@ -669,16 +669,7 @@ class AccountAnalyticAccount(models.Model):
 
         self._validate_deposit_receive_amount()
         insurance_account = self._get_deposit_receive_income_account()
-
-        journal = self.env['account.journal'].search([
-            ('type', '=', 'sale'),
-            ('company_id', '=', self.company_id.id),
-        ], limit=1)
-        if not journal:
-            raise ValidationError(
-                _('No sales journal found for company %s.') % (self.company_id.name or '')
-            )
-
+        
         invoice_date = fields.Date.context_today(self)
         inv_line_values = {
             'name': _('Deposit Received') or '',
@@ -694,7 +685,6 @@ class AccountAnalyticAccount(models.Model):
             'tenancy_id': self.id,
             'new_tenancy_id': self.id,
             'company_id': self.company_id.id,
-            'journal_id': journal.id,
             'invoice_date': invoice_date,
             'invoice_date_due': invoice_date,
             'ref': _('Deposit Received'),
