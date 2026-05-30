@@ -60,10 +60,29 @@ class AccountMoveLine(models.Model):
             if updates:
                 line.with_context(mm_skip_deposit_line_sync=True).write(updates)
 
+    def _mm_payment_is_deposit_receive(self, payment):
+        """Deposit payment from tenancy (not register payment on deposit invoice)."""
+        return getattr(payment, 'is_deposit_receive', False)
+
+    def _mm_payment_credit_line(self, line):
+        return bool(line.credit)
+
+    def _mm_payment_debit_line(self, line):
+        return bool(line.debit)
+
+    def _mm_clear_line_tenancy_analytic(self, line):
+        updates = {}
+        if line.analytic_account_id:
+            updates['analytic_account_id'] = False
+        if line.analytic_distribution:
+            updates['analytic_distribution'] = False
+        if 'tenancy_id' in line._fields and line.tenancy_id:
+            updates['tenancy_id'] = False
+        if updates:
+            line.with_context(mm_skip_deposit_line_sync=True).write(updates)
+
     def _mm_apply_payment_tenancy_analytic(self):
-        """Mirror AccountPaymentInhNew._prepare_move_line_default_vals: credit lines on
-        payment moves get tenancy analytic from account.payment when not deposit receive.
-        """
+        """Payment moves: tenancy analytic on credit line only (never on bank/debit)."""
         for line in self:
             payment = getattr(line, 'payment_id', False) or line.move_id.payment_id
             if not payment:
@@ -71,7 +90,14 @@ class AccountMoveLine(models.Model):
             tenancy = getattr(payment, 'tenancy_id', False)
             if not tenancy:
                 continue
-            if getattr(payment, 'is_deposit_receive', False):
+            if self._mm_payment_is_deposit_receive(payment):
+                if self._mm_payment_debit_line(line):
+                    self._mm_clear_line_tenancy_analytic(line)
+                continue
+            if self._mm_payment_debit_line(line):
+                self._mm_clear_line_tenancy_analytic(line)
+                continue
+            if not self._mm_payment_credit_line(line):
                 continue
             updates = {}
             if not line.analytic_account_id:
@@ -96,14 +122,25 @@ class AccountMove(models.Model):
     def _mm_propagate_payment_tenancy_to_lines(self):
         for move in self:
             payment = move.payment_id
-            if getattr(payment, 'is_deposit_receive', False):
+            if not payment or not payment.tenancy_id:
                 continue
+            Line = self.env['account.move.line']
+            is_deposit_receive = Line._mm_payment_is_deposit_receive(payment)
             for line in move.line_ids:
+                if is_deposit_receive:
+                    if Line._mm_payment_debit_line(line):
+                        Line._mm_clear_line_tenancy_analytic(line)
+                    continue
+                if Line._mm_payment_debit_line(line):
+                    Line._mm_clear_line_tenancy_analytic(line)
+                    continue
+                if not Line._mm_payment_credit_line(line):
+                    continue
                 updates = {}
                 if not line.analytic_account_id:
                     updates['analytic_account_id'] = payment.tenancy_id.id
                 if 'tenancy_id' in line._fields and not line.tenancy_id:
                     updates['tenancy_id'] = payment.tenancy_id.id
                 if updates:
-                    line.write(updates)
+                    line.with_context(mm_skip_deposit_line_sync=True).write(updates)
 

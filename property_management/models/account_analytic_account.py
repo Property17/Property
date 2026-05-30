@@ -695,6 +695,12 @@ class AccountAnalyticAccount(models.Model):
 
         invoice = self.env['account.move'].create(inv_values)
         self.acc_inv_dep_rec_id = invoice.id
+        
+        for line in invoice.line_ids:
+            if line.account_id.account_type == 'asset_receivable':
+                line.analytic_account_id = self.id
+            else:
+                line.analytic_account_id= False
 
         return {
             'type': 'ir.actions.act_window',
