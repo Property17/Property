@@ -5,20 +5,38 @@ from odoo import api, models
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
+    def _mm_is_deposit_receive_customer_invoice(self, move):
+        """Deposit receive logic applies to deposit invoices only, never payment journal entries."""
+        return (
+            move
+            and getattr(move, 'is_deposit_receive', False)
+            and move.move_type == 'out_invoice'
+            and not move.payment_id
+        )
+
     @api.model_create_multi
     def create(self, vals_list):
         Move = self.env['account.move']
         for vals in vals_list:
             move = Move.browse(vals.get('move_id')) if vals.get('move_id') else Move
-            if move and getattr(move, 'is_deposit_receive', False):
-                display_type = vals.get('display_type') or 'product'
-                if display_type in ('line_section', 'line_note', 'payment_term'):
-                    continue
+            if not move:
+                continue
+            # Deposit payment: never carry tenancy analytic on journal items.
+            payment = move.payment_id
+            if payment and getattr(payment, 'is_deposit_receive', False):
                 vals.pop('analytic_account_id', None)
                 vals.pop('analytic_distribution', None)
-                partner = move.partner_id
-                if partner and partner.tenancy_insurance_id and not vals.get('account_id'):
-                    vals['account_id'] = partner.tenancy_insurance_id.id
+                continue
+            if not self._mm_is_deposit_receive_customer_invoice(move):
+                continue
+            display_type = vals.get('display_type') or 'product'
+            if display_type in ('line_section', 'line_note', 'payment_term'):
+                continue
+            vals.pop('analytic_account_id', None)
+            vals.pop('analytic_distribution', None)
+            partner = move.partner_id
+            if partner and partner.tenancy_insurance_id and not vals.get('account_id'):
+                vals['account_id'] = partner.tenancy_insurance_id.id
         lines = super().create(vals_list)
         lines._mm_apply_payment_tenancy_analytic()
         lines._mm_apply_deposit_receive_invoice_lines()
@@ -44,7 +62,7 @@ class AccountMoveLine(models.Model):
         """Deposit receive invoice: insurance account on product line only; no tenancy analytic."""
         for line in self:
             move = line.move_id
-            if not getattr(move, 'is_deposit_receive', False):
+            if not self._mm_is_deposit_receive_customer_invoice(move):
                 continue
             if not self._mm_deposit_receive_product_line(line):
                 continue
@@ -61,6 +79,7 @@ class AccountMoveLine(models.Model):
                 line.with_context(mm_skip_deposit_line_sync=True).write(updates)
 
     def _mm_payment_is_deposit_receive(self, payment):
+        """Any deposit receive payment (direct or from deposit invoice) — no tenancy analytic."""
         return getattr(payment, 'is_deposit_receive', False)
 
     def _mm_payment_credit_line(self, line):
@@ -90,8 +109,7 @@ class AccountMoveLine(models.Model):
             if not tenancy:
                 continue
             if self._mm_payment_is_deposit_receive(payment):
-                if self._mm_payment_debit_line(line):
-                    self._mm_clear_line_tenancy_analytic(line)
+                self._mm_clear_line_tenancy_analytic(line)
                 continue
             if self._mm_payment_debit_line(line):
                 self._mm_clear_line_tenancy_analytic(line)
@@ -127,8 +145,7 @@ class AccountMove(models.Model):
             is_deposit_receive = Line._mm_payment_is_deposit_receive(payment)
             for line in move.line_ids:
                 if is_deposit_receive:
-                    if Line._mm_payment_debit_line(line):
-                        Line._mm_clear_line_tenancy_analytic(line)
+                    Line._mm_clear_line_tenancy_analytic(line)
                     continue
                 if Line._mm_payment_debit_line(line):
                     Line._mm_clear_line_tenancy_analytic(line)

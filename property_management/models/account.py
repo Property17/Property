@@ -267,17 +267,27 @@ class AccountPaymentRegister(models.TransientModel):
             moves |= self.line_ids.mapped('move_id')
         return moves.filtered('is_deposit_receive')[:1]
 
+    def _property_deposit_invoice_receivable_account(self, invoice):
+        """Receivable (debit) account on the deposit invoice — from settings, not partner AR."""
+        receivable_lines = invoice.line_ids.filtered(
+            lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
+        )
+        return receivable_lines[:1].account_id if receivable_lines else self.env['account.account']
+
     def _property_update_payment_vals_from_invoice(self, payment_vals, batch_result=None):
         """Copy deposit flag and related invoice/tenancy from a deposit receive invoice."""
         invoice = self._property_deposit_receive_invoice_from_wizard(batch_result)
         if not invoice:
             return payment_vals
         tenancy = invoice.tenancy_id or invoice.new_tenancy_id
+        receivable_account = self._property_deposit_invoice_receivable_account(invoice)
         payment_vals.update({
             'is_deposit_receive': True,
             'mm_invoice_id': invoice.id,
             'property_id': invoice.property_id.id or payment_vals.get('property_id'),
         })
+        if receivable_account:
+            payment_vals['destination_account_id'] = receivable_account.id
         if tenancy:
             payment_vals['tenancy_id'] = tenancy.id
         return payment_vals

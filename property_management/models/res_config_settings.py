@@ -9,20 +9,17 @@ class ResConfigSettings(models.TransientModel):
     property_deposit_receivable_account_id = fields.Many2one(
         comodel_name='account.account',
         string='Deposit Receivable Account',
-        domain="[('company_id', '=', company_id), ('account_type', '=', 'asset_receivable'), ('deprecated', '=', False)]",
-        help='Debit account on deposit receive customer invoices (e.g. Deposit Receivable / ذمم التأمينات).',
+        config_parameter='property_management.deposit_receivable_account_id',
+        check_company=False,
+        domain="[('account_type', '=', 'asset_receivable'), ('deprecated', '=', False)]",
+        help='Single debit account for all companies on deposit receive invoices (e.g. Deposit Receivable / ذمم التأمينات).',
     )
 
-    def _deposit_receivable_config_key(self, company):
-        return 'property_management.deposit_receivable_account_id_%s' % company.id
-
     @api.model
-    def _get_deposit_receivable_account_for_company(self, company):
-        """Read deposit receivable account from settings (ir.config_parameter), per company."""
-        if not company:
-            return self.env['account.account']
+    def _get_deposit_receivable_account(self):
+        """Read global deposit receivable account (same account for every company)."""
         param = self.env['ir.config_parameter'].sudo().get_param(
-            self._deposit_receivable_config_key(company)
+            'property_management.deposit_receivable_account_id'
         )
         if not param:
             return self.env['account.account']
@@ -30,20 +27,4 @@ class ResConfigSettings(models.TransientModel):
             account_id = int(param)
         except (TypeError, ValueError):
             return self.env['account.account']
-        return self.env['account.account'].browse(account_id).exists()
-
-    @api.model
-    def get_values(self):
-        res = super().get_values()
-        company = self.env.company
-        account = self._get_deposit_receivable_account_for_company(company)
-        res['property_deposit_receivable_account_id'] = account.id or False
-        return res
-
-    def set_values(self):
-        super().set_values()
-        company = self.company_id or self.env.company
-        self.env['ir.config_parameter'].sudo().set_param(
-            self._deposit_receivable_config_key(company),
-            self.property_deposit_receivable_account_id.id or False,
-        )
+        return self.env['account.account'].sudo().browse(account_id).exists()

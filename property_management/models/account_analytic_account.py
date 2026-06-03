@@ -599,11 +599,9 @@ class AccountAnalyticAccount(models.Model):
         return insurance_account
 
     def _get_deposit_receivable_account(self):
-        """Receivable (debit) account for deposit receive invoices — from Property settings."""
+        """Global deposit receivable account from settings (used for every company)."""
         self.ensure_one()
-        account = self.env['res.config.settings']._get_deposit_receivable_account_for_company(
-            self.company_id
-        )
+        account = self.env['res.config.settings']._get_deposit_receivable_account()
         if not account:
             raise ValidationError(_(
                 'Please configure the Deposit Receivable Account in '
@@ -619,7 +617,9 @@ class AccountAnalyticAccount(models.Model):
             lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
         )
         if receivable_lines:
-            receivable_lines.write({'account_id': deposit_account.id})
+            receivable_lines.with_context(check_company=False).write({
+                'account_id': deposit_account.id,
+            })
 
     def button_receive(self):
         """
