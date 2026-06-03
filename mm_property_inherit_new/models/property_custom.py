@@ -56,10 +56,6 @@ class AccountMoveInheritNew(models.Model):
     # run_comp = fields.Boolean(compute='_compute_analytic_account')
     
     hide_reset_to_draft = fields.Boolean(compute='_compute_hide_reset_to_draft', store=True)
-    is_deposit_receive = fields.Boolean(
-        string='Is Deposit Receive',
-        help='Deposit received via customer invoice; uses insurance account and no tenancy analytic.',
-    )
 
     @api.depends('amount_total', 'amount_residual')
     def _compute_hide_reset_to_draft(self):
@@ -263,7 +259,6 @@ class AccountPaymentInhNew(models.Model):
 
     date_ch = fields.Char(compute='_compute_get_date')
     mm_invoice_id = fields.Many2one('account.move', string="Invoice")
-    is_deposit_receive = fields.Boolean('Is Deposit Receive')
     
     bank_reference = fields.Char(copy=False)
     cheque_reference = fields.Char(copy=False)
@@ -297,7 +292,8 @@ class AccountPaymentInhNew(models.Model):
         for move_line in move_line_vals:
             credit = move_line.get('credit', 0) or 0
             if credit > 0:
-                if self.is_deposit_receive and self.partner_id.tenancy_insurance_id:
+                # Register payment on a deposit invoice must keep receivable for reconciliation.
+                if self._property_use_insurance_account_on_payment_lines():
                     move_line.update({
                         'account_id': self.partner_id.tenancy_insurance_id.id,
                     })

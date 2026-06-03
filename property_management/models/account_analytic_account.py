@@ -598,6 +598,29 @@ class AccountAnalyticAccount(models.Model):
             )
         return insurance_account
 
+    def _get_deposit_receivable_account(self):
+        """Receivable (debit) account for deposit receive invoices — from Property settings."""
+        self.ensure_one()
+        account = self.env['res.config.settings']._get_deposit_receivable_account_for_company(
+            self.company_id
+        )
+        if not account:
+            raise ValidationError(_(
+                'Please configure the Deposit Receivable Account in '
+                'Property Management → Configuration → Settings.'
+            ))
+        return account
+
+    def _apply_deposit_receive_invoice_receivable_account(self, invoice):
+        """Set debit receivable line to the configured deposit account (not default AR)."""
+        self.ensure_one()
+        deposit_account = self._get_deposit_receivable_account()
+        receivable_lines = invoice.line_ids.filtered(
+            lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
+        )
+        if receivable_lines:
+            receivable_lines.write({'account_id': deposit_account.id})
+
     def button_receive(self):
         """
         This button method is used to open the related
@@ -690,17 +713,11 @@ class AccountAnalyticAccount(models.Model):
             'ref': _('Deposit Received'),
             'invoice_line_ids': [(0, 0, inv_line_values)],
         }
-        if 'is_deposit_receive' in self.env['account.move']._fields:
-            inv_values['is_deposit_receive'] = True
+        inv_values['is_deposit_receive'] = True
 
         invoice = self.env['account.move'].create(inv_values)
+        self._apply_deposit_receive_invoice_receivable_account(invoice)
         self.acc_inv_dep_rec_id = invoice.id
-        
-        for line in invoice.line_ids:
-            if line.account_id.account_type == 'asset_receivable':
-                line.analytic_account_id = self.id
-            else:
-                line.analytic_account_id= False
 
         return {
             'type': 'ir.actions.act_window',

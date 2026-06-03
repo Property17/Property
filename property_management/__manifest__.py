@@ -32,6 +32,7 @@
         'views/view_tenancy_rent_schedule.xml',
         'views/view_property.xml',
         'views/view_account.xml',
+        'views/res_config_settings_views.xml',
         'views/menu_property_management.xml',
         'wizard/view_book_available_wiz.xml',
         # 'wizard/view_contract_expiry_report.xml',

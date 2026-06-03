@@ -31,6 +31,10 @@ class AccountMove(models.Model):
         string='Tenancy',
         help='Tenancy Name.'
     )
+    is_deposit_receive = fields.Boolean(
+        string='Is Deposit Receive',
+        help='Deposit received via customer invoice; uses insurance account and no tenancy analytic.',
+    )
 
     def _property_deposit_receive_tenancies(self):
         """Tenancies whose deposit receive invoice is one of these moves."""
@@ -236,14 +240,48 @@ class AccountPaymentRegister(models.TransientModel):
         res = super(AccountPaymentRegister, self).default_get(fields_list)
         context = self.env.context
         invoice_obj = self.env['account.move']
-        if self._context.get('active_id'):
-            invoice_id = invoice_obj.browse(context['active_id'])
-            res['property_id'] = invoice_id.property_id.id
-            res['invoice_id'] = invoice_id.id
-            
+        invoice = invoice_obj.browse()
+        if context.get('active_model') == 'account.move':
+            if context.get('active_id'):
+                invoice = invoice_obj.browse(context['active_id'])
+            elif context.get('active_ids'):
+                invoice = invoice_obj.browse(context['active_ids'][:1])
+        elif context.get('active_model') == 'account.move.line' and context.get('active_ids'):
+            invoice = self.env['account.move.line'].browse(context['active_ids']).mapped('move_id')[:1]
+        if invoice:
+            res['property_id'] = invoice.property_id.id
+            res['invoice_id'] = invoice.id
+            if invoice.tenancy_id:
+                res['tenancy_id'] = invoice.tenancy_id.id
         return res
-    
-    
+
+    def _property_deposit_receive_invoice_from_wizard(self, batch_result=None):
+        """Deposit receive invoice for this register-payment wizard, if any."""
+        self.ensure_one()
+        if self.invoice_id and self.invoice_id.is_deposit_receive:
+            return self.invoice_id
+        moves = self.env['account.move']
+        if batch_result:
+            moves |= batch_result['lines'].mapped('move_id')
+        if self.line_ids:
+            moves |= self.line_ids.mapped('move_id')
+        return moves.filtered('is_deposit_receive')[:1]
+
+    def _property_update_payment_vals_from_invoice(self, payment_vals, batch_result=None):
+        """Copy deposit flag and related invoice/tenancy from a deposit receive invoice."""
+        invoice = self._property_deposit_receive_invoice_from_wizard(batch_result)
+        if not invoice:
+            return payment_vals
+        tenancy = invoice.tenancy_id or invoice.new_tenancy_id
+        payment_vals.update({
+            'is_deposit_receive': True,
+            'mm_invoice_id': invoice.id,
+            'property_id': invoice.property_id.id or payment_vals.get('property_id'),
+        })
+        if tenancy:
+            payment_vals['tenancy_id'] = tenancy.id
+        return payment_vals
+
     def _create_payment_vals_from_batch(self, batch_result):
         batch_values = self._get_wizard_values_from_batch(batch_result)
 
@@ -288,13 +326,14 @@ class AccountPaymentRegister(models.TransientModel):
                     })
 
             open_amount_currency = (batch_values['source_amount_currency'] - total_amount) * (-1 if batch_values['payment_type'] == 'outbound' else 1)
-            open_balance = currency._convert(open_amount_currency, aml.company_currency_id, self.company_id, self.payment_date)
+            open_balance = currency._convert(
+                open_amount_currency, self.company_id.currency_id, self.company_id, self.payment_date)
             early_payment_values = self.env['account.move']\
                 ._get_invoice_counterpart_amls_for_early_payment_discount(epd_aml_values_list, open_balance)
             for aml_values_list in early_payment_values.values():
                 payment_vals['write_off_line_vals'] += aml_values_list
 
-        return payment_vals
+        return self._property_update_payment_vals_from_invoice(payment_vals, batch_result)
     
     
     def _create_payments(self):
@@ -329,9 +368,13 @@ class AccountPaymentRegister(models.TransientModel):
     
     def _create_payment_vals_from_wizard(self, batch_result):
         payment_vals = super(AccountPaymentRegister, self)._create_payment_vals_from_wizard(batch_result)
-        payment_vals['property_id'] = self.property_id.id
-        payment_vals['mm_move_id'] = self.invoice_id.id
-        return payment_vals 
+        if self.property_id:
+            payment_vals['property_id'] = self.property_id.id
+        if self.invoice_id:
+            payment_vals['mm_invoice_id'] = self.invoice_id.id
+        if self.tenancy_id:
+            payment_vals['tenancy_id'] = self.tenancy_id.id
+        return self._property_update_payment_vals_from_invoice(payment_vals, batch_result)
 
 
 class AccountPayment(models.Model):
@@ -375,8 +418,26 @@ class AccountPayment(models.Model):
         compute="compute_mm_move_id"
     )
     mm_invoice_id = fields.Many2one('account.move', string="Invoice")
+    is_deposit_receive = fields.Boolean(
+        string='Is Deposit Receive',
+        help='Marks deposit-receive payments for tenancy deposit_received tracking.',
+    )
 
-    
+    def _property_paying_deposit_receive_invoice(self):
+        """True when this payment settles a deposit receive customer invoice."""
+        self.ensure_one()
+        invoices = self.mm_invoice_id | self.reconciled_invoice_ids
+        return bool(invoices.filtered('is_deposit_receive'))
+
+    def _property_use_insurance_account_on_payment_lines(self):
+        """Post to insurance only for direct deposit receipts, not register payment on invoice."""
+        self.ensure_one()
+        return (
+            self.is_deposit_receive
+            and self.partner_id.tenancy_insurance_id
+            and not self._property_paying_deposit_receive_invoice()
+        )
+
     @api.depends('mm_invoice_id')
     def compute_mm_move_id(self):
         for rec in self:

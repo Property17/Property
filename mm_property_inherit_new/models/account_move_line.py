@@ -61,7 +61,6 @@ class AccountMoveLine(models.Model):
                 line.with_context(mm_skip_deposit_line_sync=True).write(updates)
 
     def _mm_payment_is_deposit_receive(self, payment):
-        """Deposit payment from tenancy (not register payment on deposit invoice)."""
         return getattr(payment, 'is_deposit_receive', False)
 
     def _mm_payment_credit_line(self, line):
@@ -120,11 +119,11 @@ class AccountMove(models.Model):
         return res
 
     def _mm_propagate_payment_tenancy_to_lines(self):
+        Line = self.env['account.move.line']
         for move in self:
             payment = move.payment_id
             if not payment or not payment.tenancy_id:
                 continue
-            Line = self.env['account.move.line']
             is_deposit_receive = Line._mm_payment_is_deposit_receive(payment)
             for line in move.line_ids:
                 if is_deposit_receive:
@@ -143,4 +142,3 @@ class AccountMove(models.Model):
                     updates['tenancy_id'] = payment.tenancy_id.id
                 if updates:
                     line.with_context(mm_skip_deposit_line_sync=True).write(updates)
-
