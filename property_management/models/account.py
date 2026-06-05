@@ -439,15 +439,6 @@ class AccountPayment(models.Model):
         invoices = self.mm_invoice_id | self.reconciled_invoice_ids
         return bool(invoices.filtered('is_deposit_receive'))
 
-    def _property_use_insurance_account_on_payment_lines(self):
-        """Post to insurance only for direct deposit receipts, not register payment on invoice."""
-        self.ensure_one()
-        return (
-            self.is_deposit_receive
-            and self.partner_id.tenancy_insurance_id
-            and not self._property_paying_deposit_receive_invoice()
-        )
-
     @api.depends('mm_invoice_id')
     def compute_mm_move_id(self):
         for rec in self:

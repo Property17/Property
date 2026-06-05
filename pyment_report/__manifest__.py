@@ -5,7 +5,7 @@
     'website': "http://www.yourcompany.com",
     'category': 'Uncategorized',
     'version': '0.1.4',
-    'depends': ['base', 'account'],
+    'depends': ['base', 'account', 'property_management'],
 
     # always loaded
     'data': [

@@ -13,6 +13,8 @@
     <template id="report_payment_deposite_document_portal">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+                <t t-set="stamp_data_uri" t-value="(stamp_by_payment_id or {}).get(o.id)"/>
                 <t t-call="web.external_layout">
                     <div class="page">
                         <style>
@@ -94,7 +96,12 @@
                                 <th style="background-color:#D8D8D8;text-align: right;">اسم المحصل</th>
                                 <td colspan="3" style="text-align: right;"><span t-field="o.user_id.name"/></td>
                                 <th style="background-color:#D8D8D8;text-align: right;">التوقيع / الختم</th>
-                                <td style="text-align: right;"><span>.</span></td>
+                                <td style="text-align: right;">
+                                    <img t-if="stamp_data_uri"
+                                         t-att-src="stamp_data_uri"
+                                         alt="Stamp"
+                                         style="max-height: 80px; max-width: 150px;"/>
+                                </td>
                             </tr>
                         </table>
                         <div style="text-align: center;direction: ltr;">
@@ -103,12 +110,6 @@
                             <span style="text-align: right;direction: ltr;">هذا الايصال اثبات بالدفع فقط ولا يعتد به في تحديد القيمة الايجارية .</span>
                             <br/>
                             <span style="text-align: right;direction: ltr;">يعتبر هذا الايصال لاغي في حالة عدم تحصيل الشيك .</span>
-                        </div>
-                        <div style="text-align: right;direction: ltr; margin-top: 12px;">
-                            <span t-field="o.property_id.property_manager.name"/>
-                            <br/>
-                            <span t-field="o.mm_move_id.property_manager_id.street"/>-<span t-field="o.mm_move_id.property_manager_id.street2"/>-<span t-field="o.mm_move_id.property_manager_id.city"/>-
-                            <span t-field="o.mm_move_id.property_manager_id.country_id.name"/>
                         </div>
                     </div>
                 </t>

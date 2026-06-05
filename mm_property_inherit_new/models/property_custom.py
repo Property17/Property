@@ -292,11 +292,6 @@ class AccountPaymentInhNew(models.Model):
         for move_line in move_line_vals:
             credit = move_line.get('credit', 0) or 0
             if credit > 0:
-                # Register payment on a deposit invoice must keep receivable for reconciliation.
-                if self._property_use_insurance_account_on_payment_lines():
-                    move_line.update({
-                        'account_id': self.partner_id.tenancy_insurance_id.id,
-                    })
                 if tenancy and not self.is_deposit_receive:
                     move_line['analytic_account_id'] = tenancy.id
 
