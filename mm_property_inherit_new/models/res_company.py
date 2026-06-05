@@ -37,6 +37,11 @@ class ResCompany(models.Model):
             _add(move.company_id)
         if payment and payment.company_id:
             _add(payment.company_id)
+        if payment and payment.property_id:
+            mgr = getattr(payment.property_id, 'property_manager_id', False) or getattr(
+                payment.property_id, 'property_manager', False
+            )
+            _add_from_partner(mgr)
         if tenancy:
             _add(tenancy.company_id)
             _add_from_partner(tenancy.property_manager_id)

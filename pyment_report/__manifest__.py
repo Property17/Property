@@ -4,8 +4,8 @@
     'author': "My Company",
     'website': "http://www.yourcompany.com",
     'category': 'Uncategorized',
-    'version': '0.1.4',
-    'depends': ['base', 'account', 'property_management'],
+    'version': '0.1.5',
+    'depends': ['base', 'account', 'property_management', 'mm_property_inherit_new'],
 
     # always loaded
     'data': [

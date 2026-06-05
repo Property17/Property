@@ -60,6 +60,7 @@
                 <t t-set="o" t-value="o.with_context(lang=lang)"/>
                 <div class="page">
                     <t t-set="company" t-value="user.company_id"/>
+                    <t t-set="stamp_data_uri" t-value="(stamp_by_payment_id or {}).get(o.id)"/>
     <!--                <t t-call="pyment_report.custom_payment_header_footer"/>-->
                     <style>
                         .gs_table {
@@ -220,7 +221,10 @@
                                 التوقيع / الختم
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <img t-if="stamp_data_uri"
+                                     t-att-src="stamp_data_uri"
+                                     alt="Stamp"
+                                     style="max-height: 80px; max-width: 150px;"/>
                             </td>
                         </tr>
                     </table>
@@ -373,7 +377,10 @@
                                 التوقيع / الختم
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <img t-if="stamp_data_uri"
+                                     t-att-src="stamp_data_uri"
+                                     alt="Stamp"
+                                     style="max-height: 80px; max-width: 150px;"/>
                             </td>
                         </tr>
                     </table>
@@ -525,7 +532,10 @@
                                 التوقيع / الختم
                             </th>
                             <td style="text-align: right;">
-                                <span>.</span>
+                                <img t-if="stamp_data_uri"
+                                     t-att-src="stamp_data_uri"
+                                     alt="Stamp"
+                                     style="max-height: 80px; max-width: 150px;"/>
                             </td>
                         </tr>
                     </table>

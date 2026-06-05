@@ -29,6 +29,7 @@
     <template id="report_payment_deposite_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
+                <t t-set="stamp_data_uri" t-value="(stamp_by_payment_id or {}).get(o.id)"/>
                 <t t-call="web.external_layout">
                     <div class="page">
                         <t t-set="company" t-value="user.company_id"/>
@@ -205,7 +206,10 @@
                                     التوقيع / الختم
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <img t-if="stamp_data_uri"
+                                         t-att-src="stamp_data_uri"
+                                         alt="Stamp"
+                                         style="max-height: 80px; max-width: 150px;"/>
                                 </td>
                             </tr>
                         </table>
@@ -377,7 +381,10 @@
                                     التوقيع / الختم
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <img t-if="stamp_data_uri"
+                                         t-att-src="stamp_data_uri"
+                                         alt="Stamp"
+                                         style="max-height: 80px; max-width: 150px;"/>
                                 </td>
                             </tr>
                         </table>
@@ -548,7 +555,10 @@
                                     التوقيع / الختم
                                 </th>
                                 <td style="text-align: right;">
-                                    <span>.</span>
+                                    <img t-if="stamp_data_uri"
+                                         t-att-src="stamp_data_uri"
+                                         alt="Stamp"
+                                         style="max-height: 80px; max-width: 150px;"/>
                                 </td>
                             </tr>
                         </table>
