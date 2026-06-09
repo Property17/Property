@@ -3,6 +3,11 @@
 from odoo import api, models
 
 
+def _include_stamp(env):
+    """Stamp is shown on portal receipt PDFs only, not backend accounting prints."""
+    return bool(env.context.get('portal_receipt_stamp'))
+
+
 def _stamp_data_uri(env, move=None, tenancy=None, payment=None):
     """Resolve company stamp as a base64 data URI for QWeb PDFs."""
     Company = env['res.company']
@@ -56,12 +61,9 @@ class ReportAccountPaymentReceipt(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         payments = self.env['account.payment'].browse(docids).sudo()
-        stamp_by_payment_id = {}
-        for payment in payments:
-            move, tenancy = _move_and_tenancy_from_payment(self.env, payment)
-            stamp_by_payment_id[payment.id] = _stamp_data_uri(
-                self.env, move=move, tenancy=tenancy, payment=payment,
-            )
+        stamp_by_payment_id = {
+            payment.id: False for payment in payments
+        }
         return {
             'doc_ids': docids,
             'doc_model': 'account.payment',
@@ -77,12 +79,9 @@ class ReportPaymentDepositeDocument(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         payments = self.env['account.payment'].browse(docids).sudo()
-        stamp_by_payment_id = {}
-        for payment in payments:
-            move, tenancy = _move_and_tenancy_from_payment(self.env, payment)
-            stamp_by_payment_id[payment.id] = _stamp_data_uri(
-                self.env, move=move, tenancy=tenancy, payment=payment,
-            )
+        stamp_by_payment_id = {
+            payment.id: False for payment in payments
+        }
         return {
             'doc_ids': docids,
             'doc_model': 'account.payment',
@@ -119,8 +118,13 @@ class ReportMultiInvoice(models.AbstractModel):
     def _get_report_values(self, docids, data=None):
         res = super()._get_report_values(docids, data)
         for move, doc in zip(self.env['account.move'].browse(docids), res.get('docs') or []):
-            tenancy = _tenancy_from_move(self.env, move)
-            doc['stamp_data_uri'] = _stamp_data_uri(self.env, move=move, tenancy=tenancy)
+            if _include_stamp(self.env):
+                tenancy = _tenancy_from_move(self.env, move)
+                doc['stamp_data_uri'] = _stamp_data_uri(
+                    self.env, move=move, tenancy=tenancy,
+                )
+            else:
+                doc['stamp_data_uri'] = False
         return res
 
 
@@ -130,10 +134,6 @@ class ReportMultiDeposite(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         res = super()._get_report_values(docids, data)
-        for move, doc in zip(self.env['account.move'].browse(docids), res.get('docs') or []):
-            tenancy = _tenancy_from_move(self.env, move)
-            payment = self._get_invoice_payment(move)
-            doc['stamp_data_uri'] = _stamp_data_uri(
-                self.env, move=move, tenancy=tenancy, payment=payment,
-            )
+        for doc in res.get('docs') or []:
+            doc['stamp_data_uri'] = False
         return res

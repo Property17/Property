@@ -419,7 +419,9 @@ class PropertyPaymentLink(PaymentPortal):
 
     @http.route('/tenancy_payment_link/tenant_partner/payment_report/<int:invoice_id>', type='http', auth="public", website=True)
     def payment_report(self, invoice_id, **kw):
-        pdf, _ = request.env['ir.actions.report'].sudo()._render_qweb_pdf(
+        pdf, _ = request.env['ir.actions.report'].sudo().with_context(
+            portal_receipt_stamp=True,
+        )._render_qweb_pdf(
             'pyment_report.mm_multi_invoice_report_action', res_ids=[invoice_id],
         )
         pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]
