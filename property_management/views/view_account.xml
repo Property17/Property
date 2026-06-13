@@ -44,6 +44,7 @@
         <field name="inherit_id" ref="account.view_account_payment_form"/>
         <field name="arch" type="xml">
             <field name="ref" position="after">
+                <field name="is_deposit_receive" invisible="1"/>
                 <field name="tenancy_id" domain="[('tenant_id.parent_id', '=', partner_id)]" context="{'form_view_ref': 'property_management.property_analytic_view_form'}"/>
                 <field name="property_id" context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}"/>
                 <field name="amount_due" string="Amount Due"/>
@@ -59,6 +60,7 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <field name="ref" position="after">
+                <field name="is_deposit_receive" invisible="1"/>
                 <field name="property_id" invisible="1"
                     context="{'tree_view_ref': 'property_management.property_view_asset_tree', 'form_view_ref':'property_management.property_asset_form'}" />
                 <field

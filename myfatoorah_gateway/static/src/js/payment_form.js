@@ -85,6 +85,14 @@ paymentForm.include({
                             initiateParams.selected_service_rent_ids = serviceInput.value;
                         }
                     }
+                    var depositInput = document.getElementById('selected_deposit_invoice_ids');
+                    if (depositInput && depositInput.value && depositInput.value !== '[]') {
+                        try {
+                            initiateParams.selected_deposit_invoice_ids = JSON.parse(depositInput.value);
+                        } catch (e) {
+                            initiateParams.selected_deposit_invoice_ids = depositInput.value;
+                        }
+                    }
                 }
 
                 const initiatePaymentResult = await jsonrpc('/payment/myfatoorah/initiate-payment', initiateParams);

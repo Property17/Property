@@ -67,7 +67,6 @@
             <xpath expr="//field[@name='partner_id']" position="before">
                 <field name="date_ch" invisible="1"/>
                 <field name="mm_invoice_id" invisible="1"/>
-                <field name="is_deposit_receive" invisible="1"/>
             </xpath>
         </field>
     </record>

@@ -259,7 +259,6 @@ class AccountPaymentInhNew(models.Model):
 
     date_ch = fields.Char(compute='_compute_get_date')
     mm_invoice_id = fields.Many2one('account.move', string="Invoice")
-    is_deposit_receive = fields.Boolean('Is Deposit Receive')
     
     bank_reference = fields.Char(copy=False)
     cheque_reference = fields.Char(copy=False)
@@ -293,10 +292,6 @@ class AccountPaymentInhNew(models.Model):
         for move_line in move_line_vals:
             credit = move_line.get('credit', 0) or 0
             if credit > 0:
-                if self.is_deposit_receive and self.partner_id.tenancy_insurance_id:
-                    move_line.update({
-                        'account_id': self.partner_id.tenancy_insurance_id.id,
-                    })
                 if tenancy and not self.is_deposit_receive:
                     move_line['analytic_account_id'] = tenancy.id
 

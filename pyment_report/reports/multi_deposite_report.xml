@@ -167,7 +167,10 @@
                                                 التوقيع / الختم
                                             </th>
                                             <td style="text-align: right;">
-                                                <span>.</span>
+                                                <img t-if="doc1.get('stamp_data_uri')"
+                                                     t-att-src="doc1.get('stamp_data_uri')"
+                                                     alt="Stamp"
+                                                     style="max-height: 80px; max-width: 150px;"/>
                                             </td>
                                         </tr>
                                     </table>
@@ -306,7 +309,10 @@
                                                 التوقيع / الختم
                                             </th>
                                             <td style="text-align: right;">
-                                                <span>.</span>
+                                                <img t-if="doc1.get('stamp_data_uri')"
+                                                     t-att-src="doc1.get('stamp_data_uri')"
+                                                     alt="Stamp"
+                                                     style="max-height: 80px; max-width: 150px;"/>
                                             </td>
                                         </tr>
                                     </table>
@@ -445,7 +451,10 @@
                                                 التوقيع / الختم
                                             </th>
                                             <td style="text-align: right;">
-                                                <span>.</span>
+                                                <img t-if="doc1.get('stamp_data_uri')"
+                                                     t-att-src="doc1.get('stamp_data_uri')"
+                                                     alt="Stamp"
+                                                     style="max-height: 80px; max-width: 150px;"/>
                                             </td>
                                         </tr>
                                     </table>

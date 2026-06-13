@@ -21,8 +21,18 @@ class PaymentTransaction(models.Model):
         inv = invoices[:1]
         if inv:
             extra.setdefault('mm_invoice_id', inv.id)
+            if inv.is_deposit_receive:
+                extra['is_deposit_receive'] = True
+                if inv.tenancy_id:
+                    extra.setdefault('tenancy_id', inv.tenancy_id.id)
+                if inv.property_id:
+                    extra.setdefault('property_id', inv.property_id.id)
         payment = super()._create_payment(**extra)
         if not payment.mm_invoice_id and payment.reconciled_invoice_ids:
-            payment.write({'mm_invoice_id': payment.reconciled_invoice_ids.ids[0]})
+            inv = payment.reconciled_invoice_ids[:1]
+            write_vals = {'mm_invoice_id': inv.id}
+            if inv.is_deposit_receive:
+                write_vals['is_deposit_receive'] = True
+            payment.write(write_vals)
         payment._property_sync_customer_invoices_from_payment()
         return payment

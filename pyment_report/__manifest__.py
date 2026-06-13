@@ -4,8 +4,8 @@
     'author': "My Company",
     'website': "http://www.yourcompany.com",
     'category': 'Uncategorized',
-    'version': '0.1',
-    'depends': ['base', 'account'],
+    'version': '0.1.5',
+    'depends': ['base', 'account', 'property_management', 'mm_property_inherit_new'],
 
     # always loaded
     'data': [
@@ -14,6 +14,7 @@
         'reports/multi_invoice_report.xml',
         'reports/multi_deposite_report.xml',
         'reports/payment_deposite_report.xml',
+        'reports/payment_deposite_report_portal.xml',
         'views/account_payment.xml',
     ],
 }

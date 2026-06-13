@@ -48,8 +48,10 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
     _onPayClick: function (ev) {
         const rentInput = document.getElementById('selected_rent_schedule_ids');
         const serviceInput = document.getElementById('selected_service_rent_ids');
+        const depositInput = document.getElementById('selected_deposit_invoice_ids');
         let rentIds = [];
         let serviceIds = [];
+        let depositIds = [];
         try {
             if (rentInput && rentInput.value) {
                 rentIds = JSON.parse(rentInput.value);
@@ -57,9 +59,13 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
             if (serviceInput && serviceInput.value) {
                 serviceIds = JSON.parse(serviceInput.value);
             }
+            if (depositInput && depositInput.value) {
+                depositIds = JSON.parse(depositInput.value);
+            }
         } catch (e) {
             rentIds = [];
             serviceIds = [];
+            depositIds = [];
         }
         const payBtn = document.getElementById('payment_link_pay_btn');
         if (
@@ -70,7 +76,7 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
             ev.preventDefault();
             return;
         }
-        if (!rentIds.length && !serviceIds.length) {
+        if (!rentIds.length && !serviceIds.length && !depositIds.length) {
             ev.preventDefault();
             return;
         }
@@ -106,7 +112,16 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
     _onViewClick: function (ev) {
         ev.preventDefault();
         const scheduleId = parseInt(ev.currentTarget.getAttribute('data-schedule-id'), 10);
-        const line = this.receiptData.find(function (l) { return l.rent_schedule_id === scheduleId; });
+        const depositInvoiceId = parseInt(ev.currentTarget.getAttribute('data-deposit-invoice-id'), 10);
+        const line = this.receiptData.find(function (l) {
+            if (depositInvoiceId && l.deposit_invoice_id === depositInvoiceId) {
+                return true;
+            }
+            if (scheduleId && l.rent_schedule_id === scheduleId) {
+                return true;
+            }
+            return false;
+        });
         if (!line) return;
         // Map modal element ids to data keys (aligned with PDF Rent Collection Receipt)
         const mapping = [
@@ -159,6 +174,10 @@ if (PaymentFormWidget) {
                 const serviceInput = document.getElementById('selected_service_rent_ids');
                 if (serviceInput && serviceInput.value && serviceInput.value !== '[]') {
                     params.selected_service_rent_ids = serviceInput.value;
+                }
+                const depositInput = document.getElementById('selected_deposit_invoice_ids');
+                if (depositInput && depositInput.value && depositInput.value !== '[]') {
+                    params.selected_deposit_invoice_ids = depositInput.value;
                 }
             }
             

@@ -9,6 +9,7 @@
         'data/cron.xml',
         'data/general_ledger_custom.xml',
         'security/ir.model.access.csv',
+        'views/res_company_views.xml',
         'views/property.xml',
         'views/property_custom.xml',
         'views/contract_template.xml',

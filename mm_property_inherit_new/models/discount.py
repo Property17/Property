@@ -122,7 +122,7 @@ class ServicesRent(models.Model):
     tenancy_id = fields.Many2one('account.analytic.account', string='Tenancy')
     tenancy_rent_id = fields.Many2one('tenancy.rent.schedule', string='Tenancy Rent')
     date = fields.Date(string='Date', default=fields.Date.today())
-    amount = fields.Float('Amount', related='service_type_id.amount', readonly=False)
+    amount = fields.Float('Amount', store=True)
     start_date = fields.Date(string='Start Date')
     end_date = fields.Date(string='End Date')
     move_id = fields.Many2one('account.move', string='Invoice')
@@ -141,7 +141,14 @@ class ServicesRent(models.Model):
     is_invoiced = fields.Boolean(
         string='Invoiced?')
     service_account_id = fields.Many2one('account.account', related='service_type_id.service_account_id', string="Service Account")
-
+    
+    @api.onchange('service_type_id')
+    def onchange_service_type(self):
+        for rec in self:
+            if rec.service_type_id:
+                rec.amount = rec.service_type_id.amount
+    
+   
 
     
     @api.depends('move_id.state')
