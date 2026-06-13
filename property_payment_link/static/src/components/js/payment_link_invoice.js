@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 
 export class PaymentLinkInvoice extends Component {
@@ -27,6 +27,8 @@ export class PaymentLinkInvoice extends Component {
         }
 
         this.flexiblePayment = props.flexible_payment || false;
+        this.allowPartialPayment = props.allow_partial_payment || false;
+        this.totalAmountDue = props.total_amount_due || 0;
         this.parsedProps = props;
 
         const lineEntries = Object.entries(props.tenancy_lines || {}).map(
@@ -43,7 +45,10 @@ export class PaymentLinkInvoice extends Component {
         let initialSelectedKeys = [];
         let initialTotal = 0.0;
 
-        if (!this.flexiblePayment && props.tenancy_lines) {
+        if (this.allowPartialPayment && props.tenancy_lines) {
+            initialSelectedKeys = [...this.sortedLineKeys];
+            initialTotal = this.totalAmountDue;
+        } else if (!this.flexiblePayment && props.tenancy_lines) {
             initialSelectedKeys = [...this.sortedLineKeys];
             for (const lineKey of initialSelectedKeys) {
                 const lines = props.tenancy_lines[lineKey];
@@ -59,8 +64,57 @@ export class PaymentLinkInvoice extends Component {
         });
 
         onWillStart(() => {
-            setTimeout(() => this._syncHiddenInputs(), 50);
+            setTimeout(() => {
+                this._syncHiddenInputs();
+                if (this.allowPartialPayment) {
+                    this._updatePartialPaymentSummary();
+                }
+            }, 50);
         });
+
+        onMounted(() => {
+            const amountInput = document.getElementById("partial_payment_amount_input");
+            if (amountInput) {
+                amountInput.addEventListener("input", () => this._onPartialAmountInput());
+            }
+        });
+    }
+
+    _getPartialAmount() {
+        const amountInput = document.getElementById("partial_payment_amount_input");
+        if (!amountInput) {
+            return 0;
+        }
+        const value = parseFloat(amountInput.value);
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    _isPartialAmountValid() {
+        const amount = this._getPartialAmount();
+        return amount > 0 && amount <= this.totalAmountDue;
+    }
+
+    _updatePartialPaymentSummary() {
+        const amount = this._getPartialAmount();
+        const remainingElement = document.getElementById("PartialPaymentRemaining");
+        if (remainingElement) {
+            const remaining = Math.max(this.totalAmountDue - amount, 0);
+            const valueSpan =
+                remainingElement.querySelector(".oe_currency_value") || remainingElement;
+            valueSpan.innerText = remaining.toFixed(2);
+        }
+        const hiddenAmount = document.getElementById("partial_payment_amount");
+        if (hiddenAmount) {
+            hiddenAmount.value = amount > 0 ? String(amount) : "";
+        }
+    }
+
+    _onPartialAmountInput() {
+        this._updatePartialPaymentSummary();
+        this._updatePayButton();
+        if (typeof window.resetMyFatoorahFormCache === "function") {
+            window.resetMyFatoorahFormCache();
+        }
     }
 
     _updatePayButton() {
@@ -68,8 +122,13 @@ export class PaymentLinkInvoice extends Component {
         if (!btn) {
             return;
         }
-        const hasSelection = this.state.selectedLineKeys.length > 0;
-        const disabled = this.flexiblePayment && !hasSelection;
+        let disabled = false;
+        if (this.allowPartialPayment) {
+            disabled = !this._isPartialAmountValid();
+        } else {
+            const hasSelection = this.state.selectedLineKeys.length > 0;
+            disabled = this.flexiblePayment && !hasSelection;
+        }
         if (disabled) {
             btn.classList.remove("btn-primary");
             btn.classList.add("btn-secondary", "disabled");
@@ -90,15 +149,21 @@ export class PaymentLinkInvoice extends Component {
     }
 
     _syncHiddenInputs() {
-        const totalElement = document.getElementById("InvoiceTotal");
-        if (totalElement) {
-            totalElement.innerText = this.state.totalInvoice.toFixed(2);
+        if (!this.allowPartialPayment) {
+            const totalElement = document.getElementById("InvoiceTotal");
+            if (totalElement) {
+                const valueSpan = totalElement.querySelector(".oe_currency_value") || totalElement;
+                valueSpan.innerText = this.state.totalInvoice.toFixed(2);
+            }
         }
         this._updatePayButton();
         const rentIds = [];
         const serviceIds = [];
         const depositIds = [];
-        for (const lineKey of this.state.selectedLineKeys) {
+        const keys = this.allowPartialPayment
+            ? this.sortedLineKeys
+            : this.state.selectedLineKeys;
+        for (const lineKey of keys) {
             const line = this.parsedProps.tenancy_lines[lineKey]?.[0];
             if (!line) {
                 continue;
@@ -126,10 +191,16 @@ export class PaymentLinkInvoice extends Component {
     }
 
     isSelected(lineKey) {
+        if (this.allowPartialPayment) {
+            return true;
+        }
         return this.state.selectedLineKeys.includes(lineKey);
     }
 
     isCheckboxDisabled(lineKey) {
+        if (this.allowPartialPayment) {
+            return true;
+        }
         if (!this.flexiblePayment) {
             return true;
         }
@@ -141,7 +212,7 @@ export class PaymentLinkInvoice extends Component {
     }
 
     canSelectLine(lineKey) {
-        if (!this.flexiblePayment) {
+        if (!this.flexiblePayment || this.allowPartialPayment) {
             return true;
         }
         const currentIndex = this.sortedLineKeys.indexOf(lineKey);
@@ -157,7 +228,7 @@ export class PaymentLinkInvoice extends Component {
     }
 
     canDeselectLine(lineKey) {
-        if (!this.flexiblePayment) {
+        if (!this.flexiblePayment || this.allowPartialPayment) {
             return false;
         }
         const currentIndex = this.sortedLineKeys.indexOf(lineKey);
@@ -173,6 +244,11 @@ export class PaymentLinkInvoice extends Component {
     }
 
     onCheckboxClick(ev) {
+        if (this.allowPartialPayment) {
+            ev.preventDefault();
+            ev.target.checked = true;
+            return;
+        }
         const lineKey = ev.target.getAttribute("data-line-key");
         const lineData = this.parsedProps.tenancy_lines[lineKey]?.[0];
         if (!lineData) {

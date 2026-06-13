@@ -30,6 +30,10 @@
                             <label for="flexible_payment" string="Flexible Payments" style="margin: 0;"/>
                             <field name="flexible_payment" widget="boolean_toggle"/>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="allow_partial_payment" string="Allow Partial Payment" style="margin: 0;"/>
+                            <field name="allow_partial_payment" widget="boolean_toggle"/>
+                        </div>
                     </div>
                 </div>
             </xpath>

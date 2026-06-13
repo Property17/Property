@@ -78,17 +78,63 @@
                                     <p>No unpaid invoices found.</p>
                                 </div>
                             </div>
-                            <!-- Total and Pay: always under Invoices (Total=0 when no unpaid) -->
-                            <div class="table-responsive border-0 mt-2">
+                            <!-- Payment summary under invoices -->
+                            <div class="table-responsive border-0 mt-2 payment-link-summary">
                                 <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <td class="text-center"><span><strong>Total</strong></span></td>
-                                            <td id="InvoiceTotal"><t t-if="not has_payable">0</t></td>
-                                        </tr>
-                                    </thead>
+                                    <tbody>
+                                        <t t-if="allow_partial_payment">
+                                            <tr>
+                                                <td class="text-start"><span><strong>Total outstanding</strong></span></td>
+                                                <td class="text-end" id="TotalOutstanding">
+                                                    <span class="oe_currency_value" t-esc="'%.2f' % total_amount_due"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-start"><span><strong>Amount to pay</strong></span></td>
+                                                <td class="text-end">
+                                                    <input type="number"
+                                                           id="partial_payment_amount_input"
+                                                           class="form-control form-control-sm text-end d-inline-block"
+                                                           style="max-width: 140px;"
+                                                           min="0.01"
+                                                           step="0.01"
+                                                           t-att-max="total_amount_due"
+                                                           placeholder="0.00"/>
+                                                    <input type="hidden" id="partial_payment_amount" name="partial_payment_amount" value=""/>
+                                                    <input type="hidden" id="allow_partial_payment_flag" value="1"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-start"><span><strong>Remaining after payment</strong></span></td>
+                                                <td class="text-end" id="PartialPaymentRemaining">
+                                                    <span class="oe_currency_value" t-esc="'%.2f' % total_amount_due"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-else="">
+                                            <tr>
+                                                <td class="text-start">
+                                                    <span><strong>
+                                                        <t t-if="flexible_payment">Selected amount to pay</t>
+                                                        <t t-else="">Total amount to pay</t>
+                                                    </strong></span>
+                                                </td>
+                                                <td class="text-end" id="InvoiceTotal">
+                                                    <span class="oe_currency_value">
+                                                        <t t-if="not has_payable">0.00</t>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
                                 </table>
                             </div>
+                            <t t-if="allow_partial_payment and has_payable">
+                                <p class="text-muted small mb-2" id="partial_payment_helper">
+                                    You can pay any amount up to
+                                    <span class="oe_currency_value" t-esc="'%.2f' % total_amount_due"/>.
+                                </p>
+                            </t>
                             <t t-if="has_payable">
                                 <t t-if="tenancy.is_blocked or tenancy.state == 'blocked'">
                                     <button type="button" class="btn btn-secondary w-100 mt-2" disabled="disabled">
@@ -98,18 +144,18 @@
                                         <t>Payments are blocked for this tenancy. Please contact the property manager.</t>
                                     </div>
                                 </t>
-                                <t t-else="">
-                                    <a href="#"
-                                       id="payment_link_pay_btn"
-                                       role="button"
-                                       t-attf-class="btn w-100 mt-2 {{ 'btn-secondary disabled' if flexible_payment else 'btn-primary' }}"
-                                       t-att-data-bs-toggle="'modal' if not flexible_payment else None"
-                                       t-att-data-bs-target="'#payment_method' if not flexible_payment else None"
-                                       t-att-aria-disabled="'true' if flexible_payment else None"
-                                       t-att-style="'pointer-events: none; opacity: 0.65;' if flexible_payment else None">
-                                        <i class="fa fa-fw fa-arrow-circle-right"/> Pay
-                                    </a>
-                                </t>
+                            <t t-else="">
+                                <a href="#"
+                                   id="payment_link_pay_btn"
+                                   role="button"
+                                   t-attf-class="btn w-100 mt-2 {{ 'btn-secondary disabled' if allow_partial_payment or (flexible_payment and not allow_partial_payment) else 'btn-primary' }}"
+                                   t-att-data-bs-toggle="'modal' if (not flexible_payment or allow_partial_payment) and not allow_partial_payment else None"
+                                   t-att-data-bs-target="'#payment_method' if (not flexible_payment or allow_partial_payment) and not allow_partial_payment else None"
+                                   t-att-aria-disabled="'true' if allow_partial_payment or (flexible_payment and not allow_partial_payment) else None"
+                                   t-att-style="'pointer-events: none; opacity: 0.65;' if allow_partial_payment or (flexible_payment and not allow_partial_payment) else None">
+                                    <i class="fa fa-fw fa-arrow-circle-right"/> Pay
+                                </a>
+                            </t>
                             </t>
                             <t t-else="">
                                 <button type="button" class="btn btn-secondary w-100 mt-2" disabled="disabled">

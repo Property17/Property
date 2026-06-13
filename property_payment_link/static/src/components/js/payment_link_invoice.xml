@@ -5,7 +5,7 @@
             <table class="o_list_table position-relative table table-sm o_list_table_ungrouped table-striped o_portal_my_doc_table mb-0">
                 <thead>
                     <tr>
-                        <td class="text-center"><span><strong>CheckBox</strong></span></td>
+                        <td class="text-center" t-if="!this.allowPartialPayment"><span><strong>CheckBox</strong></span></td>
                         <td class="text-center"><span><strong>Type</strong></span></td>
                         <td class="text-center"><span><strong>Date</strong></span></td>
                         <td class="text-center"><span><strong>Invoice No</strong></span></td>
@@ -17,7 +17,7 @@
                     <t t-if="parsedProps.tenancy_lines and Object.keys(parsedProps.tenancy_lines).length > 0">
                         <tr t-foreach="parsedProps.tenancy_lines" t-as="lineKey" t-key="lineKey">
                             <t t-set="lineData" t-value="parsedProps.tenancy_lines[lineKey][0]"/>
-                            <td class="text-center">
+                            <td class="text-center" t-if="!this.allowPartialPayment">
                                 <input class="form-check-input me-2"
                                        type="checkbox"
                                        t-att-data-line-key="lineData.line_key"

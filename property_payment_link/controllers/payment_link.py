@@ -85,6 +85,76 @@ def _parse_id_list(value):
     return [int(x) for x in value if str(x).isdigit()]
 
 
+def _parse_partial_amount(value):
+    """Parse a positive monetary amount from portal input."""
+    if value is None or value == '':
+        return 0.0
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    return amount if amount > 0 else 0.0
+
+
+def _sorted_unpaid_payable_lines(tenancy):
+    """Unpaid rent/service/deposit lines sorted earliest to latest (FIFO)."""
+    lines = []
+    for rs in _compute_unpaid_rent_schedules(tenancy):
+        inv = rs.invoice_id
+        if not inv or inv.amount_residual <= 0 or inv.state != 'posted':
+            continue
+        lines.append({
+            'sort_date': rs.start_date or inv.invoice_date or inv.invoice_date_due,
+            'invoice': inv,
+            'rent_schedule_id': rs.id,
+            'service_rent_id': False,
+            'deposit_invoice_id': False,
+        })
+    for sr in _compute_unpaid_service_rents(tenancy):
+        inv = sr.move_id
+        if not inv or inv.amount_residual <= 0 or inv.state != 'posted':
+            continue
+        lines.append({
+            'sort_date': sr.start_date or sr.date or inv.invoice_date or inv.invoice_date_due,
+            'invoice': inv,
+            'rent_schedule_id': False,
+            'service_rent_id': sr.id,
+            'deposit_invoice_id': False,
+        })
+    for inv in _compute_unpaid_deposit_invoices(tenancy):
+        if inv.amount_residual <= 0 or inv.state != 'posted':
+            continue
+        lines.append({
+            'sort_date': inv.invoice_date or inv.invoice_date_due,
+            'invoice': inv,
+            'rent_schedule_id': False,
+            'service_rent_id': False,
+            'deposit_invoice_id': inv.id,
+        })
+    lines.sort(key=lambda row: row['sort_date'] or fields.Date.today())
+    return lines
+
+
+def _total_unpaid_amount(tenancy):
+    lines = _sorted_unpaid_payable_lines(tenancy)
+    return sum(line['invoice'].amount_residual for line in lines)
+
+
+def _fifo_invoices_for_partial_amount(tenancy, amount):
+    """Return invoices to link for a partial payment (earliest due first)."""
+    lines = _sorted_unpaid_payable_lines(tenancy)
+    if not lines:
+        return tenancy.env['account.move'].browse(), lines
+    selected = tenancy.env['account.move'].browse()
+    cumulative = 0.0
+    for row in lines:
+        selected |= row['invoice']
+        cumulative += row['invoice'].amount_residual
+        if cumulative >= amount:
+            break
+    return selected, lines
+
+
 def _compute_paid_rent_schedules(tenancy):
     return tenancy.rent_schedule_ids.filtered(
         lambda rs: (
@@ -280,6 +350,8 @@ def _compute_tenancy_invoices_props(tenancy):
     return {
         'tenancy_lines': tenancy_lines_dict,
         'flexible_payment': tenancy.flexible_payment if tenancy.flexible_payment is not None else False,
+        'allow_partial_payment': bool(tenancy.allow_partial_payment),
+        'total_amount_due': _total_unpaid_amount(tenancy),
     }
 
 
@@ -404,6 +476,8 @@ class PropertyPaymentLink(PaymentPortal):
             'tenancy_invoices': tenancy_account_move,
             'tenancy_access_token': access_token,
             'flexible_payment': tenancy_record.flexible_payment,
+            'allow_partial_payment': tenancy_record.allow_partial_payment,
+            'total_amount_due': _total_unpaid_amount(tenancy_record),
             'unpaid_rent_schedules': unpaid_rent_schedules,
             'unpaid_service_rents': unpaid_service_rents,
             'has_payable': has_payable,
@@ -618,6 +692,7 @@ class PropertyPaymentLink(PaymentPortal):
         selected_rent_schedule_ids=None,
         selected_service_rent_ids=None,
         selected_deposit_invoice_ids=None,
+        partial_payment_amount=None,
         **kwargs,
     ):
         """Create a transaction for selected rent, service, and deposit invoices on a tenancy."""
@@ -633,61 +708,75 @@ class PropertyPaymentLink(PaymentPortal):
             selected_service_rent_ids = kwargs.get('selected_service_rent_ids')
         if not selected_deposit_invoice_ids and 'selected_deposit_invoice_ids' in kwargs:
             selected_deposit_invoice_ids = kwargs.get('selected_deposit_invoice_ids')
+        if partial_payment_amount is None and 'partial_payment_amount' in kwargs:
+            partial_payment_amount = kwargs.get('partial_payment_amount')
 
         kwargs.pop('access_token', None)
         kwargs.pop('selected_rent_schedule_ids', None)
         kwargs.pop('selected_service_rent_ids', None)
         kwargs.pop('selected_deposit_invoice_ids', None)
+        kwargs.pop('partial_payment_amount', None)
 
-        all_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
-        all_service_rents = _compute_unpaid_service_rents(tenancy)
-        all_deposit_invoices = _compute_unpaid_deposit_invoices(tenancy)
-
-        rent_schedule_ids = _parse_id_list(selected_rent_schedule_ids)
-        service_rent_ids = _parse_id_list(selected_service_rent_ids)
-        deposit_invoice_ids = _parse_id_list(selected_deposit_invoice_ids)
-
-        if not tenancy.flexible_payment:
-            rent_schedules = all_rent_schedules
-            service_rents = all_service_rents
-            deposit_invoices = all_deposit_invoices
+        partial_amount = _parse_partial_amount(partial_payment_amount)
+        if tenancy.allow_partial_payment and partial_amount:
+            total_due = _total_unpaid_amount(tenancy)
+            if partial_amount > total_due:
+                raise ValidationError(_(
+                    "Payment amount (%(amount)s) cannot exceed total due (%(total)s).",
+                    amount=partial_amount,
+                    total=total_due,
+                ))
+            invoices, _lines = _fifo_invoices_for_partial_amount(tenancy, partial_amount)
+            if not invoices:
+                raise ValidationError(_("No invoices found for partial payment."))
+            total_amount = partial_amount
         else:
-            if not rent_schedule_ids and not service_rent_ids and not deposit_invoice_ids:
-                raise ValidationError(_("Please select at least one invoice to pay."))
-            rent_schedules = all_rent_schedules.filtered(
-                lambda rs: rs.id in rent_schedule_ids
-            ) if rent_schedule_ids else all_rent_schedules.browse()
-            service_rents = all_service_rents.filtered(
-                lambda sr: sr.id in service_rent_ids
-            ) if service_rent_ids else all_service_rents.browse()
-            deposit_invoices = all_deposit_invoices.filtered(
-                lambda inv: inv.id in deposit_invoice_ids
-            ) if deposit_invoice_ids else all_deposit_invoices.browse()
+            all_rent_schedules = _compute_unpaid_rent_schedules(tenancy)
+            all_service_rents = _compute_unpaid_service_rents(tenancy)
+            all_deposit_invoices = _compute_unpaid_deposit_invoices(tenancy)
 
-        invoices = (
-            rent_schedules.mapped('invoice_id')
-            | service_rents.mapped('move_id')
-            | deposit_invoices
-        ).filtered(lambda inv: inv.amount_residual > 0 and inv.state == 'posted')
+            rent_schedule_ids = _parse_id_list(selected_rent_schedule_ids)
+            service_rent_ids = _parse_id_list(selected_service_rent_ids)
+            deposit_invoice_ids = _parse_id_list(selected_deposit_invoice_ids)
 
-        if not invoices:
-            raise ValidationError(_("No invoices found for the selected items."))
-        
+            if not tenancy.flexible_payment:
+                rent_schedules = all_rent_schedules
+                service_rents = all_service_rents
+                deposit_invoices = all_deposit_invoices
+            else:
+                if not rent_schedule_ids and not service_rent_ids and not deposit_invoice_ids:
+                    raise ValidationError(_("Please select at least one invoice to pay."))
+                rent_schedules = all_rent_schedules.filtered(
+                    lambda rs: rs.id in rent_schedule_ids
+                ) if rent_schedule_ids else all_rent_schedules.browse()
+                service_rents = all_service_rents.filtered(
+                    lambda sr: sr.id in service_rent_ids
+                ) if service_rent_ids else all_service_rents.browse()
+                deposit_invoices = all_deposit_invoices.filtered(
+                    lambda inv: inv.id in deposit_invoice_ids
+                ) if deposit_invoice_ids else all_deposit_invoices.browse()
+
+            invoices = (
+                rent_schedules.mapped('invoice_id')
+                | service_rents.mapped('move_id')
+                | deposit_invoices
+            ).filtered(lambda inv: inv.amount_residual > 0 and inv.state == 'posted')
+
+            if not invoices:
+                raise ValidationError(_("No invoices found for the selected items."))
+            total_amount = sum(inv.amount_residual for inv in invoices)
+
         logged_in = not request.env.user._is_public()
         partner_sudo = request.env.user.partner_id if logged_in else invoices[0].partner_id
-        
+
         self._validate_transaction_kwargs(kwargs)
-        
-        # Calculate total amount from SELECTED invoices only
-        total_amount = sum(inv.amount_residual for inv in invoices)
-        
+
         kwargs.update({
             'currency_id': invoices[0].currency_id.id,
             'partner_id': partner_sudo.id,
             'amount': total_amount,
         })
-        
-        # Create transaction with SELECTED invoice IDs only
+
         tx_sudo = self._create_transaction(
             custom_create_values={'invoice_ids': [Command.set(invoices.ids)]},
             **kwargs,

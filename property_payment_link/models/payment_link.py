@@ -52,6 +52,12 @@ class PropertyPaymentLink(models.Model):
         related='tenancy_id.state', string="Tenancy Status", store=True, readonly=True)
     flexible_payment = fields.Boolean(
         related='tenancy_id.flexible_payment', string="Flexible Payment", store=True, readonly=True)
+    allow_partial_payment = fields.Boolean(
+        related='tenancy_id.allow_partial_payment',
+        string="Allow Partial Payment",
+        store=True,
+        readonly=True,
+    )
     block_payment = fields.Boolean(
         related='tenancy_id.is_blocked', string="Block Payments", store=True, readonly=True)
     # Computed fields (stored for search / group by)
@@ -426,6 +432,7 @@ class AccountMove(models.Model):
 
     is_blocked = fields.Boolean('Block', tracking=True)
     flexible_payment = fields.Boolean('Flexible Payment', tracking=True)
+    allow_partial_payment = fields.Boolean('Allow Partial Payment', tracking=True)
     payment_link_count = fields.Integer(
         string='Payment Link Count',
         compute='_compute_payment_link_count')

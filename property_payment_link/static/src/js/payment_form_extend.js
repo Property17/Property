@@ -3,6 +3,45 @@
 import publicWidget from '@web/legacy/js/public/public_widget';
 import { patch } from "@web/core/utils/patch";
 
+function getPartialPaymentAmount() {
+    const allowPartial = document.getElementById('allow_partial_payment_flag');
+    if (!allowPartial) {
+        return null;
+    }
+    const hidden = document.getElementById('partial_payment_amount');
+    const input = document.getElementById('partial_payment_amount_input');
+    const raw = (hidden && hidden.value) || (input && input.value) || '';
+    const amount = parseFloat(raw);
+    return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function syncPartialAmountToPaymentForm(paymentFormWidget) {
+    const amount = getPartialPaymentAmount();
+    if (amount === null) {
+        return;
+    }
+    const hidden = document.getElementById('partial_payment_amount');
+    if (hidden) {
+        hidden.value = String(amount);
+    }
+    const form = document.getElementById('o_payment_form');
+    if (form) {
+        form.dataset.amount = String(amount);
+    }
+    if (paymentFormWidget && paymentFormWidget.paymentContext) {
+        paymentFormWidget.paymentContext.amount = String(amount);
+    }
+}
+
+function isTenancyPaymentLinkPage() {
+    const form = document.getElementById('o_payment_form');
+    const route = form && form.dataset ? form.dataset.transactionRoute : '';
+    return (
+        (route && route.includes('/tenancy/transaction/'))
+        || window.location.href.includes('tenancy_payment_link')
+    );
+}
+
 // Tenant/Property info - inject via JS (bypasses theme/CSS that may hide server-rendered content)
 publicWidget.registry.PaymentLinkTenantInfo = publicWidget.Widget.extend({
     selector: '.payment-link-detail-container',
@@ -46,6 +85,20 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
         'click a[data-bs-target="#payment_method"]': '_onPayClick',
     },
     _onPayClick: function (ev) {
+        const allowPartial = document.getElementById('allow_partial_payment_flag');
+        const partialAmountInput = document.getElementById('partial_payment_amount_input');
+        const partialAmountHidden = document.getElementById('partial_payment_amount');
+        if (allowPartial && partialAmountInput) {
+            const amount = parseFloat(partialAmountInput.value);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                ev.preventDefault();
+                return;
+            }
+            if (partialAmountHidden) {
+                partialAmountHidden.value = String(amount);
+            }
+            syncPartialAmountToPaymentForm();
+        }
         const rentInput = document.getElementById('selected_rent_schedule_ids');
         const serviceInput = document.getElementById('selected_service_rent_ids');
         const depositInput = document.getElementById('selected_deposit_invoice_ids');
@@ -76,7 +129,12 @@ publicWidget.registry.PaymentLinkPayButton = publicWidget.Widget.extend({
             ev.preventDefault();
             return;
         }
-        if (!rentIds.length && !serviceIds.length && !depositIds.length) {
+        if (
+            !allowPartial
+            && !rentIds.length
+            && !serviceIds.length
+            && !depositIds.length
+        ) {
             ev.preventDefault();
             return;
         }
@@ -123,7 +181,6 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
             return false;
         });
         if (!line) return;
-        // Map modal element ids to data keys (aligned with PDF Rent Collection Receipt)
         const mapping = [
             ['modal_receipt_number', line.receipt_number || line.invoice_name],
             ['modal_tenancy_name', line.tenancy_name],
@@ -149,24 +206,62 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
     },
 });
 
-// Get the PaymentForm widget from the registry
 const PaymentFormWidget = publicWidget.registry.PaymentForm;
 
-// Patch the PaymentForm to include selected rent schedule IDs in transaction params
 if (PaymentFormWidget) {
     patch(PaymentFormWidget.prototype, {
         /**
+         * Defer MyFatoorah auto-expand on tenancy payment pages until the modal opens.
          * @override
-         * Add selected_rent_schedule_ids to the transaction route params
+         */
+        async start() {
+            this.paymentContext = {};
+            Object.assign(this.paymentContext, this.el.dataset);
+
+            await publicWidget.Widget.prototype.start.call(this);
+
+            const deferExpand = isTenancyPaymentLinkPage();
+            const checkedRadio = document.querySelector('input[name="o_payment_radio"]:checked');
+            if (checkedRadio && !deferExpand) {
+                await this._expandInlineForm(checkedRadio);
+                this._enableButton(false);
+            } else if (!checkedRadio) {
+                this._setPaymentFlow();
+            }
+
+            this.$('[data-bs-toggle="tooltip"]').tooltip();
+
+            const modal = document.getElementById('payment_method');
+            if (modal && deferExpand) {
+                modal.addEventListener('shown.bs.modal', () => this._onTenancyPaymentModalShown());
+            }
+        },
+
+        async _onTenancyPaymentModalShown() {
+            syncPartialAmountToPaymentForm(this);
+            if (typeof window.resetMyFatoorahFormCache === 'function') {
+                window.resetMyFatoorahFormCache();
+            }
+            const checkedRadio = this.el.querySelector('input[name="o_payment_radio"]:checked');
+            if (checkedRadio) {
+                this._disableButton();
+                await this._expandInlineForm(checkedRadio);
+                this._enableButton(false);
+            }
+        },
+
+        /**
+         * @override
+         * Pass tenancy invoice selection and partial amount to the transaction route.
          */
         _prepareTransactionRouteParams() {
-            // Call the original method
             const params = super._prepareTransactionRouteParams(...arguments);
-            
-            // Check if this is a tenancy transaction (by checking the route)
-            if (this.paymentContext && this.paymentContext['transactionRoute'] && 
-                this.paymentContext['transactionRoute'].includes('/tenancy/transaction/')) {
-                
+
+            if (
+                this.paymentContext
+                && this.paymentContext['transactionRoute']
+                && this.paymentContext['transactionRoute'].includes('/tenancy/transaction/')
+            ) {
                 const rentInput = document.getElementById('selected_rent_schedule_ids');
                 if (rentInput && rentInput.value && rentInput.value !== '[]') {
                     params.selected_rent_schedule_ids = rentInput.value;
@@ -179,8 +274,19 @@ if (PaymentFormWidget) {
                 if (depositInput && depositInput.value && depositInput.value !== '[]') {
                     params.selected_deposit_invoice_ids = depositInput.value;
                 }
+
+                const partialAmount = getPartialPaymentAmount();
+                if (partialAmount !== null) {
+                    params.partial_payment_amount = String(partialAmount);
+                    params.amount = partialAmount;
+                    this.paymentContext.amount = String(partialAmount);
+                    const form = document.getElementById('o_payment_form');
+                    if (form) {
+                        form.dataset.amount = String(partialAmount);
+                    }
+                }
             }
-            
+
             return params;
         },
     });

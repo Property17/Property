@@ -9,10 +9,30 @@ let formPreparationPromise = null;
  * invoice selection changes on tenancy payment link). Call this when the user
  * changes their invoice selection or before opening the payment modal.
  */
+function _mfSetSectionVisible(elementId, visible) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.style.display = visible ? '' : 'none';
+    }
+}
+
 function resetMyFatoorahFormCache() {
     is_form_prepared = false;
     is_form_preparing = false;
     formPreparationPromise = null;
+    if (typeof window !== 'undefined') {
+        window._mfLastPartialAmount = undefined;
+    }
+    const mfCards = document.getElementById('mf-cards');
+    if (mfCards) {
+        mfCards.innerHTML = '';
+    }
+    _mfSetSectionVisible('mf-sectionCard', true);
+    _mfSetSectionVisible('mf-paymentGateways', true);
+    const noGateways = document.getElementById('mf-noPaymentGateways');
+    if (noGateways) {
+        noGateways.style.display = 'none';
+    }
 }
 if (typeof window !== 'undefined') {
     window.resetMyFatoorahFormCache = resetMyFatoorahFormCache;
@@ -101,7 +121,7 @@ async function _prepareCards(cards_payment_methods) {
 
         }
     }else{
-        document.getElementById('mf-sectionCard')?.remove();
+        _mfSetSectionVisible('mf-sectionCard', false);
     }
 }
 
