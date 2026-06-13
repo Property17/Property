@@ -175,6 +175,7 @@
                                                 <td class="text-center"><span><strong>Date</strong></span></td>
                                                 <td class="text-center"><span><strong>Invoice No</strong></span></td>
                                                 <td class="text-center"><span><strong>Payment Date</strong></span></td>
+                                                <td class="text-center"><span><strong>Paid Amount</strong></span></td>
                                                 <td class="text-center"><span><strong>View</strong></span></td>
                                                 <td class="text-center"><span><strong>Download</strong></span></td>
                                             </tr>
@@ -186,9 +187,11 @@
                                                     <td class="text-center"><span t-esc="line.get('date', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('invoice_name', '')"/></td>
                                                     <td class="text-center"><span t-esc="line.get('payment_date', '')"/></td>
+                                                    <td class="text-center"><span class="oe_currency_value" t-esc="line.get('paid_amount_formatted', line.get('paid_amount', ''))"/></td>
                                                     <td class="text-center">
                                                         <t t-if="line.get('line_type') != 'deposit'">
                                                             <a href="#" class="payment-receipt-view-btn" title="View"
+                                                               t-att-data-payment-line-key="line.get('payment_line_key', '')"
                                                                t-att-data-schedule-id="line.get('rent_schedule_id') or ''"
                                                                t-att-data-deposit-invoice-id="line.get('deposit_invoice_id') or ''"
                                                                data-bs-toggle="modal"

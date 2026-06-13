@@ -193,10 +193,55 @@ def _compute_paid_deposit_invoices(tenancy):
     )
 
 
-def _payment_for_invoice(env, invoice):
-    """Resolve ``account.payment`` linked to a paid customer invoice."""
+def _parse_invoice_payments_widget(invoice):
+    """Return reconciled payment lines from the invoice payments widget."""
     widget = invoice.invoice_payments_widget or {}
-    content = widget.get('content') or []
+    if isinstance(widget, (bytes, bytearray)):
+        try:
+            widget = json.loads(widget.decode())
+        except (TypeError, ValueError, AttributeError):
+            return []
+    if isinstance(widget, str):
+        try:
+            widget = json.loads(widget)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(widget, dict):
+        return []
+    return widget.get('content') or []
+
+
+def _invoice_has_payments(invoice):
+    return bool(_parse_invoice_payments_widget(invoice))
+
+
+def _iter_tenancy_receipt_sources(tenancy):
+    """Rent/deposit invoices that have at least one reconciled payment."""
+    sources = []
+    seen = set()
+    for rs in tenancy.rent_schedule_ids.filtered(lambda r: r.move_check and r.invoice_id):
+        inv = rs.invoice_id.sudo()
+        if inv.id in seen or inv.state != 'posted' or not _invoice_has_payments(inv):
+            continue
+        seen.add(inv.id)
+        sources.append((inv, rs))
+    for inv in _iter_tenancy_deposit_invoices(tenancy):
+        if inv.id in seen or inv.state != 'posted' or not _invoice_has_payments(inv):
+            continue
+        seen.add(inv.id)
+        sources.append((inv, None))
+    return sources
+
+
+def _payment_for_invoice(env, invoice, payment_entry=None):
+    """Resolve ``account.payment`` linked to a paid customer invoice."""
+    if payment_entry:
+        payment_id = payment_entry.get('account_payment_id')
+        if payment_id:
+            payment = env['account.payment'].sudo().browse(payment_id)
+            if payment.exists():
+                return payment
+    content = _parse_invoice_payments_widget(invoice)
     if content:
         payment_id = content[0].get('account_payment_id')
         if payment_id:
@@ -214,19 +259,46 @@ def _payment_for_invoice(env, invoice):
     return Payment.browse()
 
 
-def _build_payment_receipt_line(env, tenancy, inv, *, rent_schedule=None, access_token=None):
-    """One payment-receipt row for the portal (rent schedule or deposit invoice)."""
-    widget = inv.invoice_payments_widget or {}
-    content = widget.get('content') or []
-    first_payment = content[0] if content else {}
-    paid_amount = first_payment.get('amount', 0) or (inv.amount_total - inv.amount_residual)
+def _residual_after_payment_entry(invoice, rent_schedule, payment_index):
+    """Invoice/schedule balance remaining after the given payment (widget order)."""
+    content = _parse_invoice_payments_widget(invoice)
+    if not content:
+        return invoice.amount_residual
+    cumulative = 0.0
+    for idx, entry in enumerate(content):
+        cumulative += entry.get('amount', 0) or 0
+        if idx == payment_index:
+            break
+    if rent_schedule and 'amount' in rent_schedule._fields:
+        return max((rent_schedule.amount or 0) - cumulative, 0)
+    return max(invoice.amount_total - cumulative, 0)
+
+
+def _build_payment_receipt_line(
+    env,
+    tenancy,
+    inv,
+    *,
+    rent_schedule=None,
+    access_token=None,
+    payment_entry=None,
+    payment_index=0,
+):
+    """One portal receipt row for a single reconciled payment on an invoice."""
+    content = _parse_invoice_payments_widget(inv)
+    if payment_entry is None:
+        payment_entry = content[payment_index] if payment_index < len(content) else {}
+    paid_amount = payment_entry.get('amount', 0) or 0
+    if not paid_amount:
+        paid_amount = inv.amount_total - inv.amount_residual
     currency = inv.currency_id or tenancy.company_id.currency_id
-    payment = _payment_for_invoice(env, inv)
+    payment = _payment_for_invoice(env, inv, payment_entry)
+    account_payment_id = payment_entry.get('account_payment_id') or (payment.id if payment else 0)
     collector_name = ''
     if payment:
         collector_name = (payment.create_uid.name or '') if payment.create_uid else ''
-    ref = first_payment.get('ref', '') or (payment.ref if payment else '') or ''
-    residual = inv.amount_residual
+    ref = payment_entry.get('ref', '') or (payment.ref if payment else '') or ''
+    residual = _residual_after_payment_entry(inv, rent_schedule, payment_index)
     is_deposit = bool(
         getattr(inv, 'is_deposit_receive', False)
         or (
@@ -243,8 +315,8 @@ def _build_payment_receipt_line(env, tenancy, inv, *, rent_schedule=None, access
         )
     else:
         report_url = (
-            '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s'
-            % (inv.id, inv.access_token)
+            '/tenancy_payment_link/tenant_partner/payment_report/%s?access_token=%s&payment_id=%s'
+            % (inv.id, inv.access_token, account_payment_id)
         )
     line_date = (
         str(rent_schedule.start_date) if rent_schedule
@@ -252,19 +324,23 @@ def _build_payment_receipt_line(env, tenancy, inv, *, rent_schedule=None, access
     )
     period_date = rent_schedule.start_date if rent_schedule else inv.invoice_date
     invoice_amount = rent_schedule.amount if rent_schedule else inv.amount_total
+    payment_line_key = '%s_%s_%s' % (inv.id, payment_index, account_payment_id)
+    payment_date = payment_entry.get('date', '') or (payment.date if payment else '')
     return {
         'line_type': 'deposit' if is_deposit else 'rent',
         'line_label': _('Deposit') if is_deposit else _('Rent'),
         'rent_schedule_id': rent_schedule.id if rent_schedule else False,
         'deposit_invoice_id': inv.id if is_deposit else False,
-        'payment_id': str(content),
+        'payment_line_key': payment_line_key,
+        'account_payment_id': account_payment_id,
+        'payment_index': payment_index,
         'date': line_date,
         'invoice_id': inv.id,
         'invoice_token': inv.access_token,
         'invoice_name': inv.name,
         'receipt_number': inv.name,
         'payment_link_report_url': report_url,
-        'payment_date': str(first_payment.get('date', '') or (payment.date if payment else '')),
+        'payment_date': str(payment_date),
         'tenancy_id': tenancy.id,
         'tenancy_name': tenancy.name,
         'invoice_due_date': str(inv.invoice_date_due),
@@ -279,9 +355,9 @@ def _build_payment_receipt_line(env, tenancy, inv, *, rent_schedule=None, access
         'paid_amount_words': tenancy.change_amount_to_word(paid_amount, 'ar_001'),
         'residual_amount': residual,
         'residual_amount_formatted': formatLang(env, residual, currency_obj=currency),
-        'payment_transaction_id': str(first_payment.get('date', '')),
         'payment_method': str(
-            first_payment.get('payment_method_name', '')
+            payment_entry.get('payment_method_name', '')
+            or payment_entry.get('journal_name', '')
             or (payment.payment_method_line_id.name if payment and payment.payment_method_line_id else '')
         ),
         'reference_number': ref,
@@ -365,27 +441,31 @@ def _format_period_month_year(date_val):
 
 
 def _compute_tenancy_payments_props(tenancy, company_image_url, access_token=None):
-    """Build payment receipt data for portal (rent schedules + paid deposit invoices)."""
+    """Build payment receipt data for portal (one row per reconciled payment)."""
     env = request.env
-    paid_rent_schedules = _compute_paid_rent_schedules(tenancy)
-    paid_deposit_invoices = _compute_paid_deposit_invoices(tenancy)
     tenancy_lines = {}
     tenancy_payments_list = []
-    for rs in paid_rent_schedules:
-        inv = rs.invoice_id
-        if not inv:
-            continue
-        line_data = _build_payment_receipt_line(
-            env, tenancy, inv, rent_schedule=rs, access_token=access_token,
-        )
-        tenancy_lines[rs.id] = [line_data]
-        tenancy_payments_list.append(line_data)
-    for inv in paid_deposit_invoices:
-        line_data = _build_payment_receipt_line(
-            env, tenancy, inv, access_token=access_token,
-        )
-        tenancy_lines[f'deposit_{inv.id}'] = [line_data]
-        tenancy_payments_list.append(line_data)
+    for inv, rent_schedule in _iter_tenancy_receipt_sources(tenancy):
+        content = _parse_invoice_payments_widget(inv)
+        for payment_index, payment_entry in enumerate(content):
+            line_data = _build_payment_receipt_line(
+                env,
+                tenancy,
+                inv,
+                rent_schedule=rent_schedule,
+                access_token=access_token,
+                payment_entry=payment_entry,
+                payment_index=payment_index,
+            )
+            tenancy_payments_list.append(line_data)
+            line_bucket = (
+                rent_schedule.id if rent_schedule else 'deposit_%s' % inv.id
+            )
+            tenancy_lines.setdefault(line_bucket, []).append(line_data)
+    tenancy_payments_list.sort(
+        key=lambda line: (line.get('payment_date') or '', line.get('payment_line_key') or ''),
+        reverse=True,
+    )
     company = tenancy.company_id
     company_name = company.name or ''
     company_location = company.country_id.name if company and company.country_id else ''
@@ -492,10 +572,14 @@ class PropertyPaymentLink(PaymentPortal):
         return http.request.render('property_payment_link.tenancy_payment_link_detail', values)
 
     @http.route('/tenancy_payment_link/tenant_partner/payment_report/<int:invoice_id>', type='http', auth="public", website=True)
-    def payment_report(self, invoice_id, **kw):
-        pdf, _ = request.env['ir.actions.report'].sudo().with_context(
-            portal_receipt_stamp=True,
-        )._render_qweb_pdf(
+    def payment_report(self, invoice_id, payment_id=None, **kw):
+        ctx = {'portal_receipt_stamp': True}
+        if payment_id:
+            try:
+                ctx['portal_payment_id'] = int(payment_id)
+            except (TypeError, ValueError):
+                pass
+        pdf, _ = request.env['ir.actions.report'].sudo().with_context(**ctx)._render_qweb_pdf(
             'pyment_report.mm_multi_invoice_report_action', res_ids=[invoice_id],
         )
         pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]

@@ -169,9 +169,13 @@ publicWidget.registry.PaymentReceiptView = publicWidget.Widget.extend({
 
     _onViewClick: function (ev) {
         ev.preventDefault();
+        const lineKey = ev.currentTarget.getAttribute('data-payment-line-key');
         const scheduleId = parseInt(ev.currentTarget.getAttribute('data-schedule-id'), 10);
         const depositInvoiceId = parseInt(ev.currentTarget.getAttribute('data-deposit-invoice-id'), 10);
         const line = this.receiptData.find(function (l) {
+            if (lineKey && l.payment_line_key === lineKey) {
+                return true;
+            }
             if (depositInvoiceId && l.deposit_invoice_id === depositInvoiceId) {
                 return true;
             }
