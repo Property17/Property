@@ -410,10 +410,11 @@ class TenancyRentScheduleNew(models.Model):
                 # 'analytic_account_id': rec.tenancy_id.id,
                 # 'analytic_distribution': {str(rec.tenancy_id.id): 100} if rec.tenancy_id else {},
                 }
+                # Multiple Property: last property in Properties tab with a Discount Account
                 if rec.tenancy_id.multi_prop:
                     for data in rec.tenancy_id.prop_ids:
                         if data.property_id and data.property_id.discount_account_id:
-                            rent_line.update({'account_id': data.property_id.discount_account_id.id})
+                            discount_line.update({'account_id': data.property_id.discount_account_id.id})
                 invoice_lines.append((0, 0, discount_line))
 
             for service in rec.tenancy_id.service_schedule_ids:            
