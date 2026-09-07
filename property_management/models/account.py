@@ -618,10 +618,15 @@ class AccountPayment(models.Model):
     #             res.tenancy_id.write({'acc_pay_dep_ret_id': res.id})
     #     return res
     
-    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=False, **kwargs):
+    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None, **kwargs):
         """Override to add analytic account to journal items during payment."""
-        # Call the super method
-        result = super(AccountPayment, self)._prepare_move_line_default_vals(write_off_line_vals, **kwargs)
+        # False must not be used as default: Odoo treats force_balance is not None
+        # as "force this balance", and abs(False) == 0, so debit/credit become 0.
+        result = super()._prepare_move_line_default_vals(
+            write_off_line_vals=write_off_line_vals,
+            force_balance=force_balance,
+            **kwargs
+        )
         # Handle context-specific properties (like 'property_id')
         context = dict(self._context or {})
         if context.get('account_deposit_received'):
