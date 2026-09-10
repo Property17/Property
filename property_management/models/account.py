@@ -36,6 +36,22 @@ class AccountMove(models.Model):
         help='Deposit received via customer invoice; uses insurance account and no tenancy analytic.',
     )
 
+    def _property_is_deposit_receive_invoice(self):
+        """Customer deposit invoice (not a payment journal entry)."""
+        self.ensure_one()
+        return (
+            self.is_deposit_receive
+            and self.move_type == 'out_invoice'
+            and not self.payment_id
+        )
+
+    @api.depends('partner_id', 'is_deposit_receive', 'move_type')
+    def _compute_invoice_payment_term_id(self):
+        """Deposit is a lump sum: never split receivable into payment-term installments."""
+        deposit_invoices = self.filtered(lambda m: m._property_is_deposit_receive_invoice())
+        super(AccountMove, self - deposit_invoices)._compute_invoice_payment_term_id()
+        deposit_invoices.invoice_payment_term_id = False
+
     def _property_deposit_receive_tenancies(self):
         """Tenancies whose deposit receive invoice is one of these moves."""
         Tenancy = self.env['account.analytic.account']
@@ -131,7 +147,22 @@ class AccountMoveLine(models.Model):
         comodel_name='account.analytic.account',
         string='Tenancy',
         help='Tenancy Name.')
-   
+
+    def _compute_account_id(self):
+        """Create deposit invoice receivable lines on Deposit Receivable, not partner AR."""
+        super()._compute_account_id()
+        deposit_account = self.env['res.config.settings']._get_deposit_receivable_account()
+        if not deposit_account:
+            return
+        for line in self:
+            move = line.move_id
+            if not move or not move._property_is_deposit_receive_invoice():
+                continue
+            if line.display_type == 'payment_term' or (
+                line.account_id and line.account_id.account_type == 'asset_receivable'
+            ):
+                line.account_id = deposit_account
+
     # invoice_id = fields.Many2one('account.move', related='move_id.invoice_id', string="Invoice")
     
     

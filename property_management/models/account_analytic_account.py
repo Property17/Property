@@ -610,16 +610,37 @@ class AccountAnalyticAccount(models.Model):
         return account
 
     def _apply_deposit_receive_invoice_receivable_account(self, invoice):
-        """Set debit receivable line to the configured deposit account (not default AR)."""
+        """Put all receivable lines on Deposit Receivable and drop leftover zero installments."""
         self.ensure_one()
         deposit_account = self._get_deposit_receivable_account()
-        receivable_lines = invoice.line_ids.filtered(
-            lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
-        )
+        skip_ctx = {
+            'check_company': False,
+            'skip_invoice_sync': True,
+            'mm_skip_deposit_line_sync': True,
+            'check_move_validity': False,
+        }
+
+        def _is_receivable_line(line):
+            return line.display_type == 'payment_term' or (
+                line.account_id and line.account_id.account_type == 'asset_receivable'
+            )
+
+        receivable_lines = invoice.line_ids.filtered(_is_receivable_line)
         if receivable_lines:
-            receivable_lines.with_context(check_company=False).write({
+            receivable_lines.with_context(**skip_ctx).write({
                 'account_id': deposit_account.id,
             })
+
+        valued = invoice.line_ids.filtered(
+            lambda l: _is_receivable_line(l) and not invoice.currency_id.is_zero(l.balance)
+        )
+        leftover = invoice.line_ids.filtered(
+            lambda l: _is_receivable_line(l)
+            and invoice.currency_id.is_zero(l.balance)
+            and invoice.currency_id.is_zero(l.amount_currency)
+        )
+        if leftover and valued:
+            leftover.with_context(dynamic_unlink=True, **skip_ctx).unlink()
 
     def button_receive(self):
         """
@@ -710,10 +731,11 @@ class AccountAnalyticAccount(models.Model):
             'company_id': self.company_id.id,
             'invoice_date': invoice_date,
             'invoice_date_due': invoice_date,
+            'invoice_payment_term_id': False,
             'ref': _('Deposit Received'),
             'invoice_line_ids': [(0, 0, inv_line_values)],
+            'is_deposit_receive': True,
         }
-        inv_values['is_deposit_receive'] = True
 
         invoice = self.env['account.move'].create(inv_values)
         self._apply_deposit_receive_invoice_receivable_account(invoice)
