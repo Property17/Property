@@ -279,26 +279,42 @@ class AccountPaymentInhNew(models.Model):
     @api.depends(
         'journal_id', 'partner_id', 'partner_type',
         'is_internal_transfer', 'destination_journal_id',
-        'is_deposit_receive', 'tenancy_id',
+        'is_deposit_receive', 'tenancy_id', 'mm_invoice_id',
     )
     def _compute_destination_account_id(self):
-        """Keep deposit payments on the insurance account so Odoo does not
-        reset the counterpart back to Tenant Receivable on journal sync."""
+        """Deposit-only counterpart rules; non-deposit payments keep core Odoo accounts.
+
+        Direct deposit receipt (no invoice) → insurance liability.
+        Payment of a deposit invoice → that invoice's Deposit Receivable so they reconcile.
+        """
         super()._compute_destination_account_id()
         for pay in self:
-            if pay.is_deposit_receive:
-                insurance = pay._get_deposit_insurance_account()
-                if insurance:
-                    pay.destination_account_id = insurance
+            if not pay.is_deposit_receive:
+                continue
+            if pay._property_paying_deposit_receive_invoice():
+                receivable = pay._property_get_deposit_invoice_receivable_account()
+                if receivable:
+                    pay.destination_account_id = receivable
+                continue
+            insurance = pay._get_deposit_insurance_account()
+            if insurance:
+                pay.destination_account_id = insurance
 
     def _get_valid_payment_account_types(self):
         types = super()._get_valid_payment_account_types()
-        if self and any(self.mapped('is_deposit_receive')):
+        if not self:
+            return types
+        # Only direct deposit receipts credit insurance (liability). Invoice-settling
+        # deposit payments use receivable, already allowed by core. Non-deposit: unchanged.
+        if any(
+            pay.is_deposit_receive and not pay._property_paying_deposit_receive_invoice()
+            for pay in self
+        ):
             return types + ['liability_current', 'liability_non_current']
         return types
 
     def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None):
-        """Set deposit counterpart to the tenant Insurance Account."""
+        """Set deposit counterpart account; leave non-deposit payment lines to Odoo."""
         move_line_vals = super()._prepare_move_line_default_vals(
             write_off_line_vals=write_off_line_vals,
             force_balance=force_balance,
@@ -321,10 +337,14 @@ class AccountPaymentInhNew(models.Model):
             if invoices:
                 tenancy = invoices[:1].tenancy_id
 
-        insurance_account = (
-            self._get_deposit_insurance_account(tenancy)
-            if self.is_deposit_receive else self.env['account.account']
-        )
+        deposit_invoice_receivable = self.env['account.account']
+        insurance_account = self.env['account.account']
+        if self.is_deposit_receive:
+            if self._property_paying_deposit_receive_invoice():
+                deposit_invoice_receivable = self._property_get_deposit_invoice_receivable_account()
+            else:
+                insurance_account = self._get_deposit_insurance_account(tenancy)
+
         for move_line in move_line_vals:
             amount_currency = move_line.get('amount_currency') or 0.0
             is_counterpart = (
@@ -333,7 +353,9 @@ class AccountPaymentInhNew(models.Model):
             )
             if not is_counterpart:
                 continue
-            if self.is_deposit_receive and insurance_account:
+            if self.is_deposit_receive and deposit_invoice_receivable:
+                move_line['account_id'] = deposit_invoice_receivable.id
+            elif self.is_deposit_receive and insurance_account:
                 move_line['account_id'] = insurance_account.id
             elif tenancy and not self.is_deposit_receive:
                 move_line['analytic_account_id'] = tenancy.id

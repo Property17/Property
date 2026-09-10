@@ -464,11 +464,37 @@ class AccountPayment(models.Model):
         help='Marks deposit-receive payments for tenancy deposit_received tracking.',
     )
 
+    def _property_get_linked_deposit_invoices(self):
+        """Deposit receive customer invoices this payment is settling (wizard, reconcile, or provider)."""
+        self.ensure_one()
+        invoices = self.mm_invoice_id | self.reconciled_invoice_ids
+        tx = self.payment_transaction_id
+        if tx:
+            if tx.source_transaction_id and tx.operation == tx.source_transaction_id.operation:
+                invoices |= tx.source_transaction_id.invoice_ids
+            else:
+                invoices |= tx.invoice_ids
+        return invoices.filtered(
+            lambda m: getattr(m, 'is_deposit_receive', False) and m.move_type == 'out_invoice'
+        )
+
     def _property_paying_deposit_receive_invoice(self):
         """True when this payment settles a deposit receive customer invoice."""
         self.ensure_one()
-        invoices = self.mm_invoice_id | self.reconciled_invoice_ids
-        return bool(invoices.filtered('is_deposit_receive'))
+        return bool(self._property_get_linked_deposit_invoices())
+
+    def _property_get_deposit_invoice_receivable_account(self):
+        """Invoice receivable (Deposit Receivable), not partner AR and not insurance."""
+        self.ensure_one()
+        invoice = self._property_get_linked_deposit_invoices()[:1]
+        if not invoice:
+            return self.env['account.account']
+        receivable_lines = invoice.line_ids.filtered(
+            lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
+        )
+        if receivable_lines:
+            return receivable_lines[:1].account_id
+        return self.env['res.config.settings']._get_deposit_receivable_account()
 
     @api.depends('mm_invoice_id')
     def compute_mm_move_id(self):
