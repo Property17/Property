@@ -12,28 +12,30 @@ class TenancyRentSchedule(models.Model):
     _rec_name = "tenancy_id"
     _order = 'start_date'
 
-    @api.depends('invoice_id.state')
+    @api.depends('invoice_id', 'invoice_id.state')
     def compute_move_check(self):
-        """
-        This method check if invoice state is paid true then move check field.
-        @param self: The object pointer
-        """
+        """Posted only while a linked rent invoice is posted."""
         for data in self:
-            data.move_check = bool(data.move_id)
-            if data.invoice_id and data.invoice_id.state == 'posted':
-                data.move_check = True
+            data.move_check = bool(
+                data.invoice_id and data.invoice_id.state == 'posted'
+            )
 
-    @api.depends('invoice_id', 'invoice_id.amount_residual')
+    @api.depends('invoice_id', 'invoice_id.amount_residual', 'invoice_id.state')
     def compute_paid(self):
-        """
-        If  the invoice state in paid state then paid field will be true.
-        @param self: The object pointer
-        """
-        self.paid = False
+        """Paid only while a linked non-cancelled invoice has no residual."""
         for data in self:
-            # if data.invoice_id and data.invoice_id.state == 'paid':
-            if data.invoice_id and data.invoice_id.amount_residual == 0:
-                data.paid = True
+            invoice = data.invoice_id
+            data.paid = bool(
+                invoice
+                and invoice.state != 'cancel'
+                and invoice.amount_residual == 0
+            )
+
+    @api.depends('invoice_id', 'invoice_id.state')
+    def _compute_is_invoiced(self):
+        """Create-invoice gear shows again after the invoice is cancelled or deleted."""
+        for rec in self:
+            rec.is_invoiced = bool(rec.invoice_id) and rec.invoice_id.state != 'cancel'
 
     note = fields.Text(
         string='Notes',
@@ -89,7 +91,10 @@ class TenancyRentSchedule(models.Model):
         comodel_name='account.move',
         string='Invoice')
     is_invoiced = fields.Boolean(
-        string='Invoiced?')
+        string='Invoiced?',
+        compute='_compute_is_invoiced',
+        store=True,
+    )
     rent_residual = fields.Monetary(
         string='Pending Amount',
         related="invoice_id.amount_residual",
@@ -147,7 +152,7 @@ class TenancyRentSchedule(models.Model):
                 'company_id': rec.tenancy_id.company_id.id,
             }
             invoice_id = inv_obj.create(inv_values)
-            rec.write({'invoice_id': invoice_id.id, 'is_invoiced': True})
+            rec.write({'invoice_id': invoice_id.id, 'has_created': True})
             inv_form_id = self.env.ref('account.view_move_form').id
 
         return {
@@ -159,6 +164,19 @@ class TenancyRentSchedule(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    def _reset_invoice_create_flags(self):
+        """Restore create-invoice after the linked invoice is cancelled or deleted."""
+        vals = {'has_created': False}
+        if 'is_created' in self._fields:
+            vals['is_created'] = False
+        self.write(vals)
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'invoice_id' in vals and not vals.get('invoice_id'):
+            self._reset_invoice_create_flags()
+        return res
 
     def open_invoice(self):
         """

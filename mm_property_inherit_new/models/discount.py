@@ -139,8 +139,22 @@ class ServicesRent(models.Model):
         store=True)
     is_created = fields.Boolean()
     is_invoiced = fields.Boolean(
-        string='Invoiced?')
+        string='Invoiced?',
+        compute='_compute_is_invoiced',
+        store=True,
+    )
     service_account_id = fields.Many2one('account.account', related='service_type_id.service_account_id', string="Service Account")
+
+    @api.depends('move_id', 'move_id.state')
+    def _compute_is_invoiced(self):
+        for rec in self:
+            rec.is_invoiced = bool(rec.move_id) and rec.move_id.state != 'cancel'
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'move_id' in vals and not vals.get('move_id'):
+            self.write({'is_created': False})
+        return res
     
     @api.onchange('service_type_id')
     def onchange_service_type(self):
@@ -239,9 +253,7 @@ class ServicesRent(models.Model):
                     line.analytic_account_id= False
             
                      
-            rec.write({'move_id': invoice_id.id, 'is_invoiced': True})
-        inv_form_id = self.env.ref('account.view_move_form').id
-        self.is_created = True
+            rec.write({'move_id': invoice_id.id, 'is_created': True})
         
 
         return {

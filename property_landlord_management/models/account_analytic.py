@@ -362,7 +362,7 @@ class TenancyRentSchedule(models.Model):
             }
             acc_id = self.env['account.move'].with_context(
                 {'default_move_type': 'in_invoice'}).create(invo_values)
-            self.write({'invoice_id': acc_id.id, 'is_invoiced': True})
+            self.write({'invoice_id': acc_id.id, 'has_created': True})
             return {
                 'view_type': 'form',
                 'view_id': self.env.ref('account.view_move_form').id,

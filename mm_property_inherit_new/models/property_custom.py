@@ -580,9 +580,8 @@ class TenancyRentScheduleNew(models.Model):
                 else:
                     line.analytic_distribution = []
                      
-            rec.write({'invoice_id': invoice_id.id, 'is_invoiced': True})
+            rec.write({'invoice_id': invoice_id.id, 'has_created': True, 'is_created': True})
         inv_form_id = self.env.ref('account.view_move_form').id
-        self.is_created = True
         
 
         return {
@@ -776,7 +775,9 @@ class AccountAnalyticAccountNew(models.Model):
                     
                     if invoice:
                         rent_schedule.invoice_id = invoice[0].id
-                        rent_schedule.is_invoiced = True
+                        rent_schedule.has_created = True
+                        if 'is_created' in rent_schedule._fields:
+                            rent_schedule.is_created = True
 
                         tenancy.message_post(
                             body=(

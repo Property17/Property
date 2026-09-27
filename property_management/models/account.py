@@ -95,6 +95,45 @@ class AccountMove(models.Model):
             tenancies.write({'deposit_received': False})
         return res
 
+    def _property_rent_schedules_for_invoices(self):
+        invoices = self.filtered(lambda m: m.is_invoice(include_receipts=True))
+        if not invoices:
+            return self.env['tenancy.rent.schedule']
+        return self.env['tenancy.rent.schedule'].sudo().search([
+            ('invoice_id', 'in', invoices.ids),
+        ])
+
+    def _property_service_rents_for_invoices(self):
+        if 'service.rent' not in self.env:
+            return self.env['tenancy.rent.schedule'].browse()
+        invoices = self.filtered(lambda m: m.is_invoice(include_receipts=True))
+        ServiceRent = self.env['service.rent']
+        if not invoices:
+            return ServiceRent
+        return ServiceRent.sudo().search([
+            ('move_id', 'in', invoices.ids),
+        ])
+
+    def button_cancel(self):
+        schedules = self._property_rent_schedules_for_invoices()
+        service_rents = self._property_service_rents_for_invoices()
+        res = super().button_cancel()
+        if schedules:
+            schedules._reset_invoice_create_flags()
+        if service_rents:
+            service_rents.write({'is_created': False})
+        return res
+
+    def unlink(self):
+        schedules = self._property_rent_schedules_for_invoices()
+        service_rents = self._property_service_rents_for_invoices()
+        res = super().unlink()
+        if schedules:
+            schedules._reset_invoice_create_flags()
+        if service_rents:
+            service_rents.write({'is_created': False})
+        return res
+
     def assert_balanced(self):
         prec = self.env['decimal.precision'].precision_get('Account')
         if self.ids:
