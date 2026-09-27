@@ -47,10 +47,46 @@ class AccountMove(models.Model):
 
     @api.depends('partner_id', 'is_deposit_receive', 'move_type')
     def _compute_invoice_payment_term_id(self):
-        """Deposit is a lump sum: never split receivable into payment-term installments."""
+        """Deposit / rent-schedule invoices are one receivable, not payment-term installments.
+
+        Regular Accounting invoices keep core Odoo payment terms.
+        """
         deposit_invoices = self.filtered(lambda m: m._property_is_deposit_receive_invoice())
-        super(AccountMove, self - deposit_invoices)._compute_invoice_payment_term_id()
-        deposit_invoices.invoice_payment_term_id = False
+        rent_invoices = self.env['account.move']
+        if self.env.context.get('property_rent_schedule_invoice'):
+            rent_invoices = (self - deposit_invoices).filtered(
+                lambda m: m.tenancy_id or m.new_tenancy_id
+            )
+        skip = deposit_invoices | rent_invoices
+        super(AccountMove, self - skip)._compute_invoice_payment_term_id()
+        skip.invoice_payment_term_id = False
+
+    def _property_unlink_zero_receivable_lines(self):
+        """Drop leftover zero payment-term receivable lines (installment #2 at 0.00)."""
+        for invoice in self:
+            if not invoice.is_invoice(include_receipts=True):
+                continue
+
+            def _is_receivable_line(line):
+                return line.display_type == 'payment_term' or (
+                    line.account_id and line.account_id.account_type == 'asset_receivable'
+                )
+
+            valued = invoice.line_ids.filtered(
+                lambda l: _is_receivable_line(l) and not invoice.currency_id.is_zero(l.balance)
+            )
+            leftover = invoice.line_ids.filtered(
+                lambda l: _is_receivable_line(l)
+                and invoice.currency_id.is_zero(l.balance)
+                and invoice.currency_id.is_zero(l.amount_currency)
+            )
+            if leftover and valued:
+                leftover.with_context(
+                    dynamic_unlink=True,
+                    skip_invoice_sync=True,
+                    check_move_validity=False,
+                    mm_skip_deposit_line_sync=True,
+                ).unlink()
 
     def _property_deposit_receive_tenancies(self):
         """Tenancies whose deposit receive invoice is one of these moves."""

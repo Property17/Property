@@ -551,6 +551,8 @@ class TenancyRentScheduleNew(models.Model):
                 'property_id': rec.tenancy_id.property_id.id or False,
                 'tenancy_id': rec.tenancy_id.id or False,
                 'invoice_date': rec.start_date or False,
+                'invoice_date_due': rec.start_date or False,
+                'invoice_payment_term_id': False,
                 'cheque_detail': rec.cheque_detail or False,
                 'rent_residual': rec.rent_residual or False,
                 'note': rec.note or False,
@@ -563,23 +565,33 @@ class TenancyRentScheduleNew(models.Model):
                 'company_id': rec.tenancy_id.company_id.id,
 
             }
-            invoice_id = inv_obj.with_company(rec.company_id.id).create(inv_values)
+            invoice_id = inv_obj.with_company(rec.company_id.id).with_context(
+                property_rent_schedule_invoice=True,
+            ).create(inv_values)
             # for line in invoice_id.invoice_line_ids:
             #     if line.discount_fixed:
             #         # Explicitly compute the percentage discount
             #         line.discount = line._get_discount_from_fixed_discount()
-                
+
+            line_ctx = {
+                'skip_invoice_sync': True,
+                'check_move_validity': False,
+                'mm_skip_deposit_line_sync': True,
+            }
             for line in invoice_id.line_ids:
                 if line.account_id.account_type == 'asset_receivable':
-                    line.analytic_account_id = rec.tenancy_id.id
+                    line.with_context(**line_ctx).analytic_account_id = rec.tenancy_id.id
                 else:
-                    line.analytic_account_id= False
-                
+                    line.with_context(**line_ctx).analytic_account_id = False
+
                 if line.account_id.account_type == 'income':
-                    line.analytic_distribution = {rec.tenancy_id.id : 100} if rec.tenancy_id else {}
+                    line.with_context(**line_ctx).analytic_distribution = (
+                        {rec.tenancy_id.id: 100} if rec.tenancy_id else {}
+                    )
                 else:
-                    line.analytic_distribution = []
-                     
+                    line.with_context(**line_ctx).analytic_distribution = False
+
+            invoice_id._property_unlink_zero_receivable_lines()
             rec.write({'invoice_id': invoice_id.id, 'has_created': True, 'is_created': True})
         inv_form_id = self.env.ref('account.view_move_form').id
         

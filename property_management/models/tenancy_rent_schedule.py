@@ -146,12 +146,17 @@ class TenancyRentSchedule(models.Model):
                 'move_type': 'out_invoice',
                 'property_id': rec.tenancy_id.property_id.id or False,
                 'invoice_date': rec.start_date or False,
+                'invoice_date_due': rec.start_date or False,
+                'invoice_payment_term_id': False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
                 'auto_post': 'at_date',
                 'company_id': rec.tenancy_id.company_id.id,
             }
-            invoice_id = inv_obj.create(inv_values)
+            invoice_id = inv_obj.with_context(
+                property_rent_schedule_invoice=True,
+            ).create(inv_values)
+            invoice_id._property_unlink_zero_receivable_lines()
             rec.write({'invoice_id': invoice_id.id, 'has_created': True})
             inv_form_id = self.env.ref('account.view_move_form').id
 

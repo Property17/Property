@@ -235,6 +235,8 @@ class ServicesRent(models.Model):
                 'property_id': rec.tenancy_id.property_id.id or False,
                 'tenancy_id': rec.tenancy_id.id or False,
                 'invoice_date': rec.date or False,
+                'invoice_date_due': rec.date or False,
+                'invoice_payment_term_id': False,
                 'multi_properitis': rec.tenancy_id.multi_properitis or False,
                 'invoice_line_ids': inv_line_values,
                 'new_tenancy_id': rec.tenancy_id.id,
@@ -244,15 +246,22 @@ class ServicesRent(models.Model):
                 'company_id': rec.tenancy_id.company_id.id,
 
             }
-            invoice_id = inv_obj.with_company(rec.tenancy_id.company_id.id).create(inv_values)
+            invoice_id = inv_obj.with_company(rec.tenancy_id.company_id.id).with_context(
+                property_rent_schedule_invoice=True,
+            ).create(inv_values)
 
+            line_ctx = {
+                'skip_invoice_sync': True,
+                'check_move_validity': False,
+                'mm_skip_deposit_line_sync': True,
+            }
             for line in invoice_id.line_ids:
                 if line.account_id.account_type == 'asset_receivable':
-                    line.analytic_account_id = rec.tenancy_id.id
+                    line.with_context(**line_ctx).analytic_account_id = rec.tenancy_id.id
                 else:
-                    line.analytic_account_id= False
-            
-                     
+                    line.with_context(**line_ctx).analytic_account_id = False
+
+            invoice_id._property_unlink_zero_receivable_lines()
             rec.write({'move_id': invoice_id.id, 'is_created': True})
         
 
