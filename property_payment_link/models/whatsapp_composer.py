@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import api, models, _
-from odoo.exceptions import ValidationError, RedirectWarning
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError, RedirectWarning, UserError
 from odoo.addons.whatsapp.tools import phone_validation as wa_phone_validation
 
 
@@ -22,6 +22,35 @@ def _payment_link_context_doc_ids(context):
 
 class WhatsAppComposer(models.TransientModel):
     _inherit = 'whatsapp.composer'
+
+    wa_template_domain = fields.Binary(compute='_compute_wa_template_domain')
+
+    @api.depends('res_model', 'res_ids')
+    def _compute_wa_template_domain(self):
+        """Limit templates to WhatsApp accounts allowed for the payment-link companies."""
+        for composer in self:
+            domain = [
+                ('model', '=', composer.res_model or False),
+                ('status', '=', 'approved'),
+            ]
+            if composer.res_model == 'property.payment.link':
+                try:
+                    records = composer._get_active_records()
+                except Exception:
+                    records = self.env['property.payment.link']
+                company_ids = [
+                    rec._whatsapp_company().id
+                    for rec in records
+                    if rec._whatsapp_company() in self.env.companies
+                ]
+                if not company_ids:
+                    company_ids = list(self.env.companies.ids)
+                domain += [
+                    '|',
+                    ('wa_account_id', '=', False),
+                    ('wa_account_id.allowed_company_ids', 'in', company_ids),
+                ]
+            composer.wa_template_domain = domain
 
     @api.model
     def default_get(self, fields):
@@ -132,9 +161,23 @@ class WhatsAppComposer(models.TransientModel):
         free_text_json = self._get_text_free_json()
         message_vals = []
         raise_exception = False if self.batch_mode or force_send_by_cron else True
+        missing_template = self.env['property.payment.link']
         for rec in records:
+            company = rec._whatsapp_company()
+            if company not in self.env.companies:
+                continue
+            template = rec._find_whatsapp_template_for_company(
+                company=company,
+                preferred_template=self.wa_template_id,
+            )
+            if not template:
+                missing_template |= rec
+                continue
             if self.batch_mode:
-                mobile_number = rec._find_value_from_field_path(self.wa_template_id.phone_field)
+                mobile_number = (
+                    rec._find_value_from_field_path(template.phone_field)
+                    if template.phone_field else ''
+                )
                 if not mobile_number or not str(mobile_number).strip():
                     mobile_number = rec._get_whatsapp_tenant_number()
             else:
@@ -170,9 +213,19 @@ class WhatsAppComposer(models.TransientModel):
                 'mobile_number': mobile_number,
                 'mobile_number_formatted': formatted_number_wa,
                 'free_text_json': free_text_json,
-                'wa_template_id': self.wa_template_id.id,
-                'wa_account_id': self.wa_template_id.wa_account_id.id,
+                'wa_template_id': template.id,
+                'wa_account_id': template.wa_account_id.id,
             })
+        if missing_template and not self.batch_mode:
+            raise UserError(_(
+                'No WhatsApp template is allowed for company %s. '
+                'Check the WhatsApp account Allowed Companies.'
+            ) % (missing_template[:1]._whatsapp_company().name,))
+        if not message_vals and missing_template:
+            raise UserError(_(
+                'No WhatsApp template matches the selected Payment Links companies. '
+                'Check each WhatsApp account Allowed Companies.'
+            ))
         if message_vals:
             messages = self.env['whatsapp.message'].create(message_vals)
             messages._send(force_send_by_cron=force_send_by_cron)

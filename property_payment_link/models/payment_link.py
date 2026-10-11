@@ -241,6 +241,59 @@ class PropertyPaymentLink(models.Model):
         self.ensure_one()
         return self.get_portal_url()
 
+    def _whatsapp_company(self):
+        """Company used to match WhatsApp account allowed companies."""
+        self.ensure_one()
+        return self.company_id or self.tenancy_id.company_id or self.env.company
+
+    def _whatsapp_template_company_domain(self, company_ids=None, approved_only=True):
+        """Templates whose account is allowed for these companies (and current user)."""
+        if company_ids is None:
+            company_ids = self.mapped(lambda r: r._whatsapp_company().id)
+        company_ids = [cid for cid in (company_ids or []) if cid]
+        if not company_ids:
+            company_ids = list(self.env.companies.ids)
+        # Only accounts allowed for both the record company and companies in the switcher.
+        company_ids = list(set(company_ids) & set(self.env.companies.ids)) or list(self.env.companies.ids)
+        domain = [
+            ('model', '=', 'property.payment.link'),
+            '|',
+            ('allowed_user_ids', '=', False),
+            ('allowed_user_ids', 'in', self.env.user.ids),
+            '|',
+            ('wa_account_id', '=', False),
+            ('wa_account_id.allowed_company_ids', 'in', company_ids),
+        ]
+        if approved_only:
+            domain.insert(1, ('status', '=', 'approved'))
+        else:
+            domain.insert(1, ('status', 'in', ('draft', 'pending', 'approved')))
+        return domain
+
+    def _find_whatsapp_template_for_company(self, company=None, preferred_template=None):
+        """Approved payment-link template for this company's WhatsApp account."""
+        self.ensure_one()
+        company = company or self._whatsapp_company()
+        if company not in self.env.companies:
+            return self.env['whatsapp.template']
+        domain = self._whatsapp_template_company_domain(company_ids=[company.id], approved_only=True)
+        Template = self.env['whatsapp.template']
+        if preferred_template:
+            if preferred_template.template_name:
+                match = Template.search(
+                    domain + [('template_name', '=', preferred_template.template_name)],
+                    limit=1,
+                )
+                if match:
+                    return match
+            match = Template.search(
+                domain + [('name', '=', preferred_template.name)],
+                limit=1,
+            )
+            if match:
+                return match
+        return Template.search(domain, limit=1)
+
     def _wa_get_safe_phone_fields(self):
         """Phone fields allowed for WhatsApp template on property.payment.link"""
         return {'tenant_phone', 'tenant_id.phone', 'tenant_id.mobile'}
@@ -290,12 +343,15 @@ class PropertyPaymentLink(models.Model):
         if not self._get_whatsapp_tenant_number():
             raise UserError(_('Please set a phone or mobile number on the tenant (%s) before sending the payment link via WhatsApp.') % (self.tenant_id.name or ''))
 
-        wa_template = self.env['whatsapp.template']._find_default_for_model('property.payment.link')
+        wa_template = self._find_whatsapp_template_for_company()
         if not wa_template:
-            wa_template = self.env['whatsapp.template'].search([
-                ('model', '=', 'property.payment.link'),
-                ('status', 'in', ('draft', 'pending', 'approved')),
-            ], limit=1)
+            wa_template = self.env['whatsapp.template'].search(
+                self._whatsapp_template_company_domain(
+                    company_ids=[self._whatsapp_company().id],
+                    approved_only=False,
+                ),
+                limit=1,
+            )
         if not wa_template:
             action = self.env.ref(
                 'property_payment_link.action_create_whatsapp_template',
@@ -303,14 +359,15 @@ class PropertyPaymentLink(models.Model):
             )
             if action:
                 raise RedirectWarning(
-                    _('No WhatsApp template is configured for Payment Links. Click "Create Template" to create one.'),
+                    _('No WhatsApp template is configured for this company (%s). Click "Create Template" to create one.')
+                    % (self._whatsapp_company().name,),
                     action.id,
                     _('Create Template'),
                 )
             raise UserError(_(
-                'No WhatsApp template is configured for Payment Links. '
-                'Go to WhatsApp > Templates and create a template with Applies to = "Property Payment Link".'
-            ))
+                'No WhatsApp template is configured for this company (%s). '
+                'The WhatsApp account Allowed Companies must include this company.'
+            ) % (self._whatsapp_company().name,))
 
         return {
             'type': 'ir.actions.act_window',
@@ -339,16 +396,31 @@ class PropertyPaymentLink(models.Model):
                 'Please set a phone number before sending.'
             ) % ', '.join(records_without_phone.mapped('name')))
 
-        for link in self:
+        links = self.filtered(lambda r: r._whatsapp_company() in r.env.companies)
+        if not links:
+            raise UserError(_(
+                'None of the selected Payment Links belong to your current Allowed Companies. '
+                'Select the company in the company switcher and try again.'
+            ))
+        skipped = self - links
+        if skipped:
+            _logger.info(
+                'WhatsApp bulk skipped %s payment links outside allowed companies: %s',
+                len(skipped), ', '.join(skipped.mapped('name')),
+            )
+
+        for link in links:
             link._compute_tenant_url()
-        self.write({'last_sent_date': fields.Datetime.now()})
-        self.write({'has_sent_payment_link': True})
-        wa_template = self.env['whatsapp.template']._find_default_for_model('property.payment.link')
+        links.write({'last_sent_date': fields.Datetime.now()})
+        links.write({'has_sent_payment_link': True})
+
+        default_link = links.filtered(lambda r: r._whatsapp_company() == self.env.company)[:1] or links[:1]
+        wa_template = default_link._find_whatsapp_template_for_company()
         if not wa_template:
-            wa_template = self.env['whatsapp.template'].search([
-                ('model', '=', 'property.payment.link'),
-                ('status', 'in', ('draft', 'pending', 'approved')),
-            ], limit=1)
+            wa_template = self.env['whatsapp.template'].search(
+                links._whatsapp_template_company_domain(approved_only=False),
+                limit=1,
+            )
         if not wa_template:
             action = self.env.ref(
                 'property_payment_link.action_create_whatsapp_template',
@@ -356,13 +428,13 @@ class PropertyPaymentLink(models.Model):
             )
             if action:
                 raise RedirectWarning(
-                    _('No WhatsApp template is configured for Payment Links. Click "Create Template" to create one.'),
+                    _('No WhatsApp template is configured for the selected companies. Click "Create Template" to create one.'),
                     action.id,
                     _('Create Template'),
                 )
             raise UserError(_(
-                'No WhatsApp template is configured for Payment Links. '
-                'Go to WhatsApp > Templates and create a template with Applies to = "Property Payment Link".'
+                'No WhatsApp template is configured for the selected companies. '
+                'Each WhatsApp account Allowed Companies must include the payment link company.'
             ))
 
         return {
@@ -374,9 +446,9 @@ class PropertyPaymentLink(models.Model):
             'target': 'new',
             'context': {
                 'active_model': 'property.payment.link',
-                'active_id': self[0].id,
-                'active_ids': list(self.ids),
-                'default_phone': self[0]._get_whatsapp_tenant_number(),
+                'active_id': links[0].id,
+                'active_ids': list(links.ids),
+                'default_phone': links[0]._get_whatsapp_tenant_number(),
                 'default_wa_template_id': wa_template.id,
             },
         }

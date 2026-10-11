@@ -15,7 +15,7 @@ Long description of module's purpose
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '0.3.11',
+    'version': '0.3.12',
 
     # any module necessary for this one to work correctly
     'depends': [
@@ -34,6 +34,7 @@ Long description of module's purpose
         'data/payment_link_portal_base_url.xml',
         'data/tenancy_payment_link_server_action.xml',
         'security/ir.model.access.csv',
+        'views/whatsapp_composer_views.xml',
         'views/payment_link.xml',
         'views/payment_link_templates.xml',
         'views/view_account_analytic.xml',
