@@ -263,8 +263,8 @@ class ServicesRent(models.Model):
 
             invoice_id._property_unlink_zero_receivable_lines()
             rec.write({'move_id': invoice_id.id, 'is_created': True})
-        
 
+        inv_form_id = self.env.ref('account.view_move_form').id
         return {
             'view_type': 'form',
             'view_id': inv_form_id,
