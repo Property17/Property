@@ -29,6 +29,22 @@ paymentForm.include({
             return formPreparationPromise;
         }
 
+        const allowPartial = document.getElementById('allow_partial_payment_flag');
+        let partialAmountKey = null;
+        if (allowPartial) {
+            const hidden = document.getElementById('partial_payment_amount');
+            const input = document.getElementById('partial_payment_amount_input');
+            const raw = (hidden && hidden.value) || (input && input.value) || '';
+            const parsed = parseFloat(raw);
+            partialAmountKey = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+            if (partialAmountKey !== null && window._mfLastPartialAmount !== partialAmountKey) {
+                if (typeof window.resetMyFatoorahFormCache === 'function') {
+                    window.resetMyFatoorahFormCache();
+                }
+                window._mfLastPartialAmount = partialAmountKey;
+            }
+        }
+
         if(is_form_prepared || is_form_preparing){
             return;
         }
@@ -93,6 +109,13 @@ paymentForm.include({
                             initiateParams.selected_deposit_invoice_ids = depositInput.value;
                         }
                     }
+                    var partialAmountInput = document.getElementById('partial_payment_amount');
+                    if (!partialAmountInput || !partialAmountInput.value) {
+                        partialAmountInput = document.getElementById('partial_payment_amount_input');
+                    }
+                    if (partialAmountInput && partialAmountInput.value) {
+                        initiateParams.partial_payment_amount = partialAmountInput.value;
+                    }
                 }
 
                 const initiatePaymentResult = await jsonrpc('/payment/myfatoorah/initiate-payment', initiateParams);
@@ -105,7 +128,7 @@ paymentForm.include({
                 }
 
                 const { country_code, state, checkout_gateways } = initiatePaymentResult;
-                const cards_payment_methods = checkout_gateways?.cards;
+                const cards_payment_methods = checkout_gateways?.cards || [];
 
                 is_google_pay_enabled = !!checkout_gateways.gp;
                 is_apple_pay_enabled = !!(checkout_gateways.ap && window.ApplePaySession);
@@ -119,7 +142,17 @@ paymentForm.include({
                 }
 
                 await _prepareEmbeddedPayment(country_code, state);
+                const mfCards = document.getElementById('mf-cards');
+                if (mfCards) {
+                    mfCards.innerHTML = '';
+                }
                 await _prepareCards(cards_payment_methods);
+                if (cards_payment_methods.length > 0) {
+                    const mfSectionCard = document.getElementById('mf-sectionCard');
+                    if (mfSectionCard) {
+                        mfSectionCard.style.display = '';
+                    }
+                }
 
                 if(!is_apple_pay_enabled){
                     document.getElementById('mf-sectionAP')?.remove();
@@ -130,7 +163,10 @@ paymentForm.include({
                 }
 
                 if(cards_payment_methods.length === 0){
-                    document.getElementById('mf-sectionCard')?.remove();
+                    const mfSectionCard = document.getElementById('mf-sectionCard');
+                    if (mfSectionCard) {
+                        mfSectionCard.style.display = 'none';
+                    }
                     if(!is_google_pay_enabled && !is_apple_pay_enabled && window.ApplePaySession){
                         document.getElementById('mf-or-formDivider')?.remove();
                     }

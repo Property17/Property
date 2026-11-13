@@ -4,7 +4,7 @@ import logging
 import json
 import hashlib, base64, hmac
 import math
-from odoo import http
+from odoo import http, fields
 from odoo.http import request
 import requests
 import re
@@ -373,6 +373,73 @@ class MyfatoorahController(http.Controller):
             return []
         return [int(x) for x in value if str(x).isdigit()]
 
+    @staticmethod
+    def _mf_parse_partial_amount(value):
+        if value is None or value == '':
+            return 0.0
+        try:
+            amount = float(value)
+        except (TypeError, ValueError):
+            return 0.0
+        return amount if amount > 0 else 0.0
+
+    def _mf_sorted_unpaid_payable_lines(self, tenancy):
+        """Unpaid rent/service/deposit lines sorted earliest to latest (FIFO)."""
+        lines = []
+        unpaid_rent = tenancy.rent_schedule_ids.filtered(
+            lambda rs: rs.move_check and not rs.paid and rs.invoice_id
+        )
+        for rs in unpaid_rent:
+            inv = rs.invoice_id
+            if not inv or inv.amount_residual <= 0 or inv.state != 'posted':
+                continue
+            lines.append({
+                'sort_date': rs.start_date or inv.invoice_date or inv.invoice_date_due,
+                'invoice': inv,
+            })
+        if 'service.rent' in request.env:
+            service_rents = request.env['service.rent'].sudo().search([
+                ('tenancy_id', '=', tenancy.id),
+                ('posted', '=', True),
+                ('paid', '=', False),
+                ('move_id', '!=', False),
+            ])
+            for sr in service_rents:
+                inv = sr.move_id
+                if not inv or inv.amount_residual <= 0 or inv.state != 'posted':
+                    continue
+                lines.append({
+                    'sort_date': sr.start_date or sr.date or inv.invoice_date or inv.invoice_date_due,
+                    'invoice': inv,
+                })
+        deposit_invoices = self._mf_unpaid_deposit_invoices(tenancy, {})
+        for inv in deposit_invoices:
+            if inv.amount_residual <= 0 or inv.state != 'posted':
+                continue
+            lines.append({
+                'sort_date': inv.invoice_date or inv.invoice_date_due,
+                'invoice': inv,
+            })
+        lines.sort(key=lambda row: row['sort_date'] or fields.Date.today())
+        return lines
+
+    def _mf_total_unpaid_amount(self, tenancy):
+        lines = self._mf_sorted_unpaid_payable_lines(tenancy)
+        return sum(line['invoice'].amount_residual for line in lines)
+
+    def _mf_fifo_invoices_for_partial_amount(self, tenancy, amount):
+        lines = self._mf_sorted_unpaid_payable_lines(tenancy)
+        if not lines:
+            return request.env['account.move'].browse()
+        selected = request.env['account.move'].browse()
+        cumulative = 0.0
+        for row in lines:
+            selected |= row['invoice']
+            cumulative += row['invoice'].amount_residual
+            if cumulative >= amount:
+                break
+        return selected.filtered(lambda inv: inv.state == 'posted' and inv.amount_residual > 0)
+
     def _mf_unpaid_deposit_invoices(self, tenancy, params):
         """Deposit receive invoices due (aligned with property_payment_link)."""
         if hasattr(tenancy, '_payment_link_get_unpaid_deposit_invoices'):
@@ -498,12 +565,27 @@ class MyfatoorahController(http.Controller):
                     ('id', '=', int(tenancy_id))
                 ], limit=1)
                 if tenancy:
-                    invoices = self._mf_tenancy_payable_invoices(tenancy, params)
-                    if invoices:
-                        amount = sum(inv.amount_residual for inv in invoices)
+                    partial_amount = self._mf_parse_partial_amount(params.get('partial_payment_amount'))
+                    allow_partial = getattr(tenancy, 'allow_partial_payment', False)
+                    if allow_partial and partial_amount:
+                        total_due = self._mf_total_unpaid_amount(tenancy)
+                        if partial_amount > total_due:
+                            return {
+                                "success": False,
+                                "message": "Payment amount cannot exceed total due.",
+                            }
+                        invoices = self._mf_fifo_invoices_for_partial_amount(tenancy, partial_amount)
+                        if not invoices:
+                            return {"success": False, "message": "No unpaid invoices found for this tenancy"}
+                        amount = partial_amount
                         currency_iso = invoices[0].currency_id.name
                     else:
-                        return {"success": False, "message": "No unpaid invoices found for this tenancy"}
+                        invoices = self._mf_tenancy_payable_invoices(tenancy, params)
+                        if invoices:
+                            amount = sum(inv.amount_residual for inv in invoices)
+                            currency_iso = invoices[0].currency_id.name
+                        else:
+                            return {"success": False, "message": "No unpaid invoices found for this tenancy"}
                 else:
                     return {"success": False, "message": "Invalid tenancy"}
 

@@ -36,6 +36,58 @@ class AccountMove(models.Model):
         help='Deposit received via customer invoice; uses insurance account and no tenancy analytic.',
     )
 
+    def _property_is_deposit_receive_invoice(self):
+        """Customer deposit invoice (not a payment journal entry)."""
+        self.ensure_one()
+        return (
+            self.is_deposit_receive
+            and self.move_type == 'out_invoice'
+            and not self.payment_id
+        )
+
+    @api.depends('partner_id', 'is_deposit_receive', 'move_type')
+    def _compute_invoice_payment_term_id(self):
+        """Deposit / rent-schedule invoices are one receivable, not payment-term installments.
+
+        Regular Accounting invoices keep core Odoo payment terms.
+        """
+        deposit_invoices = self.filtered(lambda m: m._property_is_deposit_receive_invoice())
+        rent_invoices = self.env['account.move']
+        if self.env.context.get('property_rent_schedule_invoice'):
+            rent_invoices = (self - deposit_invoices).filtered(
+                lambda m: m.tenancy_id or m.new_tenancy_id
+            )
+        skip = deposit_invoices | rent_invoices
+        super(AccountMove, self - skip)._compute_invoice_payment_term_id()
+        skip.invoice_payment_term_id = False
+
+    def _property_unlink_zero_receivable_lines(self):
+        """Drop leftover zero payment-term receivable lines (installment #2 at 0.00)."""
+        for invoice in self:
+            if not invoice.is_invoice(include_receipts=True):
+                continue
+
+            def _is_receivable_line(line):
+                return line.display_type == 'payment_term' or (
+                    line.account_id and line.account_id.account_type == 'asset_receivable'
+                )
+
+            valued = invoice.line_ids.filtered(
+                lambda l: _is_receivable_line(l) and not invoice.currency_id.is_zero(l.balance)
+            )
+            leftover = invoice.line_ids.filtered(
+                lambda l: _is_receivable_line(l)
+                and invoice.currency_id.is_zero(l.balance)
+                and invoice.currency_id.is_zero(l.amount_currency)
+            )
+            if leftover and valued:
+                leftover.with_context(
+                    dynamic_unlink=True,
+                    skip_invoice_sync=True,
+                    check_move_validity=False,
+                    mm_skip_deposit_line_sync=True,
+                ).unlink()
+
     def _property_deposit_receive_tenancies(self):
         """Tenancies whose deposit receive invoice is one of these moves."""
         Tenancy = self.env['account.analytic.account']
@@ -77,6 +129,45 @@ class AccountMove(models.Model):
         res = super().button_draft()
         if tenancies:
             tenancies.write({'deposit_received': False})
+        return res
+
+    def _property_rent_schedules_for_invoices(self):
+        invoices = self.filtered(lambda m: m.is_invoice(include_receipts=True))
+        if not invoices:
+            return self.env['tenancy.rent.schedule']
+        return self.env['tenancy.rent.schedule'].sudo().search([
+            ('invoice_id', 'in', invoices.ids),
+        ])
+
+    def _property_service_rents_for_invoices(self):
+        if 'service.rent' not in self.env:
+            return self.env['tenancy.rent.schedule'].browse()
+        invoices = self.filtered(lambda m: m.is_invoice(include_receipts=True))
+        ServiceRent = self.env['service.rent']
+        if not invoices:
+            return ServiceRent
+        return ServiceRent.sudo().search([
+            ('move_id', 'in', invoices.ids),
+        ])
+
+    def button_cancel(self):
+        schedules = self._property_rent_schedules_for_invoices()
+        service_rents = self._property_service_rents_for_invoices()
+        res = super().button_cancel()
+        if schedules:
+            schedules._reset_invoice_create_flags()
+        if service_rents:
+            service_rents.write({'is_created': False})
+        return res
+
+    def unlink(self):
+        schedules = self._property_rent_schedules_for_invoices()
+        service_rents = self._property_service_rents_for_invoices()
+        res = super().unlink()
+        if schedules:
+            schedules._reset_invoice_create_flags()
+        if service_rents:
+            service_rents.write({'is_created': False})
         return res
 
     def assert_balanced(self):
@@ -131,7 +222,22 @@ class AccountMoveLine(models.Model):
         comodel_name='account.analytic.account',
         string='Tenancy',
         help='Tenancy Name.')
-   
+
+    def _compute_account_id(self):
+        """Create deposit invoice receivable lines on Deposit Receivable, not partner AR."""
+        super()._compute_account_id()
+        deposit_account = self.env['res.config.settings']._get_deposit_receivable_account()
+        if not deposit_account:
+            return
+        for line in self:
+            move = line.move_id
+            if not move or not move._property_is_deposit_receive_invoice():
+                continue
+            if line.display_type == 'payment_term' or (
+                line.account_id and line.account_id.account_type == 'asset_receivable'
+            ):
+                line.account_id = deposit_account
+
     # invoice_id = fields.Many2one('account.move', related='move_id.invoice_id', string="Invoice")
     
     
@@ -433,11 +539,37 @@ class AccountPayment(models.Model):
         help='Marks deposit-receive payments for tenancy deposit_received tracking.',
     )
 
+    def _property_get_linked_deposit_invoices(self):
+        """Deposit receive customer invoices this payment is settling (wizard, reconcile, or provider)."""
+        self.ensure_one()
+        invoices = self.mm_invoice_id | self.reconciled_invoice_ids
+        tx = self.payment_transaction_id
+        if tx:
+            if tx.source_transaction_id and tx.operation == tx.source_transaction_id.operation:
+                invoices |= tx.source_transaction_id.invoice_ids
+            else:
+                invoices |= tx.invoice_ids
+        return invoices.filtered(
+            lambda m: getattr(m, 'is_deposit_receive', False) and m.move_type == 'out_invoice'
+        )
+
     def _property_paying_deposit_receive_invoice(self):
         """True when this payment settles a deposit receive customer invoice."""
         self.ensure_one()
-        invoices = self.mm_invoice_id | self.reconciled_invoice_ids
-        return bool(invoices.filtered('is_deposit_receive'))
+        return bool(self._property_get_linked_deposit_invoices())
+
+    def _property_get_deposit_invoice_receivable_account(self):
+        """Invoice receivable (Deposit Receivable), not partner AR and not insurance."""
+        self.ensure_one()
+        invoice = self._property_get_linked_deposit_invoices()[:1]
+        if not invoice:
+            return self.env['account.account']
+        receivable_lines = invoice.line_ids.filtered(
+            lambda l: l.account_id.account_type == 'asset_receivable' and l.debit
+        )
+        if receivable_lines:
+            return receivable_lines[:1].account_id
+        return self.env['res.config.settings']._get_deposit_receivable_account()
 
     @api.depends('mm_invoice_id')
     def compute_mm_move_id(self):
@@ -618,10 +750,15 @@ class AccountPayment(models.Model):
     #             res.tenancy_id.write({'acc_pay_dep_ret_id': res.id})
     #     return res
     
-    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=False, **kwargs):
+    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None, **kwargs):
         """Override to add analytic account to journal items during payment."""
-        # Call the super method
-        result = super(AccountPayment, self)._prepare_move_line_default_vals(write_off_line_vals, **kwargs)
+        # False must not be used as default: Odoo treats force_balance is not None
+        # as "force this balance", and abs(False) == 0, so debit/credit become 0.
+        result = super()._prepare_move_line_default_vals(
+            write_off_line_vals=write_off_line_vals,
+            force_balance=force_balance,
+            **kwargs
+        )
         # Handle context-specific properties (like 'property_id')
         context = dict(self._context or {})
         if context.get('account_deposit_received'):
