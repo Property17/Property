@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="whatsapp_composer_view_form_payment_link_company" model="ir.ui.view">
+        <field name="name">whatsapp.composer.view.form.payment.link.company</field>
+        <field name="model">whatsapp.composer</field>
+        <field name="inherit_id" ref="whatsapp.whatsapp_composer_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='wa_template_id']" position="before">
+                <field name="wa_template_domain" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='wa_template_id']" position="attributes">
+                <attribute name="domain">wa_template_domain</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

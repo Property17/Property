@@ -40,6 +40,7 @@
                         <group>
                             <field name="total_amount_due" widget="monetary" readonly="1"/>
                             <field name="flexible_payment" readonly="1"/>
+                            <field name="allow_partial_payment" readonly="1"/>
                             <field name="block_payment" readonly="1"/>
                         </group>
                         <group>
@@ -84,6 +85,7 @@
                 <field name="total_amount_due"/>
                 <field name="tenancy_status"/>
                 <field name="flexible_payment"/>
+                <field name="allow_partial_payment"/>
                 <field name="block_payment"/>
             </tree>
         </field>
@@ -128,6 +130,7 @@
                         <group>
                             <field name="total_amount_due" widget="monetary" readonly="1"/>
                             <field name="flexible_payment" readonly="1"/>
+                            <field name="allow_partial_payment" readonly="1"/>
                             <field name="block_payment" readonly="1"/>
                         </group>
                         <group>

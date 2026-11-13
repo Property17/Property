@@ -14,20 +14,37 @@ class InvReportView(models.AbstractModel):
     _description = "Inv Report"
 
     @api.model
-    def _get_first_invoice_payment_widget_line(self, move):
-        """First reconciled payment line from the invoice widget (same source as portal receipt)."""
+    def _parse_invoice_payments_widget(self, move):
         widget = move.invoice_payments_widget
         if not widget:
-            return None
+            return []
         if isinstance(widget, (bytes, bytearray)):
             try:
                 widget = json.loads(widget.decode())
             except (ValueError, TypeError, AttributeError):
-                return None
+                return []
+        if isinstance(widget, str):
+            try:
+                widget = json.loads(widget)
+            except (ValueError, TypeError):
+                return []
         if not isinstance(widget, dict):
-            return None
-        content = widget.get('content') or []
+            return []
+        return widget.get('content') or []
+
+    @api.model
+    def _get_invoice_payment_widget_line(self, move, payment_id=None):
+        """Reconciled payment line from the invoice widget (portal can pass payment_id)."""
+        content = self._parse_invoice_payments_widget(move)
+        if payment_id:
+            for line in content:
+                if line.get('account_payment_id') == payment_id:
+                    return line
         return content[0] if content else None
+
+    @api.model
+    def _get_first_invoice_payment_widget_line(self, move):
+        return self._get_invoice_payment_widget_line(move)
 
     @api.model
     def _format_widget_payment_date(self, date_val):
@@ -46,14 +63,28 @@ class InvReportView(models.AbstractModel):
         for move in account_move:
             if move.state != "blocked":
                 tenancy = self.env['tenancy.rent.schedule'].search([('invoice_id', '=', move.id)])
-                amount_paid = tenancy.amount - tenancy.rent_residual
-
+                portal_payment_id = self.env.context.get('portal_payment_id')
+                first_widget_line = self._get_invoice_payment_widget_line(
+                    move, portal_payment_id,
+                )
+                widget_content = self._parse_invoice_payments_widget(move)
+                if portal_payment_id and first_widget_line:
+                    amount_paid = first_widget_line.get('amount', 0) or 0
+                    cumulative = 0.0
+                    rent_residual = tenancy.rent_residual
+                    for line in widget_content:
+                        cumulative += line.get('amount', 0) or 0
+                        if line.get('account_payment_id') == portal_payment_id:
+                            rent_residual = max((tenancy.amount or 0) - cumulative, 0)
+                            break
+                else:
+                    amount_paid = tenancy.amount - tenancy.rent_residual
+                    rent_residual = tenancy.rent_residual
                 num_word = num2words(amount_paid, lang='ar_001') + _(" فقط ")
 
                 ttyme = datetime.combine(fields.Date.from_string(move.invoice_date), time.min)
                 locale = self.env.context.get('lang', 'en_US')
                 date_name = tools.ustr(babel.dates.format_date(date=ttyme, format='MMMM-y', locale=locale))
-                first_widget_line = self._get_first_invoice_payment_widget_line(move)
                 paid_date = move.paid_date
                 if not paid_date and first_widget_line:
                     paid_date = self._format_widget_payment_date(first_widget_line.get('date'))
@@ -93,7 +124,7 @@ class InvReportView(models.AbstractModel):
                     'paid_date': paid_date,
                     'cheque_detail': payment_details,
                     'note': move.note,
-                    'rent_residual': tenancy.rent_residual,
+                    'rent_residual': rent_residual,
                     'invoice_user_id': move.invoice_user_id.name,
                     'num_word': num_word,
                     'payment_journal_id': move.payment_journal_id.name,
